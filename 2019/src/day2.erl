@@ -3,25 +3,32 @@
 
 run(Star, File) ->
     {ok, Device} = file:open(File, [read]),
-    Data = read_data(Device),
+    Program = intcode:read(Device),
     case Star of
 	star1 ->
-	    star1(Data);
+	    star1(Program);
 	star2 ->
-	    star2(Data);
+	    star2(Program);
 	_ -> 
-	    Star1 = star1(Data),
-	    Star2 = star2(Data),
+	    Star1 = star1(Program),
+	    Star2 = star2(Program),
 	    {Star1, Star2}
     end.
 
-star1(Data) ->
-    run_program(Data#{1 => 12, 2 => 2}).
+star1(Program0) ->
+    Program1 = intcode:set(12, 1, Program0),
+    Program = intcode:set(2, 2, Program1),
+    Result = intcode:run(Program),
+    intcode:get(0, Result).
 
-star2(Data) ->
+star2(Program0) ->
     
     F = fun (Noun, Verb) ->
-		case run_program(Data#{1 => Noun, 2 => Verb}) of
+		Program1 = intcode:set(Noun, 1, Program0),
+		Program = intcode:set(Verb, 2, Program1),
+		Result = intcode:run(Program),
+
+		case intcode:get(0, Result) of
 		    19690720 ->
 			done;
 		    _ ->
