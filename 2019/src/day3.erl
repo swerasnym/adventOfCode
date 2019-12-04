@@ -45,9 +45,6 @@ star2({Data1, Data2}) ->
     lists:min( Distanses).
 
 
-
-
-
 read(File) ->
     {ok, Device} = file:open(File, [read]),
     Row1 = io:get_line(Device, ""),
