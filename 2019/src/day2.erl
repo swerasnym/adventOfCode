@@ -2,8 +2,7 @@
 -export([run/2,star2/1, run_program/1, eval/2]).
 
 run(Star, File) ->
-    {ok, Device} = file:open(File, [read]),
-    Program = intcode:read(Device),
+    Program = intcode:from_file(File),
     case Star of
 	star1 ->
 	    star1(Program);
