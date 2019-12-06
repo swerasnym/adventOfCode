@@ -23,33 +23,24 @@ run(Star, File) ->
     end.
 
 star1(G) ->
-
-    F = fun (V) ->
-		{Com, _} = digraph:vertex(G, <<"COM">>),
-		case digraph:get_path(G, Com, V) of
-		    false ->
-			0;
-		    Path ->
-			    length(Path) -1
-		end
-	end,
-
-   
-    lists:sum([F(V) || V <-  digraph:vertices(G)]). 
+    depth(G, <<"COM">>).
     
+
+depth(G, Vertex) ->
+    depth(G, [{Vertex, 0}], 0).
+
+depth(_, [], Acc) ->
+    Acc;
+
+depth(G, [{Vertex, Distance} | Rest], Acc) ->
+    Neigbours = [{V, Distance +1} || V <- digraph:out_neighbours(G, Vertex)],
+    depth(G, Neigbours ++ Rest, Acc + Distance).
 
 
 star2(G) ->
-    {Com, _} = digraph:vertex(G, <<"COM">>),
-    {You, _} = digraph:vertex(G, <<"YOU">>), 
-    {San, _} = digraph:vertex(G, <<"SAN">>), 
-    P1 = digraph:get_path(G, Com, You),
-    P2 = digraph:get_path(G, Com, San),
-    
-    P3 = sets:to_list(sets:intersection(sets:from_list(P1), sets:from_list(P2))),
-
-    length(P1) +length(P2) - 2* length(P3) -2 .
-
+    P1 = digraph:get_path(G, <<"COM">>, <<"YOU">>),
+    P2 = digraph:get_path(G, <<"COM">>, <<"SAN">>),
+    length(P1 -- P2) + length(P2 -- P1)  - 2.
 
 
 read(File) ->
