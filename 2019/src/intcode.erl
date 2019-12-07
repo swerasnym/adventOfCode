@@ -10,7 +10,8 @@
 	 mode,                % The mode of the operation
 	 memory,
 	 input = [],
-	 output = []
+	 output = [],
+	 outputpid = none
 	}).
 
 % Main api
@@ -27,6 +28,7 @@
 	 run_string/1,
 	 run_string/2,
 	 set_input/2,
+	 set_output_pid/2,
 	 get_output/1,
 	 print/1]).
 
@@ -120,12 +122,24 @@ call(add, #state{values = [Term1, Term2, _], addresses = [_,_,To]} = State) ->
 call(multiply, #state{values = [Factor1, Factor2, _], addresses = [_,_,To]} = State) ->
     set(Factor1 * Factor2, To, State);
 
+
+call(input, #state{addresses = [To], input = [] } = State0) ->
+    receive
+	[Value|Rest] ->
+	    State = set(Value, To , State0),
+	    State#state{input=Rest}
+    end;
+
 call(input, #state{addresses = [To], input = [Value|Rest] } = State0) ->
     State = set(Value, To , State0),
     State#state{input=Rest};
 
 
-call(output, #state{values = [Value], output = Output } = State) ->
+call(output, #state{values = [Value], output = Output, outputpid = none} = State) ->
+    State#state{output=[Value | Output]};
+
+call(output, #state{values = [Value], output = Output, outputpid = Pid } = State) ->
+    Pid ! [Value],
     State#state{output=[Value | Output]};
 
 
@@ -208,6 +222,9 @@ set(Value, Address, #state{memory = Memory} = State) ->
 
 set_input(List, State) ->
     State#state{input = List}.
+
+set_output_pid(Pid, State) ->
+    State#state{outputpid = Pid}.
 
 
 get(Address, #state{memory = Memory}) ->
@@ -320,4 +337,3 @@ mode(_, 0, Acc) ->
     lists:reverse(Acc);
 mode(Mode, Parameters, Acc) ->
     mode(Mode div 10, Parameters - 1, [Mode rem 10 | Acc]).
-
