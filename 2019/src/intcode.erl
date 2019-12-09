@@ -1,21 +1,4 @@
 -module(intcode).
-
--record(state,
-	{
-	 ip = 0,              % Current Instruction pointer
-	 next_ip = 0,         % Next Instruction pointer
-	 instruction,         % instruction as an atom
-	 addresses,           % The raw addresses
-	 values,              % The value at the given address
-	 mode,                % The mode of the operation
-	 memory,
-	 input = [],
-	 output = [],
-	 outputpid = none,
-	 function = none
-	}).
-
-% Main api
 -export([set/3,
 	 get/2,
 	 from_list/1,
@@ -33,6 +16,21 @@
 	 get_output/1,
 	 print/1]).
 
+-record(state,
+	{
+	 ip = 0,              % Current Instruction pointer
+	 next_ip = 0,         % Next instruction pointer
+	 instruction,         % Instruction as an atom
+	 addresses,           % The raw addresses
+	 values,              % The value at the given address
+	 mode,                % The mode of the operation
+	 memory,              % The programs memory
+	 input = [],          % Input list
+	 output = [],         % Output stack
+	 outputpid = none,    % Pid to send output to
+	 function = none,     % Function to run
+	 relative_base = 0    % Relative base used in mode 2
+	}).
 
 -define(INSTRUCTIONS,
 	#{1 => {add, 3, fun add/1},
@@ -43,6 +41,7 @@
 	  6 => {jump_if_false, 2, fun jump_if_false/1},
 	  7 => {less_than, 3, fun less_than/1},
 	  8 => {equals, 3, fun equals/1},
+	  9 => {relative_base_offset, 1, fun relative_base_offset/1},
 
 	  guess1 => {subtract, 3, fun subtract/1},
 	  guess2 => {divide, 3, fun divide/1},
@@ -51,9 +50,7 @@
 
 	  99 => {halt, 0, fun halt/1}}).
 
-
 -define(vva(V1, V2, A), #state{values = [V1, V2, _], addresses = [_,_,A]}).
-
 
 call(#state{function = Function} = State) ->
     Function(State).
@@ -64,7 +61,6 @@ add(?vva(Term1,Term2, To) = State) ->
 multiply(?vva(Factor1, Factor2, To) = State) ->
     set(Factor1 * Factor2, To, State).
 
-
 input(#state{addresses = [To], input = [] } = State0) ->
     receive
 	[Value|Rest] ->
@@ -74,7 +70,6 @@ input(#state{addresses = [To], input = [] } = State0) ->
 input(#state{addresses = [To], input = [Value|Rest] } = State0) ->
     State = set(Value, To , State0),
     State#state{input=Rest}.
-
 
 output(#state{values = [Value], output = Output, outputpid = none} = State) ->
     State#state{output=[Value | Output]};
@@ -111,7 +106,6 @@ equals(?vva(_, _, To) = State) ->
 subtract(?vva(Term1, Term2, To) = State) ->
     set(Term1 - Term2, To, State).
 
-
 divide(?vva(Nominator, Denominator, To) = State) ->
     set(Nominator div  Denominator, To, State).
 
@@ -121,15 +115,11 @@ reminder(?vva(Nominator, Denominator, To) = State) ->
 jump(#state{values = [To]} = State)->
     State#state{next_ip = To}.
 
+relative_base_offset(#state{values = [Value], relative_base = Rel} = State) ->
+    State#state{relative_base = Rel + Value}.
+
 halt(_) ->
     halt.
-
-
-
-
-
-
-
 
 print(#state{
 	 ip = Ip,
@@ -138,22 +128,22 @@ print(#state{
 	 addresses = Address,
 	 values = Values,
 	 input = Input,
-	 memory = Memory
+	 memory = Memory,
+	 relative_base = Rel
 	}) ->
     io:format("ip = ~w~n"
 	      "next_ip = ~w~n"
 	      "instruction = ~w~n"
 	      "addresses = ~w~n"
 	      "values = ~w~n"
-	      "input = ~w~n",
-	      [Ip, Next, Instruction, Address, 	Values, Input ]),
+	      "input = ~w~n"
+	      "relative_base = ~w~n",
+	      [Ip, Next, Instruction, Address, 	Values, Input, Rel ]),
 
     io:format("memory= ~w~n~n", [array:to_list(Memory)]).
 
-
 set(Value, Address, #state{memory = Memory} = State) ->
     State#state{memory = array:set(Address, Value, Memory)}.
-
 
 set_input(List, State) ->
     State#state{input = List}.
@@ -161,14 +151,11 @@ set_input(List, State) ->
 set_output_pid(Pid, State) ->
     State#state{outputpid = Pid}.
 
-
 get(Address, #state{memory = Memory}) ->
     array:get(Address, Memory).
 
-
 get_output(#state{output = Output}) ->
     lists:reverse(Output).
-
 
 run_string(String, Inputs) ->
     Program0 = from_string(String),
@@ -207,7 +194,7 @@ run(State0) ->
     end.
 
 from_list(List) ->
-    #state{memory = array:from_list(List,nil)}.
+    #state{memory = array:from_list(List,0)}.
 
 from_string(String) ->
     String1 = string:split(String, "\n", all),
@@ -228,24 +215,24 @@ from_file(File) ->
     {ok,String} = file:read_file(File),
     from_string(String).
 
-%% Helper functions
-
 get_addresses(_, [], _) ->
     [];
 
-get_addresses(Ip, Modes, State) ->
+get_addresses(Ip, Modes, #state{relative_base = Rel} = State) ->
     Positions = lists:seq(Ip + 1, Ip + length(Modes)),
     [case Mode of
 	 0 ->
 	     get(Pos, State);
 	 1 ->
-	     Pos
+	     Pos;
+	 2 ->
+	     get(Pos, State) + Rel
+
      end
      || {Pos, Mode} <- lists:zip(Positions, Modes)].
 
 get_values(Addresses, State) ->
     [get(Address, State) || Address <- Addresses].
-
 
 step_ip(#state{next_ip = Ip} = State) ->
 
@@ -262,8 +249,6 @@ step_ip(#state{next_ip = Ip} = State) ->
 		values = Values,
 		mode = Modes,
 		function = Function}.
-
-
 
 mode(Mode, Parameters) ->
    mode(Mode, Parameters, []).
