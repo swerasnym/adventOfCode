@@ -62,11 +62,14 @@ multiply(?vva(Factor1, Factor2, To) = State) ->
     set(Factor1 * Factor2, To, State).
 
 input(#state{addresses = [To], input = [] } = State0) ->
+    % io:format("~p Recieved ", [self()]),
     receive
 	[Value|Rest] ->
+	    % io:format("~p~n", [Value]),
 	    State = set(Value, To , State0),
 	    State#state{input=Rest}
     end;
+
 input(#state{addresses = [To], input = [Value|Rest] } = State0) ->
     State = set(Value, To , State0),
     State#state{input=Rest}.
@@ -75,6 +78,7 @@ output(#state{values = [Value], output = Output, outputpid = none} = State) ->
     State#state{output=[Value | Output]};
 output(#state{values = [Value], output = Output, outputpid = Pid } = State) ->
     Pid ! [Value],
+    % io:format("~p Sent ~p~n ", [self(), Value]),
     State#state{output=[Value | Output]}.
 
 jump_if_true(#state{values = [Value, To]} = State ) ->
@@ -118,8 +122,10 @@ jump(#state{values = [To]} = State)->
 relative_base_offset(#state{values = [Value], relative_base = Rel} = State) ->
     State#state{relative_base = Rel + Value}.
 
-halt(_) ->
-    halt.
+halt(#state{outputpid = none}) ->
+    halt;
+halt(#state{outputpid = Pid}) ->
+    Pid ! halt.
 
 print(#state{
 	 ip = Ip,
@@ -186,6 +192,7 @@ run_file(File) ->
 
 run(State0) ->
     State1 = step_ip(State0),
+    %% print(State0),
     case call(State1) of
 	halt ->
 	    State1;
