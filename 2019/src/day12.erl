@@ -1,16 +1,13 @@
 -module(day12).
--export([run/2]).
-
+-export([run/2, data/0, test/0]).
 
 -record(moon, {
 	       pos = {0,0,0},
 	       vel = {0,0,0}
 	      }).
 
-
-run(Star, File) ->
-    {ok, Bin} = file:read_file(File),
-    Data = string:trim(Bin),
+run(Star, _) ->
+    Data = data(),
     case Star of
 	star1 ->
 	    star1(Data);
@@ -22,24 +19,15 @@ run(Star, File) ->
 	    {Star1, Star2}
     end.
 
-star1(_Data) -> 
-    lists:foldl(fun step/2, {0, data()},  lists:seq(1,1000)).
-%    step({0, test()}).
-    
-		   
+star1(Data) -> 
+    lists:foldl(fun step/2, {0, Data},  lists:seq(1,1000)).
 
-
-%    Data.
-    
-
-star2(_Data) ->
-    X = step2(data(), x),
-    Y = step2(data(), y),
-    Z = step2(data(), z),
+star2(Data) ->
+    X = step2(Data, x),
+    Y = step2(Data, y),
+    Z = step2(Data, z),
     {X,Y,Z, lcm(X, lcm(Y,Z))}.
-    
-
-
+  
 step(_Count, Value) ->
     step(Value).
 
@@ -49,7 +37,6 @@ step({_Energy, Data0}) ->
     {energy(Data2), Data2}.
 
 
-
 step2(Data0, Axis) ->
 
     F = fun (_Key, Value) ->
@@ -57,18 +44,16 @@ step2(Data0, Axis) ->
 	end,
 
     Data = maps:map(F, Data0),
-    History = sets:add_element(Data, sets:new()),
-    step2(0, Data, History).
+    step2(0, Data, Data).
 
-
-step2(Step, Data0, History) ->
+step2(Step, Data0, Initial) ->
     Data1 = velocity(Data0), 
     Data2 = position(Data1),
-    case sets:is_element(Data2, History) of
-	true -> 
+    case Data2 of
+	Initial -> 
 	    Step+1;
-	false ->
-	    step2(Step+1, Data2, sets:add_element(Data2, History))
+	_ ->
+	    step2(Step+1, Data2,Initial)
     end.
 						 
 velocity(Data) ->
@@ -113,7 +98,6 @@ data() ->
       4 => #moon{pos ={-3,  -8, -8}}
     }.
 
-
 get_axis(all, Moon) ->
     Moon;
 get_axis(x, #moon{pos ={X,   _Y,  _Z}, vel={Vx, _Vy, _Vz}}) ->
@@ -123,27 +107,18 @@ get_axis(y, #moon{pos ={_X,   Y,  _Z}, vel={_Vx, Vy, _Vz}}) ->
 get_axis(z, #moon{pos ={_X,   _Y,  Z}, vel={_Vx, _Vy, Vz}}) ->
     #moon{pos ={0, 0, Z}, vel={0, 0, Vz}}.
     
-
-
-
 pairs() ->
     List = [1,2,3,4],
     [{X,Y} || X <- List, Y <- List --[X]].    
 
-
-
 energy(Data) when is_map(Data) ->
     lists:sum(lists:map(fun energy/1, maps:values(Data)));
-
 
 energy(#moon{pos ={X,   Y,  Z}, vel={Vx, Vy, Vz}} ) ->
     (abs(X) + abs(Y) + abs(Z)) * (abs(Vx) + abs(Vy) + abs(Vz)).
 
-
-
 gcd(A, 0) -> A;
 gcd(A, B) -> gcd(B, A rem B).
-
 
 lcm(A,B) ->
     A*B div gcd(A,B).
