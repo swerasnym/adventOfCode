@@ -1,22 +1,21 @@
 -module(intcode).
--export([set/3,
-	 get/2,
-	 from_list/1,
-	 from_string/1,
-	 from_file/1,
-	 run/1,
-	 run_file/1,
-	 run_file/2,
-	 run_list/1,
-	 run_list/2,
-	 run_string/1,
-	 run_string/2,
-	 set_input/2,
-	 set_output_pid/2,
-	 set_input_pid/2,
-	 set_input_output_pid/3,
-	 get_output/1,
-	 print/1]).
+
+%% Parse
+-export([from_list/1, from_string/1, from_file/1]).
+
+%% Initiate
+-export([set/3, set_options/2, set_input/2, set_output_pid/2,
+	 set_input_pid/2, set_exit_pid/2, set_input_output_pid/3]).	
+
+%% Start
+-export([run/1, run_file/1, run_list/1,	run_string/1,
+	 run/2, run_file/2, run_list/2, run_string/2]).
+
+%% Exit
+-export([get/2, get_output/1, print/1]).
+
+%% As a process
+-export([spawn/1, spawn/2, send/2, recv/1, recv/2, recvn/2, recvn/3]).
 
 -record(state,
 	{
@@ -31,6 +30,7 @@
 	 output = [],         % Output stack
 	 outputpid = none,    % Pid to send output to
 	 inputpid = none,     % Pid to request input from
+	 exitpid = none,      % Pid to send final state to
 	 function = none,     % Function to run
 	 relative_base = 0    % Relative base used in mode 2
 	}).
@@ -55,6 +55,10 @@
 
 -define(vva(V1, V2, A), #state{values = [V1, V2, _], addresses = [_,_,A]}).
 
+
+%%------------------------------------------------------------------------------
+%% Intcode function calls
+%%------------------------------------------------------------------------------
 call(#state{function = Function} = State) ->
     Function(State).
 
@@ -65,29 +69,17 @@ multiply(?vva(Factor1, Factor2, To) = State) ->
     set(Factor1 * Factor2, To, State).
 
 input(#state{addresses = [To], input = [], inputpid = Pid } = State0) ->
-    %% io:format("~p Recieved ", [self()]),
-    case Pid of
-	none ->
-	    ok;
-	Pid ->    
-	    Pid ! input
-    end,
-    receive
-	[Value|Rest] ->
-%	    io:format("~p~n", [Value]),		
-	    State = set(Value, To , State0),
-	    State#state{input=Rest}
-    end;
-
+    send(Pid, input),
+    [Value|Rest] = recv(Pid),	
+    State = set(Value, To , State0),
+    State#state{input=Rest};
+   
 input(#state{addresses = [To], input = [Value|Rest] } = State0) ->
     State = set(Value, To , State0),
     State#state{input=Rest}.
 
-output(#state{values = [Value], output = Output, outputpid = none} = State) ->
-    State#state{output=[Value | Output]};
 output(#state{values = [Value], output = Output, outputpid = Pid } = State) ->
-    Pid ! [Value],
-    % io:format("~p Sent ~p~n ", [self(), Value]),
+    send(Pid,  [Value]),
     State#state{output=[Value | Output]}.
 
 jump_if_true(#state{values = [Value, To]} = State ) ->
@@ -131,34 +123,45 @@ jump(#state{values = [To]} = State)->
 relative_base_offset(#state{values = [Value], relative_base = Rel} = State) ->
     State#state{relative_base = Rel + Value}.
 
-halt(#state{outputpid = none}) ->
-    halt;
 halt(#state{outputpid = Pid}) ->
-    Pid ! halt.
+    send(Pid, halt).
 
-print(#state{
-	 ip = Ip,
-	 next_ip = Next,
-	 instruction = Instruction,
-	 addresses = Address,
-	 values = Values,
-	 input = Input,
-	 memory = Memory,
-	 relative_base = Rel
-	}) ->
-    io:format("ip = ~w~n"
-	      "next_ip = ~w~n"
-	      "instruction = ~w~n"
-	      "addresses = ~w~n"
-	      "values = ~w~n"
-	      "input = ~w~n"
-	      "relative_base = ~w~n",
-	      [Ip, Next, Instruction, Address, 	Values, Input, Rel ]),
 
-    io:format("memory= ~w~n~n", [array:to_list(Memory)]).
+%%------------------------------------------------------------------------------
+%% Code parsing functions
+%%------------------------------------------------------------------------------
+from_list(List) ->
+    #state{memory = array:from_list(List,0)}.
 
+from_string(String) ->
+    List = string:split(String, ",", all),
+    F = fun (S) ->
+		case string:to_integer(string:trim(S, both)) of
+		    {Int, <<>>} ->
+			Int;
+		    {Int, []} ->
+			Int;
+		    _ ->
+			error({invalid_format, S})
+		end
+	end,
+    from_list(lists:map(F, List)).
+
+from_file(File) ->
+    {ok,String} = file:read_file(File),
+    from_string(String).
+
+
+
+%%------------------------------------------------------------------------------
+%% Settings
+%%------------------------------------------------------------------------------
 set(Value, Address, #state{memory = Memory} = State) ->
     State#state{memory = array:set(Address, Value, Memory)}.
+
+set_options(_List, State) ->
+    %% TODO
+    State.
 
 set_input(List, State) ->
     State#state{input = List}.
@@ -172,11 +175,26 @@ set_input_pid(Pid, State) ->
 set_input_output_pid(InPid, OutPid, State) ->
     State#state{inputpid = InPid, outputpid = OutPid}.
 
-get(Address, #state{memory = Memory}) ->
-    array:get(Address, Memory).
+set_exit_pid(Pid, State) ->
+    State#state{exitpid = Pid}.
 
-get_output(#state{output = Output}) ->
-    lists:reverse(Output).
+%%------------------------------------------------------------------------------
+%% Run on in the same process
+%%------------------------------------------------------------------------------
+run(#state{exitpid = Pid } = State0) ->
+    State1 = step_ip(State0),
+    %% print(State0),
+    case call(State1) of
+	halt ->
+	    send(Pid, {exit, State1}),
+	    State1;
+	State ->
+	    run(State)
+    end.
+
+run(State0, Options) ->
+    State = set_options(Options, State0),
+    run(State).
 
 run_string(String, Inputs) ->
     Program0 = from_string(String),
@@ -205,37 +223,136 @@ run_file(File, Inputs) ->
 run_file(File) ->
     run(from_file(File)).
 
-run(State0) ->
-    State1 = step_ip(State0),
-    %% print(State0),
-    case call(State1) of
+%%------------------------------------------------------------------------------
+%% Get information from finnished program
+%%------------------------------------------------------------------------------
+get(Address, #state{memory = Memory}) ->
+    array:get(Address, Memory).
+
+get_output(#state{output = Output}) ->
+    lists:reverse(Output).
+
+print(#state{
+	 ip = Ip,
+	 next_ip = Next,
+	 instruction = Instruction,
+	 addresses = Address,
+	 values = Values,
+	 input = Input,
+	 memory = Memory,
+	 relative_base = Rel
+	}) ->
+    io:format("ip = ~w~n"
+	      "next_ip = ~w~n"
+	      "instruction = ~w~n"
+	      "addresses = ~w~n"
+	      "values = ~w~n"
+	      "input = ~w~n"
+	      "relative_base = ~w~n",
+	      [Ip, Next, Instruction, Address, 	Values, Input, Rel ]),
+
+    io:format("memory= ~w~n~n", [array:to_list(Memory)]).
+
+%%------------------------------------------------------------------------------
+%% Spawn and interact with a program as a separate process
+%%------------------------------------------------------------------------------
+spawn(State) ->
+    spawn_link(intcode, run, [State]).
+    
+spawn(State, Options) ->
+    spawn_link(intcode, run, [State, Options]).
+
+send(none, Value) ->
+    Value;
+send(To, Value) ->
+    To ! {self(), Value},
+    Value.
+
+recv(Pid) ->
+    recv(Pid, infinity).
+
+recv(none, Timeout) ->
+	receive
+	    {_, Value} ->
+		Value
+	after Timeout->
+		timeout
+	end;
+recv(Pid, Timeout) ->
+	receive
+	    {Pid, Value} ->
+		Value
+	after Timeout->
+		timeout
+	end.
+
+recvn(Pid, N) ->
+    {N0, Acc} = recvn_buffer(Pid, N),
+    recvn(Pid, N0, Acc, infinity).
+recvn(Pid, N, Timeout) ->
+    {N0, Acc} = recvn_buffer(Pid, N),
+    recvn(Pid, N0, Acc, Timeout).
+
+recvn(_Pid, 0, Acc, _Timeout) ->
+    {ok, Acc};
+
+recvn(Pid, N, Acc, Timeout) ->
+    case recv(Pid, Timeout) of
+	Value when is_list(Value) andalso length(Value) =< N->
+	    recvn(Pid, recvn_dec(N, length(Value)) , Acc ++ Value, Timeout);
+
+	Value when is_list(Value) ->
+	    {Head, Extra} = lists:split(N, Value),
+	    self() ! {Pid, recvn_buffer, Extra},
+	    {ok, Acc ++ Head};
+	input ->
+	    {input, Acc};
 	halt ->
-	    State1;
-	State ->
-	    run(State)
+	    {halt, Acc};
+	timeout ->
+	    {timeout, Acc};
+	{exit, State} ->
+	    {exit, State, Acc}
     end.
 
-from_list(List) ->
-    #state{memory = array:from_list(List,0)}.
+%%------------------------------------------------------------------------------
+%% Internal functions
+%%------------------------------------------------------------------------------
+step_ip(#state{next_ip = Ip} = State) ->
 
-from_string(String) ->
-    String1 = string:split(String, "\n", all),
-    List = string:split(String1, ",", all),
-    F = fun (S) ->
-		case string:to_integer(S) of
-		    {Int, <<>>} ->
-			Int;
-		    {Int, []} ->
-			Int;
-		    _ ->
-			error({invalid_format, S})
-		end
-	end,
-    from_list(lists:map(F, List)).
+    Intcode = get(Ip, State),
+    {Instruction, Parameters, Function} = maps:get(Intcode rem 100, ?INSTRUCTIONS),
+    Modes = mode(Intcode div 100, Parameters),
+    Addresses = get_addresses(Ip, Modes, State),
+    Values = get_values(Addresses, State),
 
-from_file(File) ->
-    {ok,String} = file:read_file(File),
-    from_string(String).
+    State#state{ip = Ip,
+		next_ip = Ip + Parameters + 1,
+		instruction = Instruction,
+		addresses = Addresses,
+		values = Values,
+		mode = Modes,
+		function = Function}.
+
+
+recvn_buffer(Pid, N) ->    
+    receive
+	{Pid, recvn_buffer, Value} when length(Value) =< N ->
+	    {recvn_dec(N, length(Value)) , Value};
+	{Pid, recvn_buffer, Value} ->
+	    {Head, Extra} = lists:split(N, Value),
+	    self() ! {Pid, recvn_buffer, Extra},
+	    {0, Head}
+    after 0 ->
+	    {N, []}
+    end.
+
+
+recvn_dec(all,_) ->
+    all;
+recvn_dec(N, Dec) ->
+    N - Dec.
+
 
 get_addresses(_, [], _) ->
     [];
@@ -256,21 +373,6 @@ get_addresses(Ip, Modes, #state{relative_base = Rel} = State) ->
 get_values(Addresses, State) ->
     [get(Address, State) || Address <- Addresses].
 
-step_ip(#state{next_ip = Ip} = State) ->
-
-    Intcode = get(Ip, State),
-    {Instruction, Parameters, Function} = maps:get(Intcode rem 100, ?INSTRUCTIONS),
-    Modes = mode(Intcode div 100, Parameters),
-    Addresses = get_addresses(Ip, Modes, State),
-    Values = get_values(Addresses, State),
-
-    State#state{ip = Ip,
-		next_ip = Ip + Parameters + 1,
-		instruction = Instruction,
-		addresses = Addresses,
-		values = Values,
-		mode = Modes,
-		function = Function}.
 
 mode(Mode, Parameters) ->
    mode(Mode, Parameters, []).

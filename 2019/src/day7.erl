@@ -31,28 +31,24 @@ pahses(Program, [Phase|Phases], Input) ->
     [Output] = intcode:get_output(Result),
     pahses(Program, Phases, Output).
 
+
 loop(Program, [P0, P1, P2, P3, P4]) ->
-    Program4 = intcode:set_output_pid(self(), Program),
-    Pid4 = spawn(intcode, run, [intcode:set_input([P4], Program4)]),
+     F = fun(Input, Pid) ->
+		 Pr0 = intcode:set_output_pid(Pid, Program), 
+		 Pr1 = intcode:set_input([Input], Pr0),
+		 intcode:spawn(Pr1)
+	 end,
 
-    Program3 = intcode:set_output_pid(Pid4, Program),
-    Pid3 =  spawn(intcode, run, [intcode:set_input([P3], Program3)]),
-
-    Program2 = intcode:set_output_pid(Pid3, Program),
-    Pid2 = spawn(intcode, run, [intcode:set_input([P2], Program2)]),
-
-    Program1 = intcode:set_output_pid(Pid2, Program),
-    Pid1 = spawn(intcode, run, [intcode:set_input([P1], Program1)]),
-
+    Pid4 = F(P4, self()),
+    Pid1 = lists:foldl(F, Pid4, [P3, P2, P1]),
+    
     Program0 = intcode:set_output_pid(Pid1, Program),
     Run = intcode:set_input([P0, 0], Program0),
     intcode:run(Run),
 
-    receive
-	[Result] ->
+    case intcode:recvn(Pid4, all, 1000) of
+	{halt, [Result]} ->
 	    Result
-    after 1000 ->
-	    nok
     end.
 
 perms([]) -> [[]];

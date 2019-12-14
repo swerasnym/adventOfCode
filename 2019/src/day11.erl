@@ -17,7 +17,7 @@ run(Star, File) ->
 star1(Program) -> 
     Program1 = intcode:set_output_pid(self(), Program),
     
-    Pid = spawn_link(intcode, run, [Program1]),
+    Pid = intcode:spawn(Program1),
     {ok, Hull} = robot(Pid),
     paint(Hull),
     maps:size(Hull).
@@ -25,7 +25,7 @@ star1(Program) ->
 star2(Program) ->
     Program1 = intcode:set_output_pid(self(), Program),
     
-    Pid = spawn_link(intcode, run, [Program1]),
+    Pid = intcode:spawn(Program1),
     {ok, Hull} = robot(Pid, white),
 
     paint(Hull),
@@ -38,26 +38,16 @@ robot(Pid, Color) ->
     robot(Pid, #{{0,0} => Color}, {0, 0}, north).
 
 robot(Pid, Hull, Pos, Dir) ->
-    Pid ! read_panel(Pos, Hull),
+    intcode:send(Pid, read_panel(Pos, Hull)),
     
-    receive
-	[Color] ->    
+    case intcode:recvn(Pid, 2, 1000) of
+	{ok, [Color, Rotate]} ->    
 	    Hull1 = write_panel(Pos, Hull, Color),
-	    receive
-		[Rotate] ->
-		    Dir1 = turn(Dir, Rotate),
-		    Pos1 = move(Pos, Dir1),
-		    robot(Pid, Hull1, Pos1, Dir1)
-
-	    after 1000 ->
-		    error({nok, Hull})
-	    end;
-		
-	halt ->
+	    Dir1 = turn(Dir, Rotate),
+	    Pos1 = move(Pos, Dir1),
+	    robot(Pid, Hull1, Pos1, Dir1);
+	{halt, []} ->
 	    {ok, Hull}
-
-    after 1000 ->
-	    error({nok2, Hull})
     end.
 
 turn(north, 0) ->

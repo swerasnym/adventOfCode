@@ -24,7 +24,7 @@ run(Star, File) ->
 star1(Program) -> 
     Program1 = intcode:set_output_pid(self(), Program),
     
-    Pid = spawn_link(intcode, run, [Program1]),
+    Pid = intcode:spawn(Program1),
     #state{screen=Screen} = arcade(#state{}, Pid),
     paint(Screen),
     length([X || X <- maps:values(Screen), X == block]).
@@ -33,44 +33,26 @@ star2(Program) ->
     
     Program1 = intcode:set_input_output_pid(self(), self(), Program),
     Program2 = intcode:set(2, 0, Program1),
-    Pid = spawn_link(intcode, run, [Program2]),
+    Pid = intcode:spawn(Program2),
     #state{screen=Screen, score= Score} = arcade(#state{}, Pid),
     paint(Screen),
     Score.
 
-
 arcade(State, Pid) ->
-    receive
-	[X] ->
-	    X,
-	    Y = receive
-		    [Data1] ->
-			Data1
-		after 1000 ->
-			error(no_y)
-		end,
-
-	    Id = receive
-		     [Data2] ->
-			 Data2
-		 after 1000 ->
-			 error(no_id)
-		 end,
+    case intcode:recvn(Pid, 3, 1000) of
+	{ok, [X, Y, Id]} -> 
 	    State1 = output(State, X, Y, Id),
 	    arcade(State1, Pid);
-	input ->
+	{input,[]} ->
 	    State1 = input(State, Pid),
 	    arcade(State1, Pid);
-	halt ->
+	{halt,[]} ->
 	    State
-    after 1000 ->
-	    error(no_x)
     end.
 
 
 
 input(#state{screen=_Screen, paddle = {Px, _Py}, ball = {Bx, _By}} = State, Pid) ->
-    %% paint(Screen),
     Data = case Px - Bx of
 	       0 ->
 		   [0];
@@ -79,11 +61,10 @@ input(#state{screen=_Screen, paddle = {Px, _Py}, ball = {Bx, _By}} = State, Pid)
 	       Value when Value > 0 ->
 		   [-1]
 	   end,
-    Pid ! Data,
+    intcode:send(Pid, Data),
     State.
 
 output(#state{} = State, -1, 0, Score) -> 
-   %%  io:fwrite("Score: ~p~n", [Score]),
     State#state{score=Score};
 
 output(#state{screen=Screen} = State, X, Y, Id) ->
