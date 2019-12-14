@@ -5,7 +5,7 @@
 
 %% Initiate
 -export([set/3, set_options/2, set_input/2, set_output_pid/2,
-	 set_input_pid/2, set_exit_pid/2, set_input_output_pid/3]).	
+	 set_input_pid/2, set_exit_pid/2, set_input_output_pid/3]).
 
 %% Start
 -export([run/1, run_file/1, run_list/1,	run_string/1,
@@ -23,8 +23,8 @@
 	 next_ip = 0,         % Next instruction pointer
 	 instruction,         % Instruction as an atom
 	 addresses,           % The raw addresses
-	 values,              % The value at the given address
-	 mode,                % The mode of the operation
+	 values,              % The values at the given addresses
+	 modes,               % The modes of the operation
 	 memory,              % The programs memory
 	 input = [],          % Input list
 	 output = [],         % Output stack
@@ -45,16 +45,9 @@
 	  7 => {less_than, 3, fun less_than/1},
 	  8 => {equals, 3, fun equals/1},
 	  9 => {relative_base_offset, 1, fun relative_base_offset/1},
-
-	  guess1 => {subtract, 3, fun subtract/1},
-	  guess2 => {divide, 3, fun divide/1},
-	  guess3 => {reminder, 3, fun reminder/1},
-	  guess4 => {jump, 3, fun jump/1},
-
 	  99 => {halt, 0, fun halt/1}}).
 
 -define(vva(V1, V2, A), #state{values = [V1, V2, _], addresses = [_,_,A]}).
-
 
 %%------------------------------------------------------------------------------
 %% Intcode function calls
@@ -65,15 +58,16 @@ call(#state{function = Function} = State) ->
 add(?vva(Term1,Term2, To) = State) ->
     set(Term1 + Term2, To, State).
 
+
 multiply(?vva(Factor1, Factor2, To) = State) ->
     set(Factor1 * Factor2, To, State).
 
 input(#state{addresses = [To], input = [], inputpid = Pid } = State0) ->
     send(Pid, input),
-    [Value|Rest] = recv(Pid),	
+    [Value|Rest] = recv(Pid),
     State = set(Value, To , State0),
     State#state{input=Rest};
-   
+
 input(#state{addresses = [To], input = [Value|Rest] } = State0) ->
     State = set(Value, To , State0),
     State#state{input=Rest}.
@@ -107,18 +101,6 @@ equals(?vva(Term,Term, To) = State) ->
     set(1, To, State);
 equals(?vva(_, _, To) = State) ->
     set(0, To, State).
-
-subtract(?vva(Term1, Term2, To) = State) ->
-    set(Term1 - Term2, To, State).
-
-divide(?vva(Nominator, Denominator, To) = State) ->
-    set(Nominator div  Denominator, To, State).
-
-reminder(?vva(Nominator, Denominator, To) = State) ->
-    set(Nominator rem  Denominator, To, State).
-
-jump(#state{values = [To]} = State)->
-    State#state{next_ip = To}.
 
 relative_base_offset(#state{values = [Value], relative_base = Rel} = State) ->
     State#state{relative_base = Rel + Value}.
@@ -258,7 +240,7 @@ print(#state{
 %%------------------------------------------------------------------------------
 spawn(State) ->
     spawn_link(intcode, run, [State]).
-    
+
 spawn(State, Options) ->
     spawn_link(intcode, run, [State, Options]).
 
@@ -322,7 +304,7 @@ step_ip(#state{next_ip = Ip} = State) ->
 
     Intcode = get(Ip, State),
     {Instruction, Parameters, Function} = maps:get(Intcode rem 100, ?INSTRUCTIONS),
-    Modes = mode(Intcode div 100, Parameters),
+    Modes = modes(Intcode div 100, Parameters),
     Addresses = get_addresses(Ip, Modes, State),
     Values = get_values(Addresses, State),
 
@@ -331,11 +313,11 @@ step_ip(#state{next_ip = Ip} = State) ->
 		instruction = Instruction,
 		addresses = Addresses,
 		values = Values,
-		mode = Modes,
+		modes = Modes,
 		function = Function}.
 
 
-recvn_buffer(Pid, N) ->    
+recvn_buffer(Pid, N) ->
     receive
 	{Pid, recvn_buffer, Value} when length(Value) =< N ->
 	    {recvn_dec(N, length(Value)) , Value};
@@ -374,10 +356,10 @@ get_values(Addresses, State) ->
     [get(Address, State) || Address <- Addresses].
 
 
-mode(Mode, Parameters) ->
-   mode(Mode, Parameters, []).
+modes(Modes, Parameters) ->
+   modes(Modes, Parameters, []).
 
-mode(_, 0, Acc) ->
+modes(_, 0, Acc) ->
     lists:reverse(Acc);
-mode(Mode, Parameters, Acc) ->
-    mode(Mode div 10, Parameters - 1, [Mode rem 10 | Acc]).
+modes(Modes, Parameters, Acc) ->
+    modes(Modes div 10, Parameters - 1, [Modes rem 10 | Acc]).
