@@ -13,6 +13,8 @@
 	 run_string/2,
 	 set_input/2,
 	 set_output_pid/2,
+	 set_input_pid/2,
+	 set_input_output_pid/3,
 	 get_output/1,
 	 print/1]).
 
@@ -28,6 +30,7 @@
 	 input = [],          % Input list
 	 output = [],         % Output stack
 	 outputpid = none,    % Pid to send output to
+	 inputpid = none,     % Pid to request input from
 	 function = none,     % Function to run
 	 relative_base = 0    % Relative base used in mode 2
 	}).
@@ -61,11 +64,17 @@ add(?vva(Term1,Term2, To) = State) ->
 multiply(?vva(Factor1, Factor2, To) = State) ->
     set(Factor1 * Factor2, To, State).
 
-input(#state{addresses = [To], input = [] } = State0) ->
-    % io:format("~p Recieved ", [self()]),
+input(#state{addresses = [To], input = [], inputpid = Pid } = State0) ->
+    %% io:format("~p Recieved ", [self()]),
+    case Pid of
+	none ->
+	    ok;
+	Pid ->    
+	    Pid ! input
+    end,
     receive
 	[Value|Rest] ->
-	    % io:format("~p~n", [Value]),
+%	    io:format("~p~n", [Value]),		
 	    State = set(Value, To , State0),
 	    State#state{input=Rest}
     end;
@@ -156,6 +165,12 @@ set_input(List, State) ->
 
 set_output_pid(Pid, State) ->
     State#state{outputpid = Pid}.
+
+set_input_pid(Pid, State) ->
+    State#state{inputpid = Pid}.
+
+set_input_output_pid(InPid, OutPid, State) ->
+    State#state{inputpid = InPid, outputpid = OutPid}.
 
 get(Address, #state{memory = Memory}) ->
     array:get(Address, Memory).
