@@ -1,5 +1,5 @@
 -module(day7).
--export([run/2, pahses/2, perms/1, star1/1, loop/2]).
+-export([run/2]).
 
 run(Star, File) ->
     Program = intcode:from_file(File),
@@ -26,25 +26,24 @@ pahses(Program, Phases) ->
 pahses(_, [], Input) ->
     Input;
 pahses(Program, [Phase|Phases], Input) ->
-    Program1 = intcode:set_input([Phase, Input], Program),
-    Result = intcode:run(Program1),
+    Result = intcode:run(Program, [{input, [Phase, Input]}]),
     [Output] = intcode:get_output(Result),
     pahses(Program, Phases, Output).
 
-
 loop(Program, [P0, P1, P2, P3, P4]) ->
      F = fun(Input, Pid) ->
-		 Pr0 = intcode:set_output_pid(Pid, Program), 
-		 Pr1 = intcode:set_input([Input], Pr0),
-		 intcode:spawn(Pr1)
+		 Options = [{outputpid, Pid},
+			    {input, [Input]}],
+		 intcode:spawn(Program, Options)
 	 end,
 
     Pid4 = F(P4, self()),
     Pid1 = lists:foldl(F, Pid4, [P3, P2, P1]),
-    
-    Program0 = intcode:set_output_pid(Pid1, Program),
-    Run = intcode:set_input([P0, 0], Program0),
-    intcode:run(Run),
+
+    Options = [{outputpid, Pid1},
+	       {input, [P0, 0]}],
+
+    intcode:run(Program, Options),
 
     case intcode:recvn(Pid4, all, 1000) of
 	{halt, [Result]} ->

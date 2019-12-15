@@ -1,5 +1,5 @@
 -module(day1).
--export([run/2, fuel/1, star2/1]).
+-export([run/2]).
 
 run(Star, File) ->
     {ok, Device} = file:open(File, [read]),
@@ -9,7 +9,7 @@ run(Star, File) ->
 	    star1(Data);
 	star2 ->
 	    star2(Data);
-	_ -> 
+	_ ->
 	    Star1 = star1(Data),
 	    Star2 = star2(Data),
 	    {Star1, Star2}
@@ -17,13 +17,13 @@ run(Star, File) ->
 
 star1(Data) ->
     Fuel = lists:map(fun fuel/1, Data),
-    lists:sum(Fuel).				
+    lists:sum(Fuel).
 
 star2(Data) ->
     Fuel = lists:map(fun acc_fuel/1, Data),
-    lists:sum(Fuel).				
-    
-read_data(Device) ->    
+    lists:sum(Fuel).
+
+read_data(Device) ->
     read_data(Device, []).
 
 read_data(Device, Acc) ->
@@ -50,10 +50,3 @@ acc_fuel(Weight, Acc) ->
 
 fuel(Weight) ->
     Weight div 3 - 2.
-
-
-
-
-
-
-

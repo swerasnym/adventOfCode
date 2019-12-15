@@ -1,5 +1,5 @@
 -module(day12).
--export([run/2, data/0, test/0]).
+-export([run/2]).
 
 -record(moon, {
 	       pos = {0,0,0},
@@ -7,7 +7,11 @@
 	      }).
 
 run(Star, _) ->
-    Data = data(),
+    Data =     
+	#{1 => #moon{pos ={13, -13,  -2}},
+	  2 => #moon{pos ={16,   2, -15}},
+	  3 => #moon{pos ={7,  -18, -12}},
+	  4 => #moon{pos ={-3,  -8, -8}}},
     case Star of
 	star1 ->
 	    star1(Data);
@@ -83,20 +87,6 @@ position(M, Data) ->
     Moon = maps:get(M, Data),
     #moon{pos = {X,Y,Z}, vel={Dx,Dy,Dz}} = Moon, 
     Data#{M => Moon#moon{pos={X+Dx, Y+Dy, Z+Dz}}}.
-
-test() ->
-    #{1 => #moon{pos ={-1,   0,  2}},
-      2 => #moon{pos ={ 2, -10, -7}},
-      3 => #moon{pos ={ 4,  -8,  8}},
-      4 => #moon{pos ={ 3,   5, -1}}
-    }.
-
-data() ->
-    #{1 => #moon{pos ={13,   -13,  -2}},
-      2 => #moon{pos ={16, 2, -15}},
-      3 => #moon{pos ={7,  -18,  -12}},
-      4 => #moon{pos ={-3,  -8, -8}}
-    }.
 
 get_axis(all, Moon) ->
     Moon;

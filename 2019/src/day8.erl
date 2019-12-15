@@ -1,5 +1,5 @@
 -module(day8).
--export([run/2, count/2]).
+-export([run/2]).
 
 run(Star, File) ->
     {ok, Bin} = file:read_file(File),
@@ -15,11 +15,10 @@ run(Star, File) ->
 	    {Star1, Star2}
     end.
 
-star1(Data) -> 
+star1(Data) ->
     Layers = [ string:slice(Data, Pos,  25*6) || Pos <- lists:seq(0,string:length(Data)-1,25*6)],
     {_, Layer} = lists:min([{count(Layer,"0"), Layer } || Layer <- Layers]),
     count(Layer, "1")* count(Layer, "2").
-    
 
 star2(Data) ->
     Layers = [string:slice(Data, Pos,  25*6) || Pos <- lists:seq(0,string:length(Data)-1,25*6)],
@@ -28,24 +27,15 @@ star2(Data) ->
 
     "ACKPZ". % manual decode!
 
-
 count(Layer, String) ->
     length(string:split(Layer,String,all)) -1.
 
-
-
-
 pixel(Pos, [Top|Rest]) ->
     case string:slice(Top, Pos,  1) of
-	<<"2">> -> 
+	<<"2">> ->
 	    pixel(Pos, Rest);
-	<<"1">> -> 
+	<<"1">> ->
 	    "8";
 	_ ->
 	    " "
     end.
-    
-	    
-			       
-
-	

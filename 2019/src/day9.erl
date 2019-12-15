@@ -14,12 +14,10 @@ run(Star, File) ->
 	    {Star1, Star2}
     end.
 
-star1(Program0) -> 
-    Program = intcode:set_input([1], Program0),
-    Result = intcode:run(Program),
+star1(Program) ->
+    Result = intcode:run(Program, [{input, [1]}]),
     intcode:get_output(Result).
- 
-star2(Program0) ->
-    Program = intcode:set_input([2], Program0),
-    Result = intcode:run(Program),
+
+star2(Program) ->
+    Result = intcode:run(Program, [{input, [2]}]),
     intcode:get_output(Result).

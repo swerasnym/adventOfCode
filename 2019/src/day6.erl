@@ -1,5 +1,5 @@
 -module(day6).
--export([run/2, read/1]).
+-export([run/2]).
 
 run(Star, File) ->
     Edges = read(File),
@@ -16,7 +16,7 @@ run(Star, File) ->
 	    star1(G);
 	star2 ->
 	    star2(G);
-	_ -> 
+	_ ->
 	    Star1 = star1(G),
 	    Star2 = star2(G),
 	    {Star1, Star2}
@@ -24,7 +24,6 @@ run(Star, File) ->
 
 star1(G) ->
     depth(G, <<"COM">>).
-    
 
 depth(G, Vertex) ->
     depth(G, [{Vertex, 0}], 0).
@@ -36,20 +35,16 @@ depth(G, [{Vertex, Distance} | Rest], Acc) ->
     Neigbours = [{V, Distance +1} || V <- digraph:out_neighbours(G, Vertex)],
     depth(G, Neigbours ++ Rest, Acc + Distance).
 
-
 star2(G) ->
     P1 = digraph:get_path(G, <<"COM">>, <<"YOU">>),
     P2 = digraph:get_path(G, <<"COM">>, <<"SAN">>),
     length(P1 -- P2) + length(P2 -- P1)  - 2.
 
-
 read(File) ->
     {ok, Data} = file:read_file(File),
     List = string:split(string:trim(Data), "\n", all),
-	
+
      [begin
 		 [A,B] = string:split(Item, ")"),
 		 {A,B}
 	     end || Item <- List].
-
-

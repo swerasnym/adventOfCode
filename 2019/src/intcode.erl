@@ -5,7 +5,7 @@
 
 %% Initiate
 -export([set/3, set_options/2, set_input/2, set_output_pid/2,
-	 set_input_pid/2, set_exit_pid/2, set_input_output_pid/3]).
+	 set_input_pid/2, set_exit_pid/2, set_timeout/2]).
 
 %% Start
 -export([run/1, run_file/1, run_list/1,	run_string/1,
@@ -32,7 +32,8 @@
 	 inputpid = none,     % Pid to request input from
 	 exitpid = none,      % Pid to send final state to
 	 function = none,     % Function to run
-	 relative_base = 0    % Relative base used in mode 2
+	 relative_base = 0,   % Relative base used in mode 2
+	 timeout = 10000      % How long to wait for messages in input
 	}).
 
 -define(INSTRUCTIONS,
@@ -62,11 +63,20 @@ add(?vva(Term1,Term2, To) = State) ->
 multiply(?vva(Factor1, Factor2, To) = State) ->
     set(Factor1 * Factor2, To, State).
 
-input(#state{addresses = [To], input = [], inputpid = Pid } = State0) ->
+input(#state{addresses = [To], input = [], inputpid = Pid, timeout = Timeout } = State0) ->
     send(Pid, input),
-    [Value|Rest] = recv(Pid),
-    State = set(Value, To , State0),
-    State#state{input=Rest};
+    case recv(Pid, Timeout) of
+	[Value|Rest] ->
+	    State = set(Value, To , State0),
+	    State#state{input=Rest};
+	halt ->
+	    io:fwrite("~p recived halt halting~n", [self()]),
+	    halt;
+	timeout ->
+	    io:fwrite("~p recived timeout, have you forgotten to send halt?~n", [self()]),
+	    halt
+	end;
+
 
 input(#state{addresses = [To], input = [Value|Rest] } = State0) ->
     State = set(Value, To , State0),
@@ -141,9 +151,26 @@ from_file(File) ->
 set(Value, Address, #state{memory = Memory} = State) ->
     State#state{memory = array:set(Address, Value, Memory)}.
 
-set_options(_List, State) ->
-    %% TODO
-    State.
+set_options([], State) ->
+    State;
+set_options([Option|Options], State) ->
+    State1 =
+	case Option of
+	    {set, Value, Address} ->
+		set(Value, Address,  State);
+	    {input, List} ->
+		set_input(List, State);
+	    {outputpid, Pid} ->
+		set_output_pid(Pid, State);
+	    {inputpid, Pid} ->
+		set_input_pid(Pid, State);
+	    {exitpid, Pid} ->
+		set_exit_pid(Pid, State);
+	    {timeout, Timeout} ->
+		set_timeout(Timeout, State)
+	end,
+
+    set_options(Options, State1).
 
 set_input(List, State) ->
     State#state{input = List}.
@@ -154,11 +181,11 @@ set_output_pid(Pid, State) ->
 set_input_pid(Pid, State) ->
     State#state{inputpid = Pid}.
 
-set_input_output_pid(InPid, OutPid, State) ->
-    State#state{inputpid = InPid, outputpid = OutPid}.
-
 set_exit_pid(Pid, State) ->
     State#state{exitpid = Pid}.
+
+set_timeout(Timeout, State) ->
+    State#state{timeout = Timeout}.
 
 %%------------------------------------------------------------------------------
 %% Run on in the same process

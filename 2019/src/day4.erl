@@ -1,6 +1,5 @@
 -module(day4).
-
--export([run/2, nondec/1, same/1, same2/1]).
+-export([run/2]).
 
 run(Star, _) ->
     Data = {183564,657474},
@@ -10,7 +9,7 @@ run(Star, _) ->
 	    star1(Data);
 	star2 ->
 	    star2(Data);
-	_ -> 
+	_ ->
 	    Star1 = star1(Data),
 	    Star2 = star2(Data),
 	    {Star1, Star2}
@@ -21,7 +20,7 @@ star1({To, From}) ->
     Codes1 = lists:filter(fun same/1, Codes0),
     Codes2 = lists:filter(fun nondec/1, Codes1),
     length(Codes2).
-	
+
 star2({To, From}) ->
     Codes0 = lists:map(fun integer_to_list/1,  lists:seq(To,From)),
     Codes1 = lists:filter(fun same2/1, Codes0),

@@ -8,20 +8,16 @@ run(Star, File) ->
 	    star1(Program);
 	star2 ->
 	    star2(Program);
-	_ -> 
+	_ ->
 	    Star1 = star1(Program),
 	    Star2 = star2(Program),
 	    {Star1, Star2}
     end.
 
-star1(Program0) ->
-    Program = intcode:set_input([1], Program0),
-    Result = intcode:run(Program),
+star1(Program) ->
+    Result = intcode:run(Program, [{input, [1]}]),
     intcode:get_output(Result).
 
-star2(Program0) ->
-    Program = intcode:set_input([5], Program0),
-    Result = intcode:run(Program),
+star2(Program) ->
+    Result = intcode:run(Program, [{input, [5]}]),
     intcode:get_output(Result).
-
-

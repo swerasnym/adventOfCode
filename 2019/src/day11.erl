@@ -14,18 +14,14 @@ run(Star, File) ->
 	    {Star1, Star2}
     end.
 
-star1(Program) -> 
-    Program1 = intcode:set_output_pid(self(), Program),
-    
-    Pid = intcode:spawn(Program1),
+star1(Program) ->
+    Pid = intcode:spawn(Program, [{outputpid, self()}]),
     {ok, Hull} = robot(Pid),
     paint(Hull),
     maps:size(Hull).
- 
+
 star2(Program) ->
-    Program1 = intcode:set_output_pid(self(), Program),
-    
-    Pid = intcode:spawn(Program1),
+    Pid = intcode:spawn(Program, [{outputpid, self()}]),
     {ok, Hull} = robot(Pid, white),
 
     paint(Hull),
@@ -39,9 +35,9 @@ robot(Pid, Color) ->
 
 robot(Pid, Hull, Pos, Dir) ->
     intcode:send(Pid, read_panel(Pos, Hull)),
-    
+
     case intcode:recvn(Pid, 2, 1000) of
-	{ok, [Color, Rotate]} ->    
+	{ok, [Color, Rotate]} ->
 	    Hull1 = write_panel(Pos, Hull, Color),
 	    Dir1 = turn(Dir, Rotate),
 	    Pos1 = move(Pos, Dir1),
@@ -79,7 +75,6 @@ move({X,Y}, east) ->
 move({X,Y}, west) ->
     {X - 1, Y}.
 
-
 read_panel(Pos, Hull) ->
     case maps:get(Pos, Hull, black) of
 	black ->
@@ -90,20 +85,18 @@ read_panel(Pos, Hull) ->
 
 write_panel(Pos, Hull, Color) ->
     Hull#{Pos => color(Color)}.
-    
 
-color(0)-> 
+color(0)->
     black;
 color(1) ->
     white.
 
-
 paint(Hull) ->
     Xs = [X || {X,_} <- maps:keys(Hull)],
     Ys = [Y || {_,Y} <- maps:keys(Hull)],
-	  
-    
-    [paint({X,Y}, Hull, lists:max(Xs)) || Y <- lists:seq(lists:min(Ys), lists:max(Ys)), 
+
+
+    [paint({X,Y}, Hull, lists:max(Xs)) || Y <- lists:seq(lists:min(Ys), lists:max(Ys)),
 					  X <- lists:seq(lists:min(Xs), lists:max(Xs))],
     ok.
 
@@ -120,8 +113,4 @@ paint(Pos, Hull, _) ->
 	    io:format(" ",[]);
 	white ->
 	    io:format("#",[])
-    end .   
-
-
-
-
+    end.
