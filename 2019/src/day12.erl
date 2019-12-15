@@ -24,13 +24,14 @@ run(Star, _) ->
     end.
 
 star1(Data) -> 
-    lists:foldl(fun step/2, {0, Data},  lists:seq(1,1000)).
+    {Energy,_ } = lists:foldl(fun step/2, {0, Data},  lists:seq(1,1000)),
+    Energy.
 
 star2(Data) ->
     X = step2(Data, x),
     Y = step2(Data, y),
     Z = step2(Data, z),
-    {X,Y,Z, lcm(X, lcm(Y,Z))}.
+    lcm(X, lcm(Y,Z)).
   
 step(_Count, Value) ->
     step(Value).
