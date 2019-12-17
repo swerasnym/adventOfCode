@@ -61,12 +61,16 @@ execute(Day) ->
     [execute(Day, Star, file(Day)) || Star <- [star1, star2]].
 
 execute(Day, Star, File) ->
-    {Time, Result} =  timer:tc(Day, run, [Star, File]),
-    io:format("*~n"),
-    {Day, Star, Time, Result}.
+    try timer:tc(Day, run, [Star, File]) of
+	{Time, Result} -> 
+	    io:format("*~n"),
+	    {Day, Star, Time, Result}
+    catch
+	error:undef -> {Day, undef, 0, not_implemented}
+    end.
 
 print({Day, Star, Time, Answer} = Result) ->
-    io:format("~-5s | ~p | ~8.3f ms | ~p~n", [Day, Star, Time/1000, Answer]),
+    io:format("~-5s | ~-5s | ~8.3f ms | ~p~n", [Day, Star, Time/1000, Answer]),
     Result;
 
 print(List) ->
