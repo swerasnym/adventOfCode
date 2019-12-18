@@ -39,10 +39,11 @@ star1({Maze, Start, Keys}) ->
     register(memmory, spawn_link(day18, memmory, [#{}])),
     Result = bfs(Start, Connections, AllKeys),
     memmory ! {halt, self()},
-    Result.
+    Map = receive Map -> Map end,
+    {Result, length(maps:values(Map))}.
 
 
-star2({Maze0, {X,Y} = Start, Keys}) ->
+star2({Maze0, {X,Y}, Keys}) ->
 
     Maze = Maze0#{{X-1,Y-1} => start, {X,Y-1} => wall, {X+1,Y-1} => start, 
 		  {X-1,Y}   => wall,  {X,Y}   => wall, {X+1,Y}   => wall, 
@@ -65,17 +66,31 @@ star2({Maze0, {X,Y} = Start, Keys}) ->
     
 
 	       
-    [io:format("~s -> ~s: ~p, ~s~n", [S(From), S(To), Length, sets:to_list(Doors)] )|| {{From, To}, {Doors, Length, _} } <- lists:sort(Paths)  ],
-
-    %% Connections = maps:from_list(Paths),
-    %% true = length(maps:keys(Connections)) == length(Paths),
-    %% true = length(Paths) == length(Keys)*length(Keys),
+    %% [io:format("~s -> ~s: ~p, ~s~n", [S(From), S(To), Length, sets:to_list(Doors)] )|| {{From, To}, {Doors, Length, _} } <- lists:sort(Paths)  ],
     
-    %% register(memmory, spawn_link(day18, memmory, [#{}])),
-    %% Result = bfs(Connections, AllKeys),
-    %% memmory ! {halt, self()},
-    %% Result.
-    ok.
+   
+    Starts = lists:filter(fun({{{start,_},_}, _}) ->
+			 true; 
+		    (_) -> false
+			  end,  Paths),
+    
+    [io:format("~s -> ~s: ~p, ~s~n", [S(From), S(To), Length, sets:to_list(Doors)] )|| {{From, To}, {Doors, Length, _} } <- lists:sort(Starts) ],
+    
+    StartList = [{Pos, To} || {{{start, Pos}, To}, _ } <- lists:sort(Starts)],
+    
+    
+
+    Connections = maps:from_list(Paths),
+    true = length(maps:keys(Connections)) == length(Paths),
+    
+    register(memmory, spawn_link(day18, memmory, [#{}])),
+
+    Result = [bfs2(Start, Connections, AllKeys, StartList) || Start <- [{X-1,Y-1}, {X+1,Y-1}, {X-1,Y+1}, {X+1,Y+1}]],
+  
+    memmory ! {halt, self()},
+    
+    Map = receive Map -> Map end,
+    {lists:sum(Result), length(maps:values(Map))}.
 
 
 memmory(Map) ->
@@ -86,7 +101,7 @@ memmory(Map) ->
 	{store, Key, Value} ->
 	    memmory(Map#{Key => Value});
 	{halt, Pid} ->
-	    ok
+	    Pid ! Map
     end.
 
 
@@ -105,8 +120,14 @@ store(Key, Value) ->
 
 
 
+bfs2(Pos, Connections, KeysINeed, StartList) ->
+    Available = proplists:get_all_values(Pos, StartList),
+    bfs({start, Pos}, sets:from_list(KeysINeed -- Available), Available, Connections).
+
 bfs(Pos, Connections, KeysINeed) ->
+
     
+
      bfs({start, Pos}, sets:new(), KeysINeed, Connections).
 
 bfs(_From, _KeysIHave, [], _Connections ) ->
