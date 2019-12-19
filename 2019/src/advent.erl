@@ -70,14 +70,14 @@ execute(Day, Star, File) ->
     end.
 
 print({Day, Star, Time, Answer} = Result) ->
-    io:format("~-5s | ~-5s | ~8.3f ms | ~p~n", [Day, Star, Time/1000, Answer]),
+    io:format("~-5s | ~-5s | ~9.3f ms | ~p~n", [Day, Star, Time/1000, Answer]),
     Result;
 
 print(List) ->
     io:nl(),
-    io:format("Day   | Star  | Time        | Result~n"),
-    io:format("------+-------+-------------+-------~n"),
+    io:format("Day   | Star  | Time         | Result~n"),
+    io:format("------+-------+--------------+-------~n"),
     Results = lists:flatten(List),
     [print(Result) || Result <- Results],
-    io:format("------+-------+-------------+-------~n~n"),
+    io:format("------+-------+--------------+-------~n~n"),
     Results.

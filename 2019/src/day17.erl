@@ -34,34 +34,17 @@ star2(Program) ->
     Map = scan(View),
     Path = path(Map),
     
-    
-    Input = lists:flatten("A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C\n" ++  split(Path)),
 
 
-%% %A:R,10,L,12,R,6,         
-%% AR,10,L,12,R,6,         
-%% %B:R,6,R,10,R,12,R,6,     
-%% %C:R,10,L,12,L,12,        
-%% BR,6,R,10,R,12,R,6,     
-%% CR,10,L,12,L,12,        
-%% BR,6,R,10,R,12,R,6,     
-%% CR,10,L,12,L,12,        
-%% BR,6,R,10,R,12,R,6,     
-%% AR,10,L,12,R,6,   
-
-
-    Result = intcode:run(Program, [{set, 2,0}, {input, "A,A,B,C,B,C,B,C,B,A\nR,10,L,12,R,6\nR,6,R,10,R,12,R,6\nR,10,L,12,L,12\nN\n"}]),
+    Result = intcode:run(Program, [{set, 2,0}, {input,
+						"A,A,B,C,B,C,B,C,B,A\n"
+						"R,10,L,12,R,6\n"
+						"R,6,R,10,R,12,R,6\n"
+						"R,10,L,12,L,12\n"
+						"N\n"}]),
     Output = intcode:get_output(Result),
     lists:last(Output).
     
-
-
-
-
-% Pid = 
-
-
-
 
 scan(View) ->
     io:format("~s",[View]),
@@ -116,14 +99,16 @@ neigbours({X,Y} , Map) ->
 
 path(Map) ->
     [{Pos, {robot, Direction}}] = 
-	maps:to_list(maps:filter(fun(_,V) ->
-					case V of
-					    {robot,_} -> 
-						true;
-					    _ -> 
-						false 
-					end 
-				 end, Map)),
+	maps:to_list(
+	  maps:filter(
+	    fun(_,V) ->
+		    case V of
+			{robot,_} -> 
+			    true;
+			_ -> 
+			    false 
+		    end 
+	    end, Map)),
     
     path(Pos, Direction, Map, []).
 
@@ -176,16 +161,7 @@ split([E|Es], String,  Acc) ->
 	_ ->
 	     split(Es, String ++ "," ++ E,  Acc)
     end.
-
     
-    
-    
-	
-
-
-
-
-
 turn(north, $L) ->
     west;
 turn(north, $R) ->
@@ -214,56 +190,4 @@ move({X,Y}, east) ->
     {X + 1, Y};
 move({X,Y}, west) ->
     {X - 1, Y}.
-
-
-%% R,10,L,12,R,6, A
-%% R,10,L,12,R,6, A
-%% R,6,R,10,R,12,R,6,
-%% R,10,L,12,L,12, 
-%% R,6,R,10,R,12,R,6,
-%% R,10,L,12,L,12,
-%% R,6,R,10,R,12,R,6,
-%% R,10,L,12,L,12,
-%% R,6,R,10,R,12,R,6, 
-%% R,10,L,12,R,6
-
-
-
-
-%% AR,10,L,12,R,6,         
-%% AR,10,L,12,R,6,         
-%% BR,6,R,10,R,12,R,6,     
-%% CR,10,L,12,L,12,        
-%% BR,6,R,10,R,12,R,6,     
-%% CR,10,L,12,L,12,        
-%% BR,6,R,10,R,12,R,6,     
-%% CR,10,L,12,L,12,        
-%% BR,6,R,10,R,12,R,6,     
-%% AR,10,L,12,R,6,         
-
-
-
-%% AR,10,L,12,R,6,  
-%% AR,10,L,12,R,6,         
-%% AR,10,L,12,R,6,         
-%% BR,6,R,10,R,12,R,6,     
-%% BR,6,R,10,R,12,R,6,     
-%% BR,6,R,10,R,12,R,6,     
-%% BR,6,R,10,R,12,R,6,     
-%% CR,10,L,12,L,12,        
-%% CR,10,L,12,L,12,        
-%% CR,10,L,12,L,12,         
-
-
-%% R,10,L,12,L,12,
-%% R,10,L,12,L,12,
-%% R,10,L,12,L,12,
-%% R,10,L,12,R,6,
-%% R,10,L,12,R,6,
-%% R,10,L,12,R,6,
-%% R,6,R,10,R,12,R,6,
-%% R,6,R,10,R,12,R,6,
-%% R,6,R,10,R,12,R,6,
-%% R,6,R,10,R,12,R,6,
-
 

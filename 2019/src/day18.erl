@@ -17,34 +17,30 @@ run(Star, File) ->
 
 star1({Maze, Start, Keys}) ->
     Paths = lists:flatten([reduce(lists:sort(search(Pos, Maze))) || Pos <- Keys]),
-    
-    S = fun 
-	    ({start, {X,Y}}) -> lists:concat(["start (", X,",", Y,")"]);
-	    (A) ->
-		[A]
-	end,
-    
-
     AllKeys = lists:sort([K || {key,K} <- [maps:get(Pos, Maze) || Pos <- Keys]]),
-    
-
-	       
-    [io:format("~s -> ~s: ~p, ~s~n", [S(From), S(To), Length, sets:to_list(Doors)] )|| {{From, To}, {Doors, Length, _} } <- lists:sort(Paths)  ],
-
-
     Connections = maps:from_list(Paths),
+
+    %% Just verify thet there is a single path trough doors to get between keys.
     true = length(maps:keys(Connections)) == length(Paths),
-    true = length(Paths) == length(Keys)*length(Keys),
     
+    %% Start persistent memory
     register(memmory, spawn_link(day18, memmory, [#{}])),
-    Result = bfs(Start, Connections, AllKeys),
+    
+    {Result, [_Start|Path]} = bfs(Start, Connections, AllKeys),
+    
+    %% Dump memmory
     memmory ! {halt, self()},
-    Map = receive Map -> Map end,
-    {Result, length(maps:values(Map))}.
+    receive Map -> Map end,
+    
+    %% Check how many possitions where stored
+    {Result, [$@|Path]}.
 
 
 star2({Maze0, {X,Y}, Keys}) ->
-
+    %% TODO make it pass day18_4.data, with 72 where the assumption that the
+    %% robots can get all keys in their areas in any order no longer
+    %% holds (assumong the required keys age given from the other robots in time.)
+    
     Maze = Maze0#{{X-1,Y-1} => start, {X,Y-1} => wall, {X+1,Y-1} => start, 
 		  {X-1,Y}   => wall,  {X,Y}   => wall, {X+1,Y}   => wall, 
 		  {X-1,Y+1} => start, {X,Y+1} => wall, {X+1,Y+1} => start},
@@ -54,28 +50,18 @@ star2({Maze0, {X,Y}, Keys}) ->
 
     Paths = lists:flatten([reduce(lists:sort(search(Pos, Maze))) || Pos <- Keys]),
     
-    S = fun 
-	    ({start, {X,Y}}) -> lists:concat(["start (", X,",", Y,")"]);
-	    (A) ->
-		[A]
-	end,
-    
+
 
 
     AllKeys = lists:sort([K || {key,K} <- [maps:get(Pos, Maze) || Pos <- Keys]]),
     
-
-	       
-    %% [io:format("~s -> ~s: ~p, ~s~n", [S(From), S(To), Length, sets:to_list(Doors)] )|| {{From, To}, {Doors, Length, _} } <- lists:sort(Paths)  ],
-    
-   
+  
     Starts = lists:filter(fun({{{start,_},_}, _}) ->
 			 true; 
 		    (_) -> false
 			  end,  Paths),
     
-    [io:format("~s -> ~s: ~p, ~s~n", [S(From), S(To), Length, sets:to_list(Doors)] )|| {{From, To}, {Doors, Length, _} } <- lists:sort(Starts) ],
-    
+   
     StartList = [{Pos, To} || {{{start, Pos}, To}, _ } <- lists:sort(Starts)],
     
     
@@ -85,12 +71,16 @@ star2({Maze0, {X,Y}, Keys}) ->
     
     register(memmory, spawn_link(day18, memmory, [#{}])),
 
-    Result = [bfs2(Start, Connections, AllKeys, StartList) || Start <- [{X-1,Y-1}, {X+1,Y-1}, {X-1,Y+1}, {X+1,Y+1}]],
-  
+    Results = [bfs2(Start, Connections, AllKeys, StartList) || Start <- [{X-1,Y-1}, {X+1,Y-1}, {X-1,Y+1}, {X+1,Y+1}]],
+
+    Result = [Dist || {Dist, _} <-  Results],
+
+    SolutionPath = [ ["@", Path, " "] || {_, [_Start|Path]} <-  Results],  
+    
     memmory ! {halt, self()},
     
-    Map = receive Map -> Map end,
-    {lists:sum(Result), length(maps:values(Map))}.
+    receive Map -> Map end,
+    {lists:sum(Result), lists:concat(lists:concat(SolutionPath))}.
 
 
 memmory(Map) ->
@@ -130,15 +120,10 @@ bfs(Pos, Connections, KeysINeed) ->
 
      bfs({start, Pos}, sets:new(), KeysINeed, Connections).
 
-bfs(_From, _KeysIHave, [], _Connections ) ->
-    0;
+bfs(From, _KeysIHave, [], _Connections ) ->
+    {0,[From]};
 bfs(From, KeysIHave, KeysINeed, Connections ) ->
-
-	    S = fun (start) -> "start";
-		    (A) ->
-			[A]
-		end,
-    
+   
     case query({From, KeysIHave}) of
 	{ok, new} ->
 
@@ -146,9 +131,10 @@ bfs(From, KeysIHave, KeysINeed, Connections ) ->
 
 	    
 
-	    Result = lists:min([distance(From, Next, Connections) + 
-				    bfs(Next, sets:add_element(Next, KeysIHave), KeysINeed -- [Next], Connections) || Next <- Nexts]),
+	    {Distance, Path} = lists:min([add(distance(From, Next, Connections), 
+				    bfs(Next, sets:add_element(Next, KeysIHave), KeysINeed -- [Next], Connections)) || Next <- Nexts]),
 
+	    Result = {Distance, [From|Path]},
 	    store({From, KeysIHave}, Result),
 	    Result;
 	{ok, Value} ->
@@ -157,7 +143,8 @@ bfs(From, KeysIHave, KeysINeed, Connections ) ->
 	    
 
 
-
+add(Dist1, {Dist2,Path}) ->
+    {Dist1+ Dist2,Path}.
     
 
     
@@ -269,57 +256,9 @@ reduce([{{From, To}, {Doors, _Length1, _}} | Rest],
 reduce([A|Rest], Result) ->	
     reduce(Rest, [A | Result]).
 
-
-
-
-
-
-
 neigbours({X,Y}) ->
     [{X, Y - 1},
      {X, Y + 1},
      {X + 1, Y},
      {X - 1, Y}].
 
-
-
-
-paint(Screen) ->
-    Xs = [X || {X,_} <- maps:keys(Screen)],
-    Ys = [Y || {_,Y} <- maps:keys(Screen)],
-
-
-    [paint({X,Y}, Screen, lists:max(Xs)) || Y <- lists:seq(lists:min(Ys), lists:max(Ys)),
-					  X <- lists:seq(lists:min(Xs), lists:max(Xs))],
-    io:nl(),
-    ok.
-
-paint({X,_} = Pos, Screen, X) ->
-    case maps:get(Pos, Screen,wall) of
-	empty ->
-	    io:format(".~n",[]);
-	wall->
-	    io:format("#~n",[]);
-	{key, Key}->
-	    io:format("~c~n",[Key]);
-	{door, Door}->
-	    io:format("~c~n",[Door]);
-	start ->
-	    io:format("@~n",[])
-
-    end;
-paint(Pos, Screen, _) ->
-    case maps:get(Pos, Screen,wall) of
-	open ->
-	    io:format(".",[]);
-	wall->
-	    io:format("#",[]);
-	current ->
-	    io:format("!",[]);
-	{key, Key}->
-	    io:format("~c",[Key]);
-	{door, Door}->
-	    io:format("~c",[Door - $a + $A]);
-	start ->
-	    io:format("@",[])
-    end.
