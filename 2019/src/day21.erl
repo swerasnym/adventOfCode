@@ -18,14 +18,11 @@ run(Star, File) ->
 
 star1(Program) ->
     Code =
+	"OR A J\n"
+	"AND B J\n"
+	"AND C J\n"
 	"NOT J J\n"
-	"NOT T T\n"
-	"AND A T\n"
-	"AND B T\n"
-	"AND C T\n"
-	"NOT T T\n"
-	"AND D T\n"
-	"AND T J\n"
+	"AND D J\n"
 	"WALK\n",
     Result = intcode:run(Program, [{input, Code}]),
     Output = intcode:get_output(Result),
@@ -33,12 +30,9 @@ star1(Program) ->
     io:format("~s~s", [Code, lists:droplast(Output)]),
     lists:last(Output).
 
-
-
 star2(Program) ->
     Code =
-	"NOT T T\n"
-	"AND A T\n"
+	"OR A T\n"
 	"AND B T\n"
 	"AND C T\n"
 	"NOT T T\n"
@@ -53,15 +47,9 @@ star2(Program) ->
     io:format("~s~s", [Code, lists:droplast(Output)]),
     lists:last(Output).
 
-
-
-
 interactive(Program) ->
     Pid = intcode:spawn(Program, [{inputpid, self()}, {outputpid, self()}, {exitpid, self()}, {timeout, 60000}]),
     shell(Pid).
-
-
-
 
 shell(Pid) ->
     case intcode:recvn(Pid, all) of
