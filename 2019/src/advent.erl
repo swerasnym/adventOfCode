@@ -52,22 +52,41 @@ run(Day, File) ->
 
 
 run(Day, all, File) ->
-    print([execute(Day, Star, file(File)) || Star <- [star1, star2]]);
+    print([sep |[execute(Day, Star, file(File)) || Star <- [star1, star2]]]);   
 
 run(Day, Star, File) ->
-    print(execute(Day, Star, file(File))).
+    print([sep, execute(Day, Star, file(File))]).
 
 execute(Day) ->
-    [execute(Day, Star, file(Day)) || Star <- [star1, star2]].
+    Res = [execute(Day, Star, file(Day)) || Star <- [star1, star2]],
+    [sep | Res].
 
 execute(Day, Star, File) ->
+    io:format("~s:run(~p, ~p).~n", [Day, Star,File]),
     try timer:tc(Day, run, [Star, File]) of
-	{Time, Result} -> 
-	    io:format("*~n"),
-	    {Day, Star, Time, Result}
+	{Time, Res} -> 
+	    io:format("~s:run(~p, ~p) ->~n    ~p.~n", [Day, Star,File, Res]),
+	    case Res of 
+		{Result, _Info} ->
+		    {Day, Star, Time, Result};
+		Result ->
+		    {Day, Star, Time, Result}
+	    end
+		
     catch
-	error:undef -> {Day, undef, 0, not_implemented}
+    	error:undef:Stack -> 
+	    case hd(Stack) of
+		{Day, run, [Star, File], _ } ->
+		    {Day, Star, 0, {error, undef}};
+		_ ->
+		    error({undef, Stack})
+	    end
     end.
+
+print(head)->
+    io:format("Day   | Star  |      Time    | Result~n");
+print(sep)->
+    io:format("------+-------+--------------+----------------~n");
 
 print({Day, Star, Time, Answer} = Result) ->
     io:format("~-5s | ~-5s | ~9.3f ms | ~p~n", [Day, Star, Time/1000, Answer]),
@@ -75,9 +94,8 @@ print({Day, Star, Time, Answer} = Result) ->
 
 print(List) ->
     io:nl(),
-    io:format("Day   | Star  | Time         | Result~n"),
-    io:format("------+-------+--------------+-------~n"),
+    print(head),
     Results = lists:flatten(List),
     [print(Result) || Result <- Results],
-    io:format("------+-------+--------------+-------~n~n"),
-    Results.
+    print(sep),
+    lists:filter(fun (E) -> E /= sep end, Results).

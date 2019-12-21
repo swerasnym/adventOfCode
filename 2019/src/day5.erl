@@ -16,8 +16,11 @@ run(Star, File) ->
 
 star1(Program) ->
     Result = intcode:run(Program, [{input, [1]}]),
-    intcode:get_output(Result).
+    Output = intcode:get_output(Result),
+    {lists:last(Output), lists:droplast(Output)}.
 
 star2(Program) ->
     Result = intcode:run(Program, [{input, [5]}]),
-    intcode:get_output(Result).
+    Output = intcode:get_output(Result),
+    lists:last(Output).
+

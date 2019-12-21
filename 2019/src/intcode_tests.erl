@@ -98,8 +98,8 @@ day2_test() ->
     ?assertEqual(0, flush()).
 
 day5_test() ->
-    ?assertEqual([0,0,0,0,0,0,0,0,0,11933517], day5:run(star1, file("day5.data"))),
-    ?assertEqual([10428568], day5:run(star2, file("day5.data"))),
+    ?assertEqual({11933517, [0,0,0,0,0,0,0,0,0]}, day5:run(star1, file("day5.data"))),
+    ?assertEqual(10428568, day5:run(star2, file("day5.data"))),
     ?assertEqual(0, flush()).
 
 day7_test() ->
@@ -110,8 +110,8 @@ day7_test() ->
     ?assertEqual(0, flush()).
 
 day9_test() ->
-    ?assertEqual([3380552333], day9:run(star1, file("day9.data"))),
-    ?assertEqual([78831], day9:run(star2, file("day9.data"))),
+    ?assertEqual(3380552333, day9:run(star1, file("day9.data"))),
+    ?assertEqual(78831, day9:run(star2, file("day9.data"))),
     ?assertEqual(0, flush()).
 
 day11_test() ->

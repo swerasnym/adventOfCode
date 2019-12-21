@@ -16,8 +16,8 @@ run(Star, File) ->
 
 star1(Program) ->
     Result = intcode:run(Program, [{input, [1]}]),
-    intcode:get_output(Result).
+    hd(intcode:get_output(Result)).
 
 star2(Program) ->
     Result = intcode:run(Program, [{input, [2]}]),
-    intcode:get_output(Result).
+    hd(intcode:get_output(Result)).

@@ -59,5 +59,7 @@ shell(Pid) ->
 	    shell(Pid);
 	{halt, Output} ->
 	    io:format("~s~nResult: ~p~n", [lists:droplast(Output), lists:last(Output)]),
-	    lists:last(Output)
+	    lists:last(Output);
+	{exit, _, _} ->
+	    exit
     end.

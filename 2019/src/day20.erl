@@ -17,7 +17,7 @@ run(Star, File) ->
 star1(Data) ->
     Portals = maps:fold(fun portals/3, Data, Data),
     {Links, Start} =  maps:fold(fun link/3, {Portals, none}, Portals),
-    bfs([{Start, 0}], Links).
+    bfs([{Start, 0, [{"AA",0}]}], Links).
 
 
 star2(Data) ->
@@ -104,7 +104,7 @@ link(_Pos, {portal, P2}, {Acc, Start}) ->
 
     case maps:keys(Links) of
 	[Pos1, Pos2] ->
-	    io:format("~p <-> ~p: ~p~n", [Pos1, Pos2, P2]),
+	    %% io:format("~p <-> ~p: ~p~n", [Pos1, Pos2, P2]),
 	    {Acc#{Pos1 => {Pos2, P2}, Pos2 => {Pos1, P2}}, Start};
 	_ ->
 	    {Acc, Start}
@@ -127,26 +127,24 @@ neigbours({X,Y}) ->
 
 bfs([], _Maze) ->
     error(no_path);
-bfs([{Pos, Dist} | Rest], Maze) ->
+bfs([{Pos, Dist, Path} | Rest], Maze) ->
     case maps:get(Pos, Maze) of
 	wall ->
 	    bfs(Rest, Maze);
 	goal ->
+	    io:format("path: ~p ~n",[lists:reverse([{"ZZ",Dist}| Path])]),
 	    Dist;
-	{Pos2,_} ->
-	    
-	    io:format("~p ", [Pos]),
+	{Pos2,Label} ->
 	    case [ NPos || NPos <- neigbours(Pos2), maps:get(NPos, Maze, wall) /= wall ] of 
 		
 		[Neigbour] ->
-		    io:format("~p~n", [Neigbour]),
-		    bfs([{Neigbour, Dist} | Rest], Maze#{Pos => wall, Pos2 => wall});
+		    bfs([{Neigbour, Dist, [{Label, Dist} | Path]} | Rest], Maze#{Pos => wall, Pos2 => wall});
 		[] ->
 		    bfs(Rest, Maze)
 		    
 	    end;
 	_ ->
-	    Neigbours = [ {NPos, Dist+1} || NPos <- neigbours(Pos), maps:get(NPos, Maze, wall) /= wall ],
+	    Neigbours = [ {NPos, Dist+1, Path} || NPos <- neigbours(Pos), maps:get(NPos, Maze, wall) /= wall ],
 	    bfs(Rest ++ Neigbours, Maze#{Pos => wall})
     end.
 	    
