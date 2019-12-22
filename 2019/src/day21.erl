@@ -47,19 +47,4 @@ star2(Program) ->
     io:format("~s~s", [Code, lists:droplast(Output)]),
     lists:last(Output).
 
-interactive(Program) ->
-    Pid = intcode:spawn(Program, [{inputpid, self()}, {outputpid, self()}, {exitpid, self()}, {timeout, 60000}]),
-    shell(Pid).
 
-shell(Pid) ->
-    case intcode:recvn(Pid, all) of
-	{input, Prompt} ->
-	    Line =io:get_line(Prompt),
-	    intcode:send(Pid, Line),
-	    shell(Pid);
-	{halt, Output} ->
-	    io:format("~s~nResult: ~p~n", [lists:droplast(Output), lists:last(Output)]),
-	    lists:last(Output);
-	{exit, _, _} ->
-	    exit
-    end.

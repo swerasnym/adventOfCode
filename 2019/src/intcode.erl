@@ -15,7 +15,9 @@
 -export([get/2, get_output/1, print/1]).
 
 %% As a process
--export([spawn/1, spawn/2, send/2, recv/1, recv/2, recvn/2, recvn/3]).
+-export([spawn/1, spawn/2, send/2, recv/1, recv/2, recvn/2, recvn/3, interactive/1, interactive/2]).
+
+-export([analyze/1]).
 
 -record(state,
 	{
@@ -205,29 +207,20 @@ run(State0, Options) ->
     State = set_options(Options, State0),
     run(State).
 
-run_string(String, Inputs) ->
-    Program0 = from_string(String),
-    Program = set_input(Inputs, Program0),
-    Result = run(Program),
-    get_output(Result).
+run_string(String, Options) ->
+    run(from_string(String), Options).
 
 run_string(String) ->
     run(from_string(String)).
 
-run_list(List, Inputs) ->
-    Program0 = from_list(List),
-    Program = set_input(Inputs, Program0),
-    Result = run(Program),
-    get_output(Result).
+run_list(List, Options) ->
+    run(from_list(List), Options).
 
 run_list(List) ->
     run(from_list(List)).
 
-run_file(File, Inputs) ->
-    Program0 = from_file(File),
-    Program = set_input(Inputs, Program0),
-    Result = run(Program),
-    get_output(Result).
+run_file(File, Options) ->
+    run(from_file(File), Options).
 
 run_file(File) ->
     run(from_file(File)).
@@ -322,6 +315,79 @@ recvn(Pid, N, Acc, Timeout) ->
 	    {timeout, Acc};
 	{exit, State} ->
 	    {exit, State, Acc}
+    end.
+
+interactive(Program) ->
+    Pid = intcode:spawn(Program, [{inputpid, self()}, {outputpid, self()}, {exitpid, self()}, {timeout, 60000}]),
+    shell(Pid, nothing).
+
+interactive(Program, Options) ->
+    Pid = intcode:spawn(Program, [{inputpid, self()}, {outputpid, self()}, {exitpid, self()}, {timeout, 60000}] ++ Options),
+    shell(Pid, nothing).
+
+
+
+shell(Pid, Last) ->
+    case intcode:recvn(Pid, 1) of
+	{ok, Data} ->
+	    try io:format(Data)
+	    catch
+		error:_Error ->
+		    io:format("~p~n",[Data])		    
+	    end,
+	    shell(Pid, Data);
+	{input, Prompt} ->
+	    Line =io:get_line(Prompt),
+	    intcode:send(Pid, Line),
+	    shell(Pid, Last);
+	{halt, Output} ->
+	    try io:format(Output)
+	    catch
+		error:_Error ->
+			io:format("~p~n",[Output])
+	    end,
+	    Last;
+	{exit, State, Output} ->
+	    {exit, State, Output}
+    end.
+
+
+analyze(#state{memory = Memory} = State) ->
+    analyze(State, 0, array:size(Memory)).
+    
+
+analyze(State, Ip, Max) when Ip < Max ->
+    Intcode = get(Ip, State),
+    case maps:get(Intcode rem 100, ?INSTRUCTIONS, data) of
+	{Instruction, Parameters, _Function} ->
+	    Modes = modes(Intcode div 100, Parameters),
+
+	    AddrValue = [get(Pos, State) || Pos <-lists:seq(Ip + 1, Ip + Parameters) ],
+
+	    Format = [format(V) || V <- lists:zip(Modes, AddrValue)],
+	    
+	    io:format("~p: ~p ~s ~s~n", [Ip, Intcode, Instruction, string:join(Format, " ")]),
+
+	    analyze(State, Ip+Parameters+1, Max);
+
+	
+	 data ->
+	    io:format("~p: ~p data ~n", [Ip, Intcode]),
+	    analyze(State, Ip+1, Max)
+
+    end;
+
+analyze(_,_,_) ->
+    ok.
+
+format({Mode, AddrValue}) ->
+    case Mode of 
+	0 ->
+	    "[" ++ integer_to_list(AddrValue) ++  "]";
+	1 ->
+	    integer_to_list(AddrValue);
+	2 ->
+	    "{" ++ integer_to_list(AddrValue) ++ "}"
     end.
 
 %%------------------------------------------------------------------------------
