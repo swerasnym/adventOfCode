@@ -69,18 +69,16 @@ instruction("deal with increment " ++ NumberStr, Deck) ->
 
 
 % Creates a linear function mod Cards to do one shuffle
-instruction3("deal into new stack", {A, x, B}, Cards) ->
-    {posrem(-A,Cards), x, posrem(-B-1,Cards)};
+instruction3("deal into new stack",  F, Cards) ->
+    join({-1, x, -1}, F, Cards);
 
-instruction3("cut "++NumberStr, {A, x, B}, Cards) ->
+instruction3("cut "++NumberStr,  F, Cards) ->
     C = list_to_integer(NumberStr),
-    {posrem(A,Cards), x, posrem(B - C,Cards)};
+    join({1,x,-C}, F, Cards);
 
-instruction3("deal with increment " ++ NumberStr, {A, x, B}, Cards) ->
+instruction3("deal with increment " ++ NumberStr,  F, Cards) ->
     C = list_to_integer(NumberStr),
-    {posrem(C*A,Cards), x, posrem(C*B,Cards)}.
-
-
+    join({C,x,0}, F, Cards).
 
 posrem(A, Mod) ->
     (A rem Mod + Mod) rem Mod.
