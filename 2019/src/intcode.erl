@@ -72,7 +72,7 @@ input(#state{addresses = [To], input = [], inputpid = Pid, timeout = Timeout } =
 	    State = set(Value, To , State0),
 	    State#state{input=Rest};
 	halt ->
-	    io:fwrite("~p recived halt halting~n", [self()]),
+	    %% io:fwrite("~p recived halt halting~n", [self()]),
 	    halt;
 	timeout ->
 	    io:fwrite("~p recived timeout, have you forgotten to send halt?~n", [self()]),
