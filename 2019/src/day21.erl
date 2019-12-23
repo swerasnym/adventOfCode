@@ -9,7 +9,7 @@ run(Star, File) ->
 	star2 ->
 	    star2(Program);
 	interactive ->
-	    interactive(Program);
+	    intcode:interactive(Program);
 	_ ->
 	    Star1 = star1(Program),
 	    Star2 = star2(Program),

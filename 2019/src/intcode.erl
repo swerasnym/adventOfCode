@@ -77,7 +77,7 @@ input(#state{addresses = [To], input = [], inputpid = Pid, timeout = Timeout } =
 	timeout ->
 	    io:fwrite("~p recived timeout, have you forgotten to send halt?~n", [self()]),
 	    halt
-	end;
+    end;
 
 
 input(#state{addresses = [To], input = [Value|Rest] } = State0) ->
