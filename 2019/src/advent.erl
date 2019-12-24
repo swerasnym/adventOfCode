@@ -1,5 +1,5 @@
 -module(advent).
--export([run/0, run/1, run/2, run/3]).
+-export([run/0, run/1, run/2, run/3, average/0,average/1,average/2,average/3,average/4]).
 
 file(Name) when is_atom(Name) ->
     file([atom_to_list(Name),".data"]);
@@ -57,11 +57,68 @@ run(Day, all, File) ->
 run(Day, Star, File) ->
     print([sep, execute(Day, Star, file(File))]).
 
+
+
+average() ->
+    average(10).
+
+average(Day) when is_atom(Day) ->
+    average(10, Day);
+
+average(Times) ->
+    Results = [execute_average(Times,Day) || Day <- days()],
+    print(Results).
+
+
+average(Times,today) ->
+    average(Times,lists:last(days()));
+
+average(Times,Day) ->
+   average(Times,Day, all).
+
+average(Times,today, Star) ->
+    average(Times,lists:last(days()), Star);
+average(Times,Day, Star) when is_atom(Star) ->
+    average(Times,Day, Star, file(Day));
+
+average(Times,Day, File) ->
+    average(Times,Day, all, file(File)).
+
+
+average(Times,Day, all, File) ->
+    print([sep |[execute_average(Times,Day, Star, file(File)) || Star <- [star1, star2]]]);   
+
+average(Times,Day, Star, File) ->
+    print([sep, execute_average(Times,Day, Star, file(File))]).
+
+
+execute_average(Times, Day) ->
+    Res = [execute_average(Times, Day, Star, file(Day)) || Star <- [star1, star2]],
+    [sep | Res].
+
+
+ execute_average(1, Day, Star, File) ->
+     execute(Day, Star, File);
+ execute_average(Times, Day, Star, File) when Times > 1 ->
+    {Day, Star, Time0, Result} = execute(Day, Star, File),
+    RunTimes = [begin 
+		 {Day, Star, Time, Result} = execute(Day, Star, File),
+		 Time
+	     end || _Step <- lists:seq(1,Times-1)],
+    
+    Total = Time0 + lists:sum(RunTimes),
+    {Day, Star, Total div Times, Result}.
+    
+
+
+
+
 execute(Day) ->
     Res = [execute(Day, Star, file(Day)) || Star <- [star1, star2]],
     [sep | Res].
 
 execute(Day, Star, File) ->
+    flush(),
     io:format("~s:run(~p, ~p).~n", [Day, Star,File]),
     try timer:tc(Day, run, [Star, File]) of
 	{Time, Res} -> 
@@ -99,3 +156,12 @@ print(List) ->
     [print(Result) || Result <- Results],
     print(sep),
     lists:filter(fun (E) -> E /= sep end, Results).
+
+
+
+flush() ->
+    receive
+	_ -> flush()
+    after
+	0 -> ok
+    end.
