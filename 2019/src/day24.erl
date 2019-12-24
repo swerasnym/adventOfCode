@@ -20,10 +20,12 @@ star1(Data) ->
 
 
 star2(Data) ->
-    Map = map2(Data),
-    Map1 = iterate2(Map, 200),
-    [begin paint(Level, Map1),io:nl() end || Level <- lists:seq(-6,6)],
-    maps:fold(fun (_, bug, Acc ) -> Acc +1; (_, empty, Acc ) -> Acc end, 0, Map1).
+    Iterations = 200,
+    Map = map2(Data, Iterations),
+    Map1 = iterate2(Map, Iterations),
+    maps:fold(fun (_, bug, Acc)    -> Acc +1; 
+		  (_, empty, Acc)  -> Acc 
+	      end, 0, Map1).
 
 
 read(File) ->
@@ -66,177 +68,67 @@ iterate2(Map, N) ->
 
 
 cell(Pos, Value, Map) ->
-    Neigbours = [A || A <- neigbours(Pos), maps:get(A,Map,empty) == bug],
+    Neigbours = [N || N <- neigbours(Pos), maps:get(N,Map,empty) == bug],
     case {Value, length(Neigbours)} of
-	{bug, 1} ->
-	    bug;
-	{bug,_} ->
-	    empty;
-	{empty, 1} ->
-	    bug;
-	{empty, 2} ->
-	    bug;
-	{empty, _} ->
-	    empty
-    end.
-
-
-
-paint(Screen) ->
-    Xs = [X || {X,_} <- maps:keys(Screen)],
-    Ys = [Y || {_,Y} <- maps:keys(Screen)],
-
-
-    [paint({X,Y}, Screen, lists:max(Xs)) || Y <- lists:seq(lists:min(Ys), lists:max(Ys)),
-					  X <- lists:seq(lists:min(Xs), lists:max(Xs))],
-    ok.
-
-paint({X,_} = Pos, Screen, X) ->
-    case maps:get(Pos, Screen,black) of
-	empty ->
-	    io:format(".~n",[]);
-	bug->
-	    io:format("#~n",[])
-    end;
-paint(Pos, Screen, _) ->
-    case maps:get(Pos, Screen,black) of
-	empty ->
-	    io:format(".",[]);
-	bug->
-	    io:format("#",[])
-    end.
-
-paint(Level, Screen) ->
-    io:format("Depth ~p:~n", [Level]),
-    Xs = [X || {_,X,_} <- maps:keys(Screen)],
-    Ys = [Y || {_,_,Y} <- maps:keys(Screen)],
-
-
-    [paint(Level, {X,Y}, Screen, lists:max(Xs)) || Y <- lists:seq(lists:min(Ys), lists:max(Ys)),
-						   X <- lists:seq(lists:min(Xs), lists:max(Xs))],
-    ok.
-paint(_Level, {2,2}, _Screen, _) ->
-    io:format("?");
-paint(Level, {X,Y}, Screen, X) ->
-    case maps:get({Level,X,Y}, Screen,black) of
-	empty ->
-	    io:format(".~n",[]);
-	bug->
-	    io:format("#~n",[])
-    end;
-paint(Level,  {X,Y}, Screen, _) ->
-    case maps:get({Level,X,Y}, Screen,black) of
-	empty ->
-	    io:format(".",[]);
-	bug->
-	    io:format("#",[])
+	{bug, 1}   -> bug;
+	{bug,_}    -> empty;
+	{empty, 1} -> bug;
+	{empty, 2} -> bug;
+	{empty, _} -> empty
     end.
 
 
 rating(Map) ->
     maps:fold(fun (Pos, Value, Acc) ->
-		      Acc +  case {Pos, Value} of
-				 {_, empty} ->
-				     0;
-				 {Pos, bug} ->
-				     io:format("~p ~p~n", [Pos, value(Pos)]),
-				     value(Pos)
-			     end
-					 
+		      case {Pos, Value} of
+			  {_, empty} -> 0;
+			  {Pos, bug} -> value(Pos)
+		      end + Acc			 
 	      end, 0 ,Map).
 
-value(Pos) ->
-    case Pos of
-     {0,0} -> 1;
-     {1,0} -> 2;
-     {2,0} -> 4;
-     {3,0} -> 8;
-     {4,0} -> 16;
+value({X,Y}) ->
+    pow(2, X+5*Y).
 
-     {0,1} -> 32;
-     {1,1} -> 64;
-     {2,1} -> 128;
-     {3,1} -> 256;
-     {4,1} -> 512;
-
-     {0,2} -> 1024;
-     {1,2} -> 2048;
-     {2,2} -> 4096;
-     {3,2} -> 8192;
-     {4,2} -> 16384;
-
-     {0,3} -> 32768;
-     {1,3} -> 65536;
-     {2,3} -> 131072;  
-     {3,3} -> 262144;  
-     {4,3} -> 524288;  
-     {0,4} -> 1048576; 
-     {1,4} -> 2097152; 
-     {2,4} -> 4194304; 
-     {3,4} -> 8388608; 
-     {4,4} -> 16777216
-    end.
+pow(_, 0) -> 1;
+pow(A, 1) -> A;
+pow(A, N) ->
+    B = pow(A, N div 2),
+    B * B * (case N rem 2 of 0 -> 1; 1 -> A end).
 
 
-
-
-map2(Map) ->
-    Map0 = maps:from_list([{{Z,X,Y},empty} || X <- lists:seq(0,4), Y <- lists:seq(0,4), Z <- lists:seq(-200,200)]),
+map2(Map, Iterations) ->
+    Levels = (Iterations+1) div 2, 
+    Map0 = maps:from_list([{{Level,X,Y},empty} || X <- lists:seq(0,4), Y <- lists:seq(0,4), Level <- lists:seq(-Levels, Levels)]),
     maps:fold(fun({X,Y}, Value, Acc) -> Acc#{{0,X,Y} => Value} end, Map0, Map).
-
     
-
-
 neigbours({X,Y}) ->
     [{X, Y - 1},
      {X, Y + 1},
      {X - 1, Y},
      {X + 1, Y}];
-neigbours({_, 2,2}) ->
+
+neigbours({_, 2,2}) -> %? (middle)
     [];
 neigbours({Level, X,Y}) ->
-   Base = [{Level, X, Y - 1},
-	   {Level,X, Y + 1},
-	   {Level,X - 1, Y},
-	   {Level, X + 1, Y}],
- 
-
+    Base = [{Level, X, Y - 1},
+	    {Level,X, Y + 1},
+	    {Level,X - 1, Y},
+	    {Level, X + 1, Y}],
 
     Extra = case {X,Y} of
-		{0,0} -> %a
-		    [8,12];
-
-		{0,4} -> %u
-		    [12,18];
-		{4,0} -> %e 
-		    [8,14];
-
-		{4,4} -> %y
-		    [14,18];
-
-		{0,_} -> % f,k,p
-		    [12];
-
-		{4,_} -> % j,o,t
-		    [14];
-
-		{_,0} -> % b,c,d
-		    [8];
-
-		{_,4} -> % v,w,x
-		    [18];
-
-
-		{2,1} -> %8
-		    [a,b,c,d,e];
-		{1,2} -> %12
-		    [a,f,k,p,u];
-		{3,2} -> %14
-		    [e,j,o,t,y];
-		{2,3} -> % 18
-		    [u,v,w,x,y];
-		{_,_} ->
-		    []
+		{0,0} -> [8,12]; %a
+		{0,4} -> [12,18]; %u
+		{4,0} -> [8,14]; %e 
+		{4,4} -> [14,18]; %y
+		{0,_} -> [12]; % f,k,p
+		{4,_} -> [14]; % j,o,t
+		{_,0} -> [8]; % b,c,d
+		{_,4} -> [18];% v,w,x
+		{2,1} -> [a,b,c,d,e]; %h
+		{1,2} -> [a,f,k,p,u]; %l
+		{3,2} -> [e,j,o,t,y]; %n
+		{2,3} -> [u,v,w,x,y]; %r
+		{_,_} -> []% g,i,s,q
 	    end,
     Base ++ lists:map(fun(Label) -> un_label(Label, Level) end, Extra).
 
@@ -250,21 +142,12 @@ un_label(Label, Level) ->
 	e    -> {Level+1,4,0};
 
 	f    -> {Level+1,0,1};
-%	g    -> {Level+1,1,1};
-%	h    -> {Level+1,2,1};
-%	i    -> {Level+1,3,1};
 	j    -> {Level+1,4,1};
 
 	k    -> {Level+1,0,2};
-%	l    -> {Level+1,1,2};
-	%m    -> {Level+1,2,2};
-%	n    -> {Level+1,3,2};
 	o    -> {Level+1,4,2};
 
 	p    -> {Level+1,0,3};
-%	q    -> {Level+1,1,3};
-%	r    -> {Level+1,2,3};
-%	s    -> {Level+1,3,3};
 	t    -> {Level+1,4,3};
 
 	u    -> {Level+1,0,4};
@@ -273,33 +156,8 @@ un_label(Label, Level) ->
 	x    -> {Level+1,3,4};
 	y    -> {Level+1,4,4};
 
-	%% 1     -> {Level-1,0,0};
-	%% 2     -> {Level-1,1,0};
-	%% 3     -> {Level-1,2,0};
-	%% 4     -> {Level-1,3,0};
-	%% 5     -> {Level-1,4,0};
-
-	%% 6     -> {Level-1,0,1};
-	%% 7     -> {Level-1,1,1};
 	8     -> {Level-1,2,1};
-	%% 9     -> {Level-1,3,1};
-	%% 10    -> {Level-1,4,1};
-
-	%% 11    -> {Level-1,0,2};
 	12    -> {Level-1,1,2};
-	%13    -> {Level-1,2,2};
 	14    -> {Level-1,3,2};
-	%% 15    -> {Level-1,4,2};
-
-	%% 16    -> {Level-1,0,3};
-	%% 17    -> {Level-1,1,3};
 	18    -> {Level-1,2,3}
-	%% 19    -> {Level-1,3,3};
-	%% 20    -> {Level-1,4,3};
-
-	%% 21    -> {Level-1,0,4};
-	%% 22    -> {Level-1,1,4};
-	%% 23    -> {Level-1,2,4};
-	%% 24    -> {Level-1,3,4};
-	%% 25    -> {Level-1,4,4}
     end.
