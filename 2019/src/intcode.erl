@@ -318,11 +318,11 @@ recvn(Pid, N, Acc, Timeout) ->
     end.
 
 interactive(Program) ->
-    Pid = intcode:spawn(Program, [{inputpid, self()}, {outputpid, self()}, {exitpid, self()}, {timeout, 60000}]),
+    Pid = intcode:spawn(Program, [{inputpid, self()}, {outputpid, self()}, {exitpid, self()}, {timeout, 600000}]),
     shell(Pid, nothing).
 
 interactive(Program, Options) ->
-    Pid = intcode:spawn(Program, [{inputpid, self()}, {outputpid, self()}, {exitpid, self()}, {timeout, 60000}] ++ Options),
+    Pid = intcode:spawn(Program, [{inputpid, self()}, {outputpid, self()}, {exitpid, self()}, {timeout, 600000}] ++ Options),
     shell(Pid, nothing).
 
 
