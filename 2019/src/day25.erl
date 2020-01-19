@@ -19,7 +19,8 @@ run(Star, File) ->
 
 star1(Program) ->
 
-    Instructions = ["north", "north",
+    Instructions = ["north",
+		    "north",
 		    "north",
 		    "take mutex",
 		    "south",
