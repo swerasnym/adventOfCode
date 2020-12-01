@@ -24,12 +24,12 @@ star1({Maze, Start, Keys}) ->
     true = length(maps:keys(Connections)) == length(Paths),
     
     %% Start persistent memory
-    register(memmory, spawn_link(day18, memmory, [#{}])),
+    Memmory = spawn_link(day18, memmory, [#{}]),
     
-    {Result, [_Start|Path]} = bfs(Start, Connections, AllKeys),
+    {Result, [_Start|Path]} = bfs(Memmory, Start, Connections, AllKeys),
     
     %% Dump memmory
-    memmory ! {halt, self()},
+    Memmory ! {halt, self()},
     receive Map -> Map end,
     
     %% Check how many possitions where stored
@@ -69,15 +69,15 @@ star2({Maze0, {X,Y}, Keys}) ->
     Connections = maps:from_list(Paths),
     true = length(maps:keys(Connections)) == length(Paths),
     
-    register(memmory, spawn_link(day18, memmory, [#{}])),
+    Memmory = spawn_link(day18, memmory, [#{}]),
 
-    Results = [bfs2(Start, Connections, AllKeys, StartList) || Start <- [{X-1,Y-1}, {X+1,Y-1}, {X-1,Y+1}, {X+1,Y+1}]],
+    Results = [bfs2(Memmory, Start, Connections, AllKeys, StartList) || Start <- [{X-1,Y-1}, {X+1,Y-1}, {X-1,Y+1}, {X+1,Y+1}]],
 
     Result = [Dist || {Dist, _} <-  Results],
 
     SolutionPath = [ ["@", Path, " "] || {_, [_Start|Path]} <-  Results],  
     
-    memmory ! {halt, self()},
+    Memmory ! {halt, self()},
     
     receive Map -> Map end,
     {lists:sum(Result), lists:concat(lists:concat(SolutionPath))}.
@@ -95,8 +95,8 @@ memmory(Map) ->
     end.
 
 
-query(Key) ->
-    memmory ! {query, self(), Key},
+query(Memmory, Key) ->
+    Memmory ! {query, self(), Key},
     receive 
 	{result, Value} ->
 	    {ok, Value}
@@ -105,26 +105,26 @@ query(Key) ->
     end.
 
 
-store(Key, Value) ->
-    memmory ! {store, Key, Value}.
+store(Memmory, Key, Value) ->
+    Memmory ! {store, Key, Value}.
 
 
 
-bfs2(Pos, Connections, KeysINeed, StartList) ->
+bfs2(Memmory, Pos, Connections, KeysINeed, StartList) ->
     Available = proplists:get_all_values(Pos, StartList),
-    bfs({start, Pos}, sets:from_list(KeysINeed -- Available), Available, Connections).
+    bfs(Memmory, {start, Pos}, sets:from_list(KeysINeed -- Available), Available, Connections).
 
-bfs(Pos, Connections, KeysINeed) ->
+bfs(Memmory, Pos, Connections, KeysINeed) ->
 
     
 
-     bfs({start, Pos}, sets:new(), KeysINeed, Connections).
+     bfs(Memmory, {start, Pos}, sets:new(), KeysINeed, Connections).
 
-bfs(From, _KeysIHave, [], _Connections ) ->
+bfs(_Memmory, From, _KeysIHave, [], _Connections ) ->
     {0,[From]};
-bfs(From, KeysIHave, KeysINeed, Connections ) ->
+bfs(Memmory, From, KeysIHave, KeysINeed, Connections ) ->
    
-    case query({From, KeysIHave}) of
+    case query(Memmory, {From, KeysIHave}) of
 	{ok, new} ->
 
 	    Nexts = [To || To <- KeysINeed,  have_keys(From, To, KeysIHave, Connections)],
@@ -132,10 +132,10 @@ bfs(From, KeysIHave, KeysINeed, Connections ) ->
 	    
 
 	    {Distance, Path} = lists:min([add(distance(From, Next, Connections), 
-				    bfs(Next, sets:add_element(Next, KeysIHave), KeysINeed -- [Next], Connections)) || Next <- Nexts]),
+				    bfs(Memmory, Next, sets:add_element(Next, KeysIHave), KeysINeed -- [Next], Connections)) || Next <- Nexts]),
 
 	    Result = {Distance, [From|Path]},
-	    store({From, KeysIHave}, Result),
+	    store(Memmory, {From, KeysIHave}, Result),
 	    Result;
 	{ok, Value} ->
 	    Value

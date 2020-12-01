@@ -96,22 +96,36 @@ execute_average(Times, Day) ->
     Res = [execute_average(Times, Day, Star, file(Day)) || Star <- [star1, star2]],
     [sep | Res].
 
+execute_average(Times, Day, Star, File) when Times > 1 ->
+    Runs = [ execute(Day, Star, File) || _ <- lists:seq(1,Times)],
 
- execute_average(1, Day, Star, File) ->
-     execute(Day, Star, File);
- execute_average(Times, Day, Star, File) when Times > 1 ->
-    {Day, Star, Time0, Result} = execute(Day, Star, File),
-    RunTimes = [begin 
-		 {Day, Star, Time, Result} = execute(Day, Star, File),
-		 Time
-	     end || _Step <- lists:seq(1,Times-1)],
-    
-    Total = Time0 + lists:sum(RunTimes),
+    {Day, Star, _Time, Result} = hd(Runs),
+    RunTimes = [Time || {_Day, _Star, Time, _Result} <- Runs], 
+    Total = lists:sum(RunTimes),
     {Day, Star, Total div Times, Result}.
     
 
 
+parallel_average(Times, Day) ->
+    Res = [parallel_average(Times, Day, Star, file(Day)) || Star <- [star1, star2]],
+    [sep | Res].
 
+parallel_average(Times, Day, Star, File)->
+    Master = self(),
+    Run = fun() -> Master ! {self(), Master, execute(Day, Star, File)} end,
+    
+    Pids = [spawn_link(Run) || _ <- lists:seq(1,Times)],
+
+    Runs = [receive
+		 {Pid, Master, Result} ->
+		    Result
+	    end
+	    || Pid <- Pids],
+    
+    {Day, Star, _Time, Result} = hd(Runs),
+    RunTimes = [Time || {_Day, _Star, Time, _Result} <- Runs], 
+    Total = lists:sum(RunTimes),
+    {Day, Star, Total div Times, Result}.
 
 execute(Day) ->
     Res = [execute(Day, Star, file(Day)) || Star <- [star1, star2]],
