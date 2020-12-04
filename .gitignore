@@ -10,4 +10,5 @@ rel/example_project
 .rebar
 *scratchpad.erl
 
+_build/
 .#*
