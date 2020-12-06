@@ -1,6 +1,6 @@
 -module(day5).
--export([run/2]).
 
+-export([run/2]).
 
 run(Star, File) ->
     Data = read(File),
@@ -17,17 +17,17 @@ run(Star, File) ->
     end.
 
 star1(Data) ->
-   lists:max(Data).
+    lists:max(Data).
 
 star2(Data) ->
     find_seat(lists:sort(Data)).
 
 read(File) ->
     {ok, Bin} = file:read_file(File),
-    
-    [to_int(Ticket) || Ticket <- 
-    string:split(string:trim(binary_to_list(Bin)), "\n", all)].
-
+    [to_int(Ticket)
+     || Ticket
+            <- string:split(
+                   string:trim(binary_to_list(Bin)), "\n", all)].
 
 to_int(Ticket) ->
     Substitute1 = string:replace(Ticket, "F", "0", all),
@@ -35,16 +35,8 @@ to_int(Ticket) ->
     Substitute3 = string:replace(Substitute2, "L", "0", all),
     Substitute4 = string:replace(Substitute3, "R", "1", all),
     list_to_integer(lists:flatten(Substitute4), 2).
-    
 
-
-find_seat([A, B|_Rest]) when A+2 == B ->
+find_seat([A, B | _Rest]) when A + 2 == B ->
     A + 1;
-find_seat([_|Rest]) ->
+find_seat([_ | Rest]) ->
     find_seat(Rest).
-
-
-
-
-
-

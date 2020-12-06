@@ -134,12 +134,7 @@ execute(Day, Star, File) ->
         error:undef:Stack ->
             case hd(Stack) of
                 {Day, run, [Star, File], _} ->
-                    %case erlang:c(Day) of
-                    %    {ok, Day} ->
-                    %        execute(Day, Star, File);
-                    %    _ ->
-                            {Day, Star, 0, {error, undef}};
-                    %end;
+                    {Day, Star, 0, {error, undef}};
                 _ ->
                     error({undef, Stack})
             end
