@@ -1,5 +1,4 @@
 -module(day5).
-
 -export([run/2]).
 
 
@@ -18,10 +17,10 @@ run(Star, File) ->
     end.
 
 star1(Data) ->
-   hd( lists:reverse(lists:sort(Data))).
+   lists:max(Data).
 
 star2(Data) ->
-    find(    lists:sort(Data)).
+    find_seat(lists:sort(Data)).
 
 read(File) ->
     {ok, Bin} = file:read_file(File),
@@ -30,23 +29,19 @@ read(File) ->
     string:split(string:trim(binary_to_list(Bin)), "\n", all)].
 
 
-
-
-
 to_int(Ticket) ->
     Substitute1 = string:replace(Ticket, "F", "0", all),
     Substitute2 = string:replace(Substitute1, "B", "1", all),
     Substitute3 = string:replace(Substitute2, "L", "0", all),
     Substitute4 = string:replace(Substitute3, "R", "1", all),
-    Num = lists:flatten(Substitute4),
-    list_to_integer(Num, 2).
+    list_to_integer(lists:flatten(Substitute4), 2).
+    
 
 
-
-find([A,B|_Rest]) when A+1 /= B ->
+find_seat([A, B|_Rest]) when A+2 == B ->
     A + 1;
-find([_|Rest]) ->
-    find(Rest).
+find_seat([_|Rest]) ->
+    find_seat(Rest).
 
 
 
