@@ -34,26 +34,21 @@ process_bag(BagContent) ->
         string:split(
             lists:droplast(BagContent), " contain "),
 
+    F = fun ("no other bags") ->
+                  {emty, 0};
+              (Content) ->
+                  case string:to_integer(Content) of
+                      {1, " " ++ Rbag} ->
+                          {list_to_atom(Rbag), 1};
+                      {Number, " " ++ Rbag} ->
+                          {list_to_atom(lists:droplast(Rbag)), Number}
+                  end
+          end,
     {list_to_atom(lists:droplast(Bag)),
-     maps:from_list([begin
-                         case Content of
-                             "no other bags" ->
-                                 {emty, 0};
-                             _ ->
-                                 case string:to_integer(Content) of
-                                     {1, Rbag} ->
-                                         {list_to_atom(string:trim(Rbag)), 1};
-                                     {Number, Rbag} ->
-                                         {list_to_atom(lists:droplast(
-                                                           string:trim(Rbag))),
-                                          Number}
-                                 end
-                         end
-                     end
-                     || Content <- string:split(Contents, ", ", all)])}.
+     maps:from_list([F(Content) || Content <- string:split(Contents, ", ", all)])}.
 
 find_all(Bags, Keys) ->
-    F = fun(Bag) -> has_any(Bag, Keys) end,
+    F = fun({_Bag, Map}) -> has_any(Map, Keys) end,
 
     case lists:partition(F, Bags) of
         {[], _NotSatisfying} ->
@@ -64,12 +59,12 @@ find_all(Bags, Keys) ->
 
 has_any(_Bag, []) ->
     false;
-has_any({Bag, Map}, [Key | Keys]) ->
+has_any(Map, [Key | Keys]) ->
     case maps:is_key(Key, Map) of
         true ->
             true;
         false ->
-            has_any({Bag, Map}, Keys)
+            has_any(Map, Keys)
     end.
 
 inside(_Map, emty) ->
