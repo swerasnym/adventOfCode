@@ -17,7 +17,7 @@ run(Star, File) ->
     end.
 
 star1(Bags) ->
-    length(find_all(Bags, ['shiny gold bag', 'dotted violet bag'])).
+    length(find_all(Bags, ['shiny gold bag'])).
 
 star2(Bags) ->
     inside(maps:from_list(Bags), 'shiny gold bag').
