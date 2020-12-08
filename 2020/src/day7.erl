@@ -35,15 +35,15 @@ process_bag(BagContent) ->
             lists:droplast(BagContent), " contain "),
 
     F = fun ("no other bags") ->
-                  {emty, 0};
-              (Content) ->
-                  case string:to_integer(Content) of
-                      {1, " " ++ Rbag} ->
-                          {list_to_atom(Rbag), 1};
-                      {Number, " " ++ Rbag} ->
-                          {list_to_atom(lists:droplast(Rbag)), Number}
-                  end
-          end,
+                {emty, 0};
+            (Content) ->
+                case string:to_integer(Content) of
+                    {1, " " ++ Rbag} ->
+                        {list_to_atom(Rbag), 1};
+                    {Number, " " ++ Rbag} ->
+                        {list_to_atom(lists:droplast(Rbag)), Number}
+                end
+        end,
     {list_to_atom(lists:droplast(Bag)),
      maps:from_list([F(Content) || Content <- string:split(Contents, ", ", all)])}.
 

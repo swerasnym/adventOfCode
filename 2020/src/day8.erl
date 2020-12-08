@@ -17,51 +17,49 @@ run(Star, File) ->
     end.
 
 star1(Data) ->
-    {_Ic, Result}=  run(1, maps:from_list(Data), 0),
+    {_Ic, Result} = run(1, maps:from_list(Data), 0),
     Result.
 
 star2(Data) ->
     Instructions = maps:from_list(Data),
-    Results = [run(1, Instructions#{Ic => {update(Code), Value}} , 0) ||  {Ic, {Code, Value}} <- Data ],
-    proplists:get_value(length(Data)+1, Results).
+    Results =
+        [run(1, Instructions#{Ic => {update(Code), Value}}, 0)
+         || {Ic, {Code, Value}} <- Data, Code /= acc],
+    proplists:get_value(length(Data) + 1, Results).
 
 read(File) ->
     {ok, Bin} = file:read_file(File),
     Ops = [parse_op(Op)
-     || Op
-            <- string:split(
-		 string:trim(binary_to_list(Bin)), "\n", all)],
-    
-    lists:zip(lists:seq(1,length(Ops)), Ops).
+           || Op
+                  <- string:split(
+                         string:trim(binary_to_list(Bin)), "\n", all)],
 
-parse_op("nop "++Rest) ->
+    lists:zip(
+        lists:seq(1, length(Ops)), Ops).
+
+parse_op("nop " ++ Rest) ->
     {Int, []} = string:to_integer(Rest),
     {nop, Int};
-parse_op("acc "++Rest) ->
+parse_op("acc " ++ Rest) ->
     {Int, []} = string:to_integer(Rest),
     {acc, Int};
-parse_op("jmp "++Rest) ->
+parse_op("jmp " ++ Rest) ->
     {Int, []} = string:to_integer(Rest),
     {jmp, Int}.
 
-
 run(Ic, Instructions, Acc) ->
     case maps:get(Ic, Instructions, Acc) of
-	Acc ->
-	    {Ic, Acc};
-	{nop, _} ->
-	    run(Ic+1, maps:without([Ic], Instructions), Acc);
-	{acc, Value} ->
-	    run(Ic+1, maps:without([Ic], Instructions), Acc+Value);
-	{jmp, Value} ->
-	    run(Ic+Value, maps:without([Ic], Instructions), Acc)
+        Acc ->
+            {Ic, Acc};
+        {nop, _} ->
+            run(Ic + 1, maps:without([Ic], Instructions), Acc);
+        {acc, Value} ->
+            run(Ic + 1, maps:without([Ic], Instructions), Acc + Value);
+        {jmp, Value} ->
+            run(Ic + Value, maps:without([Ic], Instructions), Acc)
     end.
 
-    
-update(jmp)->
+update(jmp) ->
     nop;
 update(nop) ->
-    jmp;
-update(acc) ->
-    acc.
-
+    jmp.
