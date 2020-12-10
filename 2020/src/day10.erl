@@ -26,7 +26,6 @@ star2(Data) ->
     Device = lists:last(Sorted) + 3,
     Diff = diffrences([0] ++ Sorted ++ [Device]),
     Rep = count_repeeted_ones(Diff),
-    io:format("~p~n~p~n", [Diff, Rep]),
     product(Rep).
 
 read(File) ->
@@ -39,10 +38,8 @@ read(File) ->
 count([A], One, Tree) ->
     One * Tree;
 count([A, B | Sorted], One, Tree) when A + 1 == B ->
-    io:format("~p -> ~p (1)~n", [A, B]),
     count([B | Sorted], One + 1, Tree);
 count([A, B | Sorted], One, Tree) when A + 3 == B ->
-    io:format("~p -> ~p (3)~n", [A, B]),
     count([B | Sorted], One, Tree + 1);
 count([A | Sorted], One, Tree) ->
     count([Sorted], One, Tree).
