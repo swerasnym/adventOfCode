@@ -24,13 +24,14 @@ star1(Data) ->
     
 
 star2(Data) ->
-    TurnMap = maps:from_list(lists:zip(Data, lists:seq(1,length(Data)))),
-    speek(30000000, 0, length(Data) +1 , TurnMap).
+    ets:new(star2, [set, named_table]),
+    [ets:insert(star2, Pair) || Pair <- lists:zip(Data, lists:seq(1,length(Data)))],
+    speek_ets(30000000, 0, length(Data) +1 , star2).
+    
     
 
 speek(Goal, Last, Goal, TurnMap) ->
-    {Last,
-     TurnMap};
+    Last;
 speek(Goal, Last, Turn, TurnMap)->
     Speek = case maps:get(Last, TurnMap, 0) of
 		0 ->
@@ -46,6 +47,25 @@ speek(Goal, Last, Turn, TurnMap)->
 	    ok
     end,
     
-
-
     speek(Goal, Speek, Turn+1, TurnMap#{Last => Turn}).
+
+speek_ets(Goal, Last, Goal, Table) ->
+    ets:delete(Table),
+    Last;
+
+speek_ets(Goal, Last, Turn, Table)->
+    Speek = case ets:lookup(Table, Last) of
+		[] ->
+		    0;
+		[{Last, N}] ->
+		    Turn - N
+
+	    end,
+    case Turn rem 1000000 of
+	0 ->
+	    io:format("Turn ~p: ~p -> ~p ~n",[Turn, Last,  Speek]);
+	_ ->
+	    ok
+    end,
+    ets:insert(Table, {Last, Turn}),
+    speek_ets(Goal, Speek, Turn+1, Table).
