@@ -2,7 +2,7 @@
 
 -export([run/2]).
 
-run(Star, File) ->
+run(Star, _File) ->
     Data = [8, 11, 0, 19, 1, 2],
     %  Data = [0,3,6],
     case Star of
@@ -27,7 +27,7 @@ star2(Data) ->
     [ets:insert(star2, Pair) || Pair <- lists:zip(Data, lists:seq(1, length(Data)))],
     speek_ets(30000000, 0, length(Data) + 1, star2).
 
-speek(Goal, Last, Goal, TurnMap) ->
+speek(Goal, Last, Goal, _TurnMap) ->
     Last;
 speek(Goal, Last, Turn, TurnMap) ->
     Speek =
