@@ -110,7 +110,7 @@ hgt(Hgt = [_, _, _, $c, $m]) ->
 hgt(Hgt = [_, _, $i, $n]) ->
     case is_int(string:substr(Hgt, 1, 2)) of
         {true, V} ->
-            (V >= 59) and (V =< 193);
+            (V >= 59) and (V =< 76);
         _ ->
             false
     end;
