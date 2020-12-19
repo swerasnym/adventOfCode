@@ -50,8 +50,6 @@ matches_substr(String, Map42, Map31, N) ->
         end,
     Result.
 
-
-
 matches_substr([],  _Map31, N)  when N > 0->
     ok;
 matches_substr(_,  _Map31,0) ->
