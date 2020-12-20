@@ -52,7 +52,7 @@ chinese_remainder(Congruences) ->
             mod(Solution, ModPI)
     end.
 
-run(Star, File) ->
+run(Star, _File) ->
     Time = 1000655,
     Buses =
         [17, x, x, x, x, x, x, x, x, x, x, 37, x, x, x, x, x, 571, x, x, x, x, x, x, x, x, x, x,
@@ -82,10 +82,8 @@ star1({Time, Buses}) ->
 star2({_Time, Buses}) ->
     Reminders =
         [{-Rem, Id} || {Id, Rem} <- lists:zip(Buses, lists:seq(0, length(Buses) - 1)), Id /= x],
-    X = chinese_remainder(Reminders),
-    io:format("~p~n", [X]),
-    [{X rem Id - Id, Er, Id} || {Er, Id} <- Reminders].
-
+    chinese_remainder(Reminders).
+ 
 dep_time(Id, Time) ->
     case Time div Id * Id of
         Time ->

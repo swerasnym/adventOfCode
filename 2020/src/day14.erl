@@ -50,7 +50,7 @@ split("mem[" ++ Rest) ->
 
 process({mask, _And, _Or, _} = Mask, {_, Mem}) ->
     {Mask, Mem};
-process({mem, Pos, Value}, {{mask, And, Or} = Mask, Mem}) ->
+process({mem, Pos, Value}, {{mask, And, Or, _} = Mask, Mem}) ->
     {Mask, Mem#{Pos => Value band And bor Or}}.
 
 process2({mask, _And, _Or, M} = Mask, {_, Mem}) ->

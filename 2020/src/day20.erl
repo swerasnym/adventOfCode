@@ -18,7 +18,11 @@ run(Star, File) ->
 
 star1(Images) ->
     Count = count(lists:flatten([maps:values(Edges) || {_Id, {Edges, _Image} } <- Images])),
-    product([Id || {Id, Edges, _Image } <- Images, is_corner(maps:values(Edges), Count)]).
+    Counrers = [Id || {Id, {Edges, _Image} } <- Images, is_corner(maps:values(Edges), Count)],
+    product(Counrers).
+
+%    Count = count(lists:flatten([maps:values(Edges) || {_Id, {Edges, _Image} } <- Images])),
+%    product([Id || {Id, Edges, _Image } <- Images, is_corner(maps:values(Edges), Count)]).
     
 star2(Images) ->
 
@@ -34,7 +38,6 @@ star2(Images) ->
 
     Internal = [Side || {Side, Value} <- maps:to_list(FirstEdges), maps:get(Value, Count) == 1, Side /= topRev, Side /= botRev  , Side /= leftRev , Side /= rightRev],
    
-%    print( hd(Counrers) , Images).
     
     Neigbours =  build(Internal, hd(Counrers), Images, Sides, Count),
     Grid =  orient(Neigbours, Images, Sides, Count),
