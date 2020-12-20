@@ -40,33 +40,42 @@ star2(Images) ->
     Grid =  orient(Neigbours, Images, Sides, Count),
 
     Map = commbind(Grid),
-    Monsters = count_mosters(get_tansforms(Map), read_image(make_moster()), []),
+    Monsters = count_mosters(get_tansforms(Map), read_image(make_moster())),
     #{$1 := MaybyMonster} = count(maps:values(Map)),
     MaybyMonster - 15* Monsters.
 
 
 
-count_mosters([], Monster, Acc)->
-    lists:max(Acc);
+count_mosters([], _Monster)->
+    0;
 
-count_mosters([Grid = #{dim := {Xdim, Ydim}} | Grids], Monster =  #{dim := {Mx, My}}, Acc) ->
-    Positions = [{X,Y} || X <- lists:seq(0, Xdim-Mx -1), Y <- lists:seq(0, Ydim-My -1) , is_moster({X,Y}, Grid, Monster)  ],
-    count_mosters(Grids, Monster, [length(Positions) | Acc]).
+count_mosters([Map = #{dim := {Xdim, Ydim}} | Maps], Monster =  #{dim := {Mx, My}}) ->
+    Positions = [{X,Y} || X <- lists:seq(0, Xdim-Mx -1), Y <- lists:seq(0, Ydim-My -1) , is_moster({X,Y}, Map, Monster)  ],
+
+    case length(Positions) of 
+        0 ->
+            count_mosters(Maps, Monster);
+        N ->
+            print(highlight(Positions, Monster, Map)),
+            N
+    end.
+            
+
+highlight([], _Monster, Map) ->
+    Map;
+highlight([{X,Y}|Positions], Monster, Map) ->
+    Highlights=     maps:from_list([{{X+Mx, Y+My}, $O} || {Mx, My} <- maps:keys(Monster)]),
+    highlight(Positions, Monster, maps:merge(Map, Highlights)).
+
 
 
 is_moster({X,Y}, Grid, Monster) ->
     Match =  [$# || {Mx, My} <- maps:keys(Monster), maps:get({X+Mx, Y+My}, Grid) == $1],
-   %%  io:format("~p~n",[Match]),
-    length(Match) == 15.
+    length(Match) == maps:size(Monster)-1.
     
-
-
-
-
-
-
 make_moster() ->
-    "                  #\n"++ 
+    ""++
+        "                  #\n"++ 
         "#    ##    ##    ###\n" ++
         " #  #  #  #  #  #   ".
 
@@ -75,14 +84,6 @@ make_moster() ->
 
 
 commbind(Grid = #{{0,0} := #{dim := {Xdim, Ydim}}}) ->
-    %% io:format("~p~n", [{Xdim, Ydim}]),
-    %% List = [{{Gx*(Xdim) + X, Gy*(Ydim)+ Y}, Value } || {{Gx,Gy}, Image} <- maps:to_list(Grid), 
-    %%                                                             {{X,Y}, Value} <- maps:to_list(Image)],
-
-
-
-    %% io:format("~n~p~n~n", [lists:max(maps:to_list(Grid))]),
-    %% io:format("~n~p~n~n", [lists:max(List)]),
 
     List = [{{Gx*(Xdim -2) + X-1, Gy*(Ydim-2)+ Y-1}, Value } || {{Gx,Gy}, Image} <- maps:to_list(Grid), 
                                                                 {{X,Y}, Value} <- maps:to_list(Image),
@@ -101,7 +102,7 @@ orient(Neigbours, Images, Sides, Count)->
 
 
     
-orient({X,Ymax}, Grid, Images, Sides, Count, Acc, {Xmax, Ymax}) ->
+orient({_X,Ymax}, _Grid, _Images, _Sides, _Count, Acc, {_Xmax, Ymax}) ->
     
     Acc;
 orient({Xmax,Y}, Grid, Images, Sides, Count, Acc, {Xmax, Ymax}) ->
@@ -136,10 +137,10 @@ get_tansforms(Map)->
 
 
 
-is_neigbour(Id, Value, edge, Sides, Count) ->
+is_neigbour(_Id, Value, edge, _Sides, Count) ->
     maps:get(Value,Count) == 1;
 
-is_neigbour(Id, Value, Neigbour, Sides, Count) ->
+is_neigbour(Id, Value, Neigbour, Sides, _Count) ->
     case  [N || {N, _} <- proplists:get_all_values(Value, Sides), N /= Id] of
         [Neigbour] -> 
             
@@ -155,12 +156,12 @@ is_neigbour(Id, Value, Neigbour, Sides, Count) ->
 to_grid(List) ->
     to_grid(List,0, #{}).
 
-to_grid([], Y, Map) ->
+to_grid([], _Y, Map) ->
     Map;
 to_grid([First| Rest], Y, Map) ->
     to_grid(Rest, Y+1, to_grid(First,  0, Y, Map)).
 
-to_grid([],  X, Y, Map) ->
+to_grid([],  _X, _Y, Map) ->
     Map;
 to_grid([{Id, _Dir}| Rest],X,  Y, Map) ->
     to_grid(Rest, X+1, Y, Map#{{X,Y} => Id }).
@@ -176,37 +177,23 @@ rotate(Map = #{dim := Dim ={Xdim, Ydim}} ) ->
     NewMap = maps:from_list([{{-(Y-B) + A -1, X }, Value}  || {{X,Y}, Value} <- maps:to_list(Map)]),
     NewMap#{dim => Dim}.
 
-flip_x(Map = #{dim := Dim ={Xdim, Ydim}} ) ->
+flip_x(Map = #{dim := Dim ={Xdim, _Ydim}} ) ->
     NewMap = maps:from_list([{{Xdim -1 - X, Y }, Value}  || {{X,Y}, Value} <- maps:to_list(Map)]),
     NewMap#{dim => Dim}.
-
-flip_y(Map = #{dim := Dim ={Xdim, Ydim}} ) ->
-    NewMap = maps:from_list([{{X, Ydim -1 -Y }, Value}  || {{X,Y}, Value} <- maps:to_list(Map)]),
-    NewMap#{dim => Dim}.
-
-
-print(Id, Images) ->
-    {_Edges, Map} =  proplists:get_value(Id, Images),
-    print(Map),
-    io:format("~n"),
-    print(rotate(Map)),
-        io:format("~n"),
-    print(flip_x(Map)),
-    io:format("~n"),
-    print(flip_y(Map)).
-    
+  
     
 pc($0) ->
     $.;
 pc($1) ->
-    $#.
-
+    $~;
+pc(C) ->
+    C.
 
 
 print(Map = #{dim := {Xdim, Ydim}}) ->
     [
-         io:format("~s~n", [[pc(maps:get({X,Y}, Map))  || Y <- lists:seq(0,Ydim-1)]])
-     || X <- lists:seq(0,Xdim-1) ].
+         io:format("~s~n", [[pc(maps:get({X,Y}, Map))  || X <- lists:seq(0,Xdim-1)]])
+     || Y <- lists:seq(0,Ydim-1) ].
 
 
 
@@ -254,26 +241,7 @@ flip(rightRev) ->
     right.
 
 
-
-is_rev(top)->
-    false;
-is_rev(bot) ->
-    false;
-is_rev(left) ->
-    false;
-is_rev(right) ->
-    false;
-is_rev(topRev)->
-    true;
-is_rev(botRev) ->
-    true;
-is_rev(leftRev) ->
-    true;
-is_rev(rightRev) ->
-    true.
-
-
-build([E1,E2],Id, Images, Sides, Count) ->
+build([E1,_E2],Id, Images, Sides, Count) ->
     Row1 = match_edges(E1, Id,  Images, Sides, Count),
 
     [match_edges(get_new_internal_edge(proplists:get_value(RowId, Images), Count, Side),RowId,Images,Sides,Count) || {RowId, Side} <- Row1  ].
@@ -310,10 +278,7 @@ get_new_internal_edge({Edges, _Image}, Count, Current) ->
                     Side /= Current, Side /= flip(Current), opposed(Side) /= Current, opposed(Side) /= flip(Current)  ],
     S.
 
-get_external_edges(Edges, Count) ->
-    [Side || {Side, Value} <- maps:to_list(Edges), maps:get(Value, Count) == 1].
-
-    
+   
 
 reorder(Map, Id) ->
     [{Val, {Id, Key}} || {Key, Val} <- maps:to_list(Map)].
@@ -392,7 +357,7 @@ get_edges(ImageMap = #{dim := {Xdim, Ydim}}) ->
 
 
 
-top(ImageMap = #{dim := {Xdim, Ydim}}) ->
+top(ImageMap = #{dim := {Xdim, _Ydim}}) ->
     list_to_integer([maps:get({X,0}, ImageMap)  || X <- lists:seq(0, Xdim-1) ] ,2).
 
 
@@ -400,7 +365,7 @@ bot(ImageMap = #{dim := {Xdim, Ydim}}) ->
     list_to_integer([maps:get({X,Ydim-1}, ImageMap)  || X <- lists:seq(0, Xdim-1) ] ,2).
 
 
-left(ImageMap = #{dim := {Xdim, Ydim}}) ->
+left(ImageMap = #{dim := {_Xdim, Ydim}}) ->
     list_to_integer([maps:get({0,Y}, ImageMap) || Y <- lists:seq(0, Ydim-1) ] ,2).
 
 right(ImageMap = #{dim := {Xdim, Ydim}}) ->
