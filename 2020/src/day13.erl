@@ -83,7 +83,7 @@ star2({_Time, Buses}) ->
     Reminders =
         [{-Rem, Id} || {Id, Rem} <- lists:zip(Buses, lists:seq(0, length(Buses) - 1)), Id /= x],
     chinese_remainder(Reminders).
- 
+
 dep_time(Id, Time) ->
     case Time div Id * Id of
         Time ->
