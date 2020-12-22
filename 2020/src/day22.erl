@@ -17,7 +17,7 @@ run(Star, File) ->
     end.
 
 star1({P1, P2}) ->
-    play_combat(P1, P2).
+    play(P1, P2).
 
 star2({P1, P2}) ->
     {_Player, Score} = play_recursive(P1, P2),
@@ -31,38 +31,38 @@ read(File) ->
     {[list_to_integer(Line) || Line <- string:split(P1, "\n", all)],
      [list_to_integer(Line) || Line <- string:split(P2, "\n", all)]}.
 
-play_combat_round(P1, P2) when P1 > P2 ->
+play_round(P1, P2) when P1 > P2 ->
     {[P1, P2], []};
-play_combat_round(P1, P2) ->
+play_round(P1, P2) ->
     {[], [P2, P1]}.
 
-play_combat([], P2) ->
-    score_combat(P2);
-play_combat(P1, []) ->
-    score_combat(P1);
-play_combat([P1 | P1s], [P2 | P2s]) ->
-    {T1, T2} = play_combat_round(P1, P2),
-    play_combat(P1s ++ T1, P2s ++ T2).
+play([], P2) ->
+    score(P2);
+play(P1, []) ->
+    score(P1);
+play([P1 | P1s], [P2 | P2s]) ->
+    {T1, T2} = play_round(P1, P2),
+    play(P1s ++ T1, P2s ++ T2).
 
-score_combat(P) ->
-    score_combat(P, length(P), 0).
+score(P) ->
+    score(P, length(P), 0).
 
-score_combat([], 0, Sum) ->
+score([], 0, Sum) ->
     Sum;
-score_combat([P | Ps], N, Sum) ->
-    score_combat(Ps, N - 1, Sum + P * N).
+score([P | Ps], N, Sum) ->
+    score(Ps, N - 1, Sum + P * N).
 
 play_recursive(P1, P2) ->
     play_recursive_round(P1, P2, sets:new()).
 
 play_recursive_round(P1, [], _Set) ->
-    {p1, score_combat(P1)};
+    {p1, score(P1)};
 play_recursive_round([], P2, _Set) ->
-    {p2, score_combat(P2)};
+    {p2, score(P2)};
 play_recursive_round(P1 = [C1 | C1s], P2 = [C2 | C2s], Set) ->
     case sets:is_element({P1, P2}, Set) of
         true ->
-            {p1, score_combat(P1)};
+            {p1, score(P1)};
         false ->
             NewSet = sets:add_element({P1, P2}, Set),
 
