@@ -3,8 +3,7 @@
 -export([run/2]).
 
 run(Star, File) ->
-    {ok, Device} = file:open(File, [read]),
-    Data = read_data(Device),
+    Data = read(File),
     case Star of
         star1 ->
             star1(Data);
@@ -29,16 +28,5 @@ star2(Data) ->
            Value1 =< Value2,
            Value2 =< Value3]).
 
-read_data(Device) ->
-    read_data(Device, []).
-
-read_data(Device, Acc) ->
-    case io:fread(Device, [], "~d") of
-        eof ->
-            lists:reverse(Acc);
-        {ok, [D]} ->
-            read_data(Device, [D | Acc]);
-        {error, What} ->
-            io:format("io:fread error: ~w~n", [What]),
-            read_data(Device, Acc)
-    end.
+read(File) ->
+    tools:read_integers(File).
