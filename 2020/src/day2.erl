@@ -3,8 +3,7 @@
 -export([run/2]).
 
 run(Star, File) ->
-    {ok, Device} = file:open(File, [read]),
-    Data = read_data(Device),
+    Data = read(File),
     case Star of
         star1 ->
             star1(Data);
@@ -17,45 +16,19 @@ run(Star, File) ->
     end.
 
 star1(Data) ->
-    length([Line || Line <- Data, check_pwd(Line) == ok]).
+    length([Line || Line <- Data, check_pwd1(Line)]).
 
 star2(Data) ->
-    length([Line || Line <- Data, check_pwd2(Line) == ok]).
+    length([Line || Line <- Data, check_pwd2(Line)]).
 
-read_data(Device) ->
-    read_data(Device, []).
+read(File) ->
+    tools:read_format(File, "~d-~d ~c:~s").
 
-read_data(Device, Acc) ->
-    case io:fread(Device, [], "~d-~d ~c:~s") of
-        eof ->
-            lists:reverse(Acc);
-        {ok, D} ->
-            read_data(Device, [D | Acc]);
-        {error, What} ->
-            io:format("io:fread error: ~w~n", [What]),
-            read_data(Device, Acc)
-    end.
-
-check_pwd([Min, Max, [Char], Password]) ->
+check_pwd1([Min, Max, [Char], Password]) ->
     Len = length([P || P <- Password, P == Char]),
-    if Len < Min ->
-           nok;
-       Len > Max ->
-           nok;
-       true ->
-           ok
-    end.
+    Len >= Min andalso Len =< Max.
 
 check_pwd2([Idx1, Idx2, [Char], Password]) ->
     Pos1 = lists:nth(Idx1, Password),
     Pos2 = lists:nth(Idx2, Password),
-
-    if Pos1 == Char, Pos2 == Char ->
-           nok;
-       Pos1 == Char ->
-           ok;
-       Pos2 == Char ->
-           ok;
-       true ->
-           nok
-    end.
+    (Pos1 == Char) xor (Pos2 == Char).

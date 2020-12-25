@@ -17,18 +17,13 @@ run(Star, File) ->
     end.
 
 star1(Data) ->
-    maps:get(ok, count([validate(Passport) || Passport <- Data])).
+    length([Passport || Passport <- Data, valid1(Passport)]).
 
 star2(Data) ->
-    maps:get(true, count([validate2(Passport) || Passport <- Data])).
+    length([Passport || Passport <- Data, valid1(Passport), valid2(Passport)]).
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
-    [to_map(string:split(
-                string:replace(Pass, "\n", " ", all), " ", all))
-     || Pass
-            <- string:split(
-                   string:trim(binary_to_list(Bin)), "\n\n", all)].
+    [to_map(tools:parse_format(Pass, "~s")) || Pass <- tools:read_blocks(File)].
 
 to_map(List) ->
     to_map(List, #{}).
@@ -39,108 +34,48 @@ to_map([Token | Rest], Map) ->
     [K, V] = string:split(Token, ":"),
     to_map(Rest, Map#{list_to_atom(K) => V}).
 
-validate(#{byr := _Byr,
-           iyr := _Iyr,
-           eyr := _Eyr,
-           hgt := _Hgt,
-           hcl := _Hcl,
-           ecl := _Ecl,
-           pid := _Pid}) ->
-    ok;
-validate(_) ->
-    nok.
+valid1(Pass) ->
+    lists:all(fun(Field) -> is_map_key(Field, Pass) end, [byr, iyr, eyr, hgt, hcl, ecl, pid]).
 
-validate2(#{byr := Byr,
-            iyr := Iyr,
-            eyr := Eyr,
-            hgt := Hgt,
-            hcl := Hcl,
-            ecl := Ecl,
-            pid := Pid}) ->
-    byr(Byr) and eyr(Eyr) and iyr(Iyr) and hgt(Hgt) and hcl(Hcl) and ecl(Ecl) and pid_(Pid);
-validate2(_) ->
-    false.
+valid2(Pass) ->
+    lists:all(fun({Field, Value}) -> validate(Field, Value) end, maps:to_list(Pass)).
 
-is_int(S) ->
-    try
-        V = list_to_integer(S),
-        {true, V}
-    catch
-        error:badarg ->
-            false
-    end.
-
-byr(Byr) when length(Byr) == 4 ->
-    case is_int(Byr) of
-        {true, V} ->
-            (V >= 1920) and (V =< 2002);
-        _ ->
-            false
-    end;
-byr(_) ->
-    false.
-
-iyr(Iyr) when length(Iyr) == 4 ->
-    case is_int(Iyr) of
-        {true, V} ->
-            (V >= 2010) and (V =< 2020);
-        _ ->
-            false
-    end;
-iyr(_) ->
-    false.
-
-eyr(Eyr) when length(Eyr) == 4 ->
-    case is_int(Eyr) of
-        {true, V} ->
-            (V >= 2020) and (V =< 2030);
-        _ ->
-            false
-    end;
-eyr(_) ->
-    false.
-
-hgt(Hgt = [_, _, _, $c, $m]) ->
-    case is_int(string:substr(Hgt, 1, 3)) of
-        {true, V} ->
-            (V >= 150) and (V =< 193);
-        _ ->
-            false
-    end;
-hgt(Hgt = [_, _, $i, $n]) ->
-    case is_int(string:substr(Hgt, 1, 2)) of
-        {true, V} ->
-            (V >= 59) and (V =< 76);
-        _ ->
-            false
-    end;
-hgt(_) ->
-    false.
-
-hcl(Hcl) ->
-    case re:run(Hcl, "^#[0-9a-f]{6}$") of
+matches(String, Re) ->
+    case re:run(String, Re) of
         {match, _} ->
             true;
         _ ->
             false
     end.
 
-ecl(Ecl) ->
-    case re:run(Ecl, "^(amb|blu|brn|gry|grn|hzl|oth)") of
-        {match, _} ->
+in_range(String, Min, Max) ->
+    case string:to_integer(String) of
+        {Value, []} when Value >= Min, Value =< Max ->
             true;
         _ ->
             false
     end.
 
-pid_(Pid) ->
-    case re:run(Pid, "^[0-9]{9}$") of
-        {match, _} ->
+validate(byr, Byr) ->
+    in_range(Byr, 1920, 2002);
+validate(iyr, Iyr) ->
+    in_range(Iyr, 2010, 2020);
+validate(eyr, Eyr) ->
+    in_range(Eyr, 2020, 2030);
+validate(hgt, Hgt) ->
+    case string:to_integer(Hgt) of
+        {Value, "cm"} when Value >= 150, Value =< 193 ->
+            true;
+        {Value, "in"} when Value >= 59, Value =< 76 ->
             true;
         _ ->
             false
-    end.
-
-count(List) ->
-    Fun = fun(V) -> V + 1 end,
-    lists:foldl(fun(Value, Map) -> maps:update_with(Value, Fun, 1, Map) end, #{}, List).
+    end;
+validate(hcl, Hcl) ->
+    matches(Hcl, "^#[0-9a-f]{6}$");
+validate(ecl, Ecl) ->
+    matches(Ecl, "^(amb|blu|brn|gry|grn|hzl|oth)$");
+validate(pid, Pid) ->
+    matches(Pid, "^[0-9]{9}$");
+validate(cid, _) ->
+    true.

@@ -17,26 +17,22 @@ run(Star, File) ->
     end.
 
 star1(Data) ->
-    Anyone = [maps:size(count(lists:flatten(Group))) || Group <- Data],
+    Anyone =
+        [length(lists:usort(
+                    lists:flatten(Group)))
+         || Group <- Data],
     lists:sum(Anyone).
 
 star2(Data) ->
     Evryone =
         [begin
-             Count = count(lists:flatten(Group)),
+             Count =
+                 tools:count(
+                     lists:flatten(Group)),
              [K || {K, V} <- maps:to_list(Count), V == length(Group)]
          end
          || Group <- Data],
     length(lists:flatten(Evryone)).
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
-    [string:split(
-         string:trim(Group), "\n", all)
-     || Group
-            <- string:split(
-                   string:trim(binary_to_list(Bin)), "\n\n", all)].
-
-count(List) ->
-    Fun = fun(V) -> V + 1 end,
-    lists:foldl(fun(Value, Map) -> maps:update_with(Value, Fun, 1, Map) end, #{}, List).
+    [tools:parse_lines(Group) || Group <- tools:read_blocks(File)].

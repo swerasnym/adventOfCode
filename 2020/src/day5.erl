@@ -23,11 +23,7 @@ star2(Data) ->
     find_seat(lists:sort(Data)).
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
-    [to_int(Ticket)
-     || Ticket
-            <- string:split(
-                   string:trim(binary_to_list(Bin)), "\n", all)].
+    [to_int(Ticket) || Ticket <- tools:read_lines(File)].
 
 to_int(Ticket) ->
     Substitute1 = string:replace(Ticket, "F", "0", all),
