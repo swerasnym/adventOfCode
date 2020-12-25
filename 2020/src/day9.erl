@@ -26,11 +26,7 @@ star2(Data) ->
     lists:min(Sequence) + lists:max(Sequence).
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
-    [list_to_integer(Line)
-     || Line
-            <- string:split(
-                   string:trim(binary_to_list(Bin)), "\n", all)].
+    tools:read_integers(File).
 
 find_error(Preamble = [_First | Rest], [Value | Values]) ->
     case length([A + B || A <- Preamble, B <- Preamble, A < B, A + B == Value]) of

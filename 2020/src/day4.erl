@@ -23,16 +23,15 @@ star2(Data) ->
     length([Passport || Passport <- Data, valid1(Passport), valid2(Passport)]).
 
 read(File) ->
-    [to_map(tools:parse_format(Pass, "~s")) || Pass <- tools:read_blocks(File)].
+    [to_map(tools:parse_format(Pass, " ~3a:~s")) || Pass <- tools:read_blocks(File)].
 
 to_map(List) ->
     to_map(List, #{}).
 
 to_map([], Map) ->
     Map;
-to_map([Token | Rest], Map) ->
-    [K, V] = string:split(Token, ":"),
-    to_map(Rest, Map#{list_to_atom(K) => V}).
+to_map([[K, V] | Rest], Map) ->
+    to_map(Rest, Map#{K => V}).
 
 valid1(Pass) ->
     lists:all(fun(Field) -> is_map_key(Field, Pass) end, [byr, iyr, eyr, hgt, hcl, ecl, pid]).

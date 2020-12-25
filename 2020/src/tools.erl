@@ -2,10 +2,10 @@
 
 -export([count/1, count/2, product/1]).
 -export([read_string/1]).
--export([read_format/2, read_integers/1, read_lines/1, read_blocks/1, read_grid/1,
-         read_grid/2]).
--export([parse_format/2, parse_lines/1, parse_integers/1, parse_blocks/1, parse_grid/1,
-         parse_grid/2]).
+-export([read_format/2, read_integers/1, read_integers/2, read_lines/1, read_blocks/1,
+         read_grid/1, read_grid/2]).
+-export([parse_format/2, parse_lines/1, parse_integers/1, parse_integers/2,
+         parse_blocks/1, parse_grid/1, parse_grid/2]).
 
 %% @doc Generates a map of counnts of the terims in the collection.
 count(Map) when is_map(Map) ->
@@ -43,6 +43,10 @@ read_blocks(File) ->
 read_integers(File) ->
     lists:flatten(read_format(File, "~d")).
 
+%% @doc Reads a file of whitespace separated integers to a list and sort them.
+read_integers(File, sort) ->
+    lists:sort(read_integers(File)).
+
 %% @doc Reads a file of repeated formats ino a list of lits of terms.
 %% @see io:fread for format specification.
 read_format(File, Format) ->
@@ -73,6 +77,10 @@ parse_blocks(String) ->
 %% @doc Reads a string of whitespace separated integers to a list.
 parse_integers(String) ->
     lists:flatten(parse_format(String, "~d")).
+
+%% @doc Reads a file of whitespace separated integers to a list and sort them.
+parse_integers(String, sort) ->
+    lists:sort(parse_integers(String)).
 
 parse_format(String, Format) ->
     parse_format(String, Format, []).

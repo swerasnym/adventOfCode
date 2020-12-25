@@ -16,47 +16,31 @@ run(Star, File) ->
             {Star1, Star2}
     end.
 
-star1(Data) ->
-    Sorted = lists:sort(Data),
-    Device = lists:last(Sorted) + 3,
-    count([0] ++ Sorted ++ [Device], 0, 0).
+star1(Sorted) ->
+    #{1 := One, 3 := Three} = tools:count(diffrences(Sorted)),
+    One * Three.
 
-star2(Data) ->
-    Sorted = lists:sort(Data),
-    Device = lists:last(Sorted) + 3,
-    Diff = diffrences([0] ++ Sorted ++ [Device]),
-    Rep = count_repeeted_ones(Diff),
-    product(Rep).
+star2(Sorted) ->
+    Diff = diffrences(Sorted),
+    tools:product([multiplicity(Rep) || Rep <- count_repeeted_ones(Diff)]).
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
-    [list_to_integer(Line)
-     || Line
-            <- string:split(
-                   string:trim(binary_to_list(Bin)), "\n", all)].
-
-count([A], One, Tree) ->
-    One * Tree;
-count([A, B | Sorted], One, Tree) when A + 1 == B ->
-    count([B | Sorted], One + 1, Tree);
-count([A, B | Sorted], One, Tree) when A + 3 == B ->
-    count([B | Sorted], One, Tree + 1);
-count([A | Sorted], One, Tree) ->
-    count([Sorted], One, Tree).
+    Sorted = tools:read_integers(File, sort),
+    [0] ++ Sorted ++ [lists:last(Sorted) + 3].
 
 diffrences(Sorted) ->
     diffrences(Sorted, []).
 
-diffrences([A], Diffrences) ->
-    lists:reverse(Diffrences);
+diffrences([_], Diffrences) ->
+    Diffrences;
 diffrences([A, B | Sorted], Diffrences) ->
     diffrences([B | Sorted], [B - A | Diffrences]).
 
 count_repeeted_ones(Diff) ->
     count_repeeted_ones(Diff, 0, []).
 
-count_repeeted_ones([], Count, Res) ->
-    lists:reverse(Res);
+count_repeeted_ones([], _Count, Res) ->
+    Res;
 count_repeeted_ones([1 | Diff], Count, Res) ->
     count_repeeted_ones(Diff, Count + 1, Res);
 count_repeeted_ones([3 | Diff], Count, Res) ->
@@ -72,11 +56,3 @@ multiplicity(3) ->
     4;
 multiplicity(4) ->
     7.
-
-product(List) ->
-    product(List, 1).
-
-product([], N) ->
-    N;
-product([A | List], N) ->
-    product(List, N * multiplicity(A)).

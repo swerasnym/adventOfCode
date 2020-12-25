@@ -32,7 +32,7 @@ star2(Data) ->
              [K || {K, V} <- maps:to_list(Count), V == length(Group)]
          end
          || Group <- Data],
-    length(lists:flatten(Evryone)).
+    lists:flatlength(Evryone).
 
 read(File) ->
     [tools:parse_lines(Group) || Group <- tools:read_blocks(File)].

@@ -16,40 +16,28 @@ run(Star, File) ->
             {Star1, Star2}
     end.
 
-star1(Data) ->
-    {_Ic, Result} = run(1, maps:from_list(Data), 0),
+star1(Instructions) ->
+    {_Ic, Result} = run(Instructions),
     Result.
 
-star2(Data) ->
-    Instructions = maps:from_list(Data),
+star2(Instructions) ->
     Results =
-        [run(1, Instructions#{Ic => {update(Code), Value}}, 0)
-         || {Ic, {Code, Value}} <- Data, Code /= acc],
-    proplists:get_value(length(Data) + 1, Results).
+        [run(Instructions#{Ic => {update(Code), Value}})
+         || {Ic, {Code, Value}} <- maps:to_list(Instructions), Code /= acc],
+    proplists:get_value(maps:size(Instructions) + 1, Results).
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
-    Ops = [parse_op(Op)
-           || Op
-                  <- string:split(
-                         string:trim(binary_to_list(Bin)), "\n", all)],
+    Ops = [{Op, Int} || [Op, Int] <- tools:read_format(File, "~3a ~d")],
+    maps:from_list(
+        lists:zip(
+            lists:seq(1, length(Ops)), Ops)).
 
-    lists:zip(
-        lists:seq(1, length(Ops)), Ops).
-
-parse_op("nop " ++ Rest) ->
-    {Int, []} = string:to_integer(Rest),
-    {nop, Int};
-parse_op("acc " ++ Rest) ->
-    {Int, []} = string:to_integer(Rest),
-    {acc, Int};
-parse_op("jmp " ++ Rest) ->
-    {Int, []} = string:to_integer(Rest),
-    {jmp, Int}.
+run(Instructions) ->
+    run(1, Instructions, 0).
 
 run(Ic, Instructions, Acc) ->
-    case maps:get(Ic, Instructions, Acc) of
-        Acc ->
+    case maps:get(Ic, Instructions, loop) of
+        loop ->
             {Ic, Acc};
         {nop, _} ->
             run(Ic + 1, maps:without([Ic], Instructions), Acc);

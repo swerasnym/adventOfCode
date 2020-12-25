@@ -23,16 +23,12 @@ star2(Bags) ->
     inside(maps:from_list(Bags), 'shiny gold bag').
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
-    [process_bag(BagContent)
-     || BagContent
-            <- string:split(
-                   string:trim(binary_to_list(Bin)), "\n", all)].
+    [process_bag(BagContent) || BagContent <- tools:read_lines(File)].
 
 process_bag(BagContent) ->
     [Bag, Contents] =
         string:split(
-            lists:droplast(BagContent), " contain "),
+            lists:droplast(BagContent), "s contain "),
 
     F = fun ("no other bags") ->
                 {emty, 0};
@@ -44,7 +40,7 @@ process_bag(BagContent) ->
                         {list_to_atom(lists:droplast(Rbag)), Number}
                 end
         end,
-    {list_to_atom(lists:droplast(Bag)),
+    {list_to_atom(Bag),
      maps:from_list([F(Content) || Content <- string:split(Contents, ", ", all)])}.
 
 find_all(Bags, Keys) ->
