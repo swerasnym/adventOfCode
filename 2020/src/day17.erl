@@ -36,9 +36,7 @@ iterate(N, Map) ->
 
     Update =
         fun(Pos, Acc) ->
-           ActiveNeigbours =
-               [Neigbour
-                || Neigbour <- neigbours(Pos), maps:is_key(Neigbour, Map)],
+           ActiveNeigbours = [Neigbour || Neigbour <- neigbours(Pos), maps:is_key(Neigbour, Map)],
 
            case {maps:get(Pos, Map, inactive), length(ActiveNeigbours)} of
                {active, 2} -> Acc#{Pos => active};
