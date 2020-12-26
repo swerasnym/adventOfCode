@@ -32,7 +32,7 @@ diffrences(Sorted) ->
     diffrences(Sorted, []).
 
 diffrences([_], Diffrences) ->
-    Diffrences;
+    lists:reverse(Diffrences);
 diffrences([A, B | Sorted], Diffrences) ->
     diffrences([B | Sorted], [B - A | Diffrences]).
 
@@ -40,7 +40,7 @@ count_repeeted_ones(Diff) ->
     count_repeeted_ones(Diff, 0, []).
 
 count_repeeted_ones([], _Count, Res) ->
-    Res;
+    lists:reverse(Res);
 count_repeeted_ones([1 | Diff], Count, Res) ->
     count_repeeted_ones(Diff, Count + 1, Res);
 count_repeeted_ones([3 | Diff], Count, Res) ->

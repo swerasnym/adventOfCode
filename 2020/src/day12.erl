@@ -30,30 +30,22 @@ star2(Data) ->
     abs(X) + abs(Y).
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
-    [action(Line)
-     || Line
-            <- string:split(
-                   string:trim(binary_to_list(Bin)), "\n", all)].
+    [action(Dir, Amount) || [Dir, Amount] <- tools:read_format(File, "~c~d")].
 
-action([Dir | Rest]) ->
-    Amount = list_to_integer(Rest),
-    case Dir of
-        $N ->
-            {Amount, 0, 0};
-        $S ->
-            {-Amount, 0, 0};
-        $E ->
-            {0, Amount, 0};
-        $W ->
-            {0, -Amount, 0};
-        $R ->
-            {0, 0, Amount};
-        $L ->
-            {0, 0, -Amount + 360};
-        $F ->
-            {move, Amount}
-    end.
+action("N", Amount) ->
+    {Amount, 0, 0};
+action("S", Amount) ->
+    {-Amount, 0, 0};
+action("E", Amount) ->
+    {0, Amount, 0};
+action("W", Amount) ->
+    {0, -Amount, 0};
+action("R", Amount) ->
+    {0, 0, Amount};
+action("L", Amount) ->
+    {0, 0, 360 - Amount};
+action("F", Amount) ->
+    {move, Amount}.
 
 take_action({X, Y, 0}, {move, Amount}) ->
     {X + Amount, Y, 0};

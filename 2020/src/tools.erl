@@ -1,11 +1,15 @@
 -module(tools).
 
--export([count/1, count/2, product/1]).
--export([read_string/1]).
--export([read_format/2, read_integers/1, read_integers/2, read_lines/1, read_blocks/1,
-         read_grid/1, read_grid/2]).
+-export([ws/0, count/1, count/2, product/1, replace/3, replace/4]).
+-export([read_string/1, read_tokens/2]).
+-export([read_format/2, read_integers/1, read_integers/2, read_integers/3, read_lines/1,
+         read_blocks/1, read_grid/1, read_grid/2]).
 -export([parse_format/2, parse_lines/1, parse_integers/1, parse_integers/2,
-         parse_blocks/1, parse_grid/1, parse_grid/2]).
+         parse_integers/3, parse_blocks/1, parse_grid/1, parse_grid/2]).
+-export([gcd/2, egcd/2, mod_inv/2, mod/2, chinese_remainder/1]).
+
+ws() ->
+    " \t\n\r\v".
 
 %% @doc Generates a map of counnts of the terims in the collection.
 count(Map) when is_map(Map) ->
@@ -22,6 +26,30 @@ count(Value, Collection) ->
 product(List) ->
     lists:foldl(fun(Term, Product) -> Term * Product end, 1, List).
 
+%% @doc Do a replacement
+replace(Replace, Replace, With) ->
+    With;
+replace(Value, _Replace, _With) ->
+    Value.
+
+%% @doc Relace up to N occurances off Replace with With in a list
+replace(Values, Replace, With, all) when is_list(Values) ->
+    [replace(Value, Replace, With) || Value <- Values];
+replace(Values, Replace, With, N) when is_list(Values), is_integer(N), N > 0 ->
+    replace([], Values, Replace, With, N);
+replace(Values, _Replace, _With, N) when is_list(Values), is_integer(N) ->
+    Values.
+
+%% internal (Recursivly do the replacements)
+replace(Previous, Values, _Replace, _With, 0) ->
+    lists:reverse(Previous) ++ Values;
+replace(Previous, [], _Replace, _With, _N) ->
+    lists:reverse(Previous);
+replace(Previous, [Replace | Values], Replace, With, N) ->
+    replace([With | Previous], Values, Replace, With, N - 1);
+replace(Previous, [Value | Values], Replace, With, N) ->
+    replace([Value | Previous], Values, Replace, With, N).
+
 %% ------------------------
 %% read
 
@@ -29,6 +57,10 @@ product(List) ->
 read_string(File) ->
     {ok, Bin} = file:read_file(File),
     string:trim(binary_to_list(Bin), trailing).
+
+%% @doc Tokenizes a whole file using string:tokens/2 ignoring any trailing whitespaces.
+read_tokens(File, Separators) ->
+    string:tokens(read_string(File), Separators).
 
 %% @doc Reads a whole file into a list of lines without trailing linebreaks.
 read_lines(File) ->
@@ -41,11 +73,16 @@ read_blocks(File) ->
 
 %% @doc Reads a file of whitespace separated integers to a list.
 read_integers(File) ->
-    lists:flatten(read_format(File, "~d")).
+    read_integers(File, "\n\r\t\v ").
 
 %% @doc Reads a file of whitespace separated integers to a list and sort them.
 read_integers(File, sort) ->
-    lists:sort(read_integers(File)).
+    lists:sort(read_integers(File));
+read_integers(File, Separators) ->
+    [list_to_integer(Int) || Int <- read_tokens(File, Separators)].
+
+read_integers(File, Separators, sort) ->
+    lists:sort(read_integers(File, Separators)).
 
 %% @doc Reads a file of repeated formats ino a list of lits of terms.
 %% @see io:fread for format specification.
@@ -76,11 +113,17 @@ parse_blocks(String) ->
 
 %% @doc Reads a string of whitespace separated integers to a list.
 parse_integers(String) ->
+    parse_integers(String, ws()),
     lists:flatten(parse_format(String, "~d")).
 
 %% @doc Reads a file of whitespace separated integers to a list and sort them.
 parse_integers(String, sort) ->
-    lists:sort(parse_integers(String)).
+    lists:sort(parse_integers(String));
+parse_integers(String, Separators) ->
+    [list_to_integer(Int) || Int <- string:tokens(String, Separators)].
+
+parse_integers(String, Separators, sort) ->
+    lists:sort(parse_integers(String, Separators)).
 
 parse_format(String, Format) ->
     parse_format(String, Format, []).
@@ -125,3 +168,60 @@ parse_grid([Char | Rest], {X, Y} = Pos, Grid, Map) when is_map(Map) ->
     parse_grid(Rest, {X + 1, Y}, Grid#{Pos => maps:get(Char, Map)}, Map);
 parse_grid([Char | Rest], {X, Y} = Pos, Grid, Fun) when is_function(Fun) ->
     parse_grid(Rest, {X + 1, Y}, Grid#{Pos => Fun(Char)}, Fun).
+
+%%%%%%%%%%%%%%%%
+%% math
+gcd(A, 0) ->
+    abs(A);
+gcd(A, B) ->
+    gcd(B, A rem B).
+
+egcd(_, 0) ->
+    {1, 0};
+egcd(A, B) ->
+    {S, T} = egcd(B, A rem B),
+    {T, S - A div B * T}.
+
+mod_inv(A, B) ->
+    {X, Y} = egcd(A, B),
+    if A * X + B * Y =:= 1 ->
+           X;
+       true ->
+           undefined
+    end.
+
+mod(A, M) ->
+    X = A rem M,
+    if X < 0 ->
+           X + abs(M);
+       true ->
+           X
+    end.
+
+%% internal
+calc_inverses([], []) ->
+    [];
+calc_inverses([N | Ns], [M | Ms]) ->
+    case mod_inv(N, M) of
+        undefined ->
+            undefined;
+        Inv ->
+            [Inv | calc_inverses(Ns, Ms)]
+    end.
+
+chinese_remainder(Congruences) ->
+    {Residues, Modulii} = lists:unzip(Congruences),
+    ModPI = lists:foldl(fun(A, B) -> A * B end, 1, Modulii),
+    CRT_Modulii = [ModPI div M || M <- Modulii],
+    case calc_inverses(CRT_Modulii, Modulii) of
+        undefined ->
+            undefined;
+        Inverses ->
+            Solution =
+                lists:sum([A * B
+                           || {A, B}
+                                  <- lists:zip(CRT_Modulii,
+                                               [A * B
+                                                || {A, B} <- lists:zip(Residues, Inverses)])]),
+            mod(Solution, ModPI)
+    end.

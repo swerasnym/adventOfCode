@@ -17,97 +17,65 @@ run(Star, File) ->
     end.
 
 star1(Map) ->
-    New = iterate(Map),
-    maps:get(occupied, count(maps:values(New))).
+    tools:count(occupied, iterate1(Map)).
 
 star2(Map) ->
-    New = iterate2(Map),
-    maps:get(occupied, count(maps:values(New))).
+    tools:count(occupied, iterate2(Map)).
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
-    List = binary_to_list(Bin),
-    read(List, 0, 0, #{}).
+    maps:without([max],
+                 tools:read_grid(File,
+                                 #{$# => occupied,
+                                   $. => floor,
+                                   $L => free})).
 
-read([$\n], _X, _Y, Acc) ->
-    Acc; %% #{dim => {X, Y + 1}};
-read([$\n | Rest], _X, Y, Acc) ->
-    read(Rest, 0, Y + 1, Acc);
-read([Char | Rest], X, Y, Acc) ->
-    case Char of
-        $# ->
-            read(Rest, X + 1, Y, Acc#{{X, Y} => occupied});
-        $. ->
-            read(Rest, X + 1, Y, Acc#{{X, Y} => floor});
-        $L ->
-            read(Rest, X + 1, Y, Acc#{{X, Y} => free})
-    end.
-
-count(List) ->
-    Fun = fun(V) -> V + 1 end,
-    lists:foldl(fun(Value, Map) -> maps:update_with(Value, Fun, 1, Map) end,
-                #{occupied => 0},
-                List).
-
-update_seat(_Seat, floor, _OldMap, NewMap) ->
+update_seat1(_Seat, floor, _OldMap, NewMap) ->
     NewMap;
-update_seat(Seat, Value, OldMap, NewMap) ->
-    case {Value, count(neigbours(Seat, OldMap))} of
-        {free, #{occupied := 0}} ->
+update_seat1(Seat, Value, OldMap, NewMap) ->
+    case {Value, tools:count(occupied, neigbours1(Seat, OldMap))} of
+        {free, 0} ->
             NewMap#{Seat => occupied};
-        {occupied, #{occupied := N}} when N >= 4 ->
+        {occupied, N} when N >= 4 ->
             NewMap#{Seat => free};
         _ ->
             NewMap
     end.
 
-neigbours({X, Y}, Map) ->
-    [maps:get({X - 1, Y - 1}, Map, wall),
-     maps:get({X - 1, Y}, Map, wall),
-     maps:get({X - 1, Y + 1}, Map, wall),
-     maps:get({X, Y - 1}, Map, wall),
-     maps:get({X, Y + 1}, Map, wall),
-     maps:get({X + 1, Y - 1}, Map, wall),
-     maps:get({X + 1, Y}, Map, wall),
-     maps:get({X + 1, Y + 1}, Map, wall)].
+neigbours1({X, Y}, Map) ->
+    [maps:get({Xn, Yn}, Map, wall)
+     || Xn <- lists:seq(X - 1, X + 1), Yn <- lists:seq(Y - 1, Y + 1), {Xn, Yn} /= {X, Y}].
 
-iterate(Map) ->
-    F = fun(Seat, Value, Acc) -> update_seat(Seat, Value, Map, Acc) end,
+iterate1(Map) ->
+    F = fun(Seat, Value, Acc) -> update_seat1(Seat, Value, Map, Acc) end,
     case maps:fold(F, Map, Map) of
         Map ->
             Map;
         New ->
-            iterate(New)
+            iterate1(New)
     end.
 
 update_seat2(_Seat, floor, _OldMap, NewMap) ->
     NewMap;
 update_seat2(Seat, Value, OldMap, NewMap) ->
-    case {Value, count(neigbours2(Seat, OldMap))} of
-        {free, #{occupied := 0}} ->
+    case {Value, tools:count(occupied, neigbours2(Seat, OldMap))} of
+        {free, 0} ->
             NewMap#{Seat => occupied};
-        {occupied, #{occupied := N}} when N >= 5 ->
+        {occupied, N} when N >= 5 ->
             NewMap#{Seat => free};
         _ ->
             NewMap
     end.
 
 neigbours2(Seat, Map) ->
-    [find(Seat, {-1, -1}, Map),
-     find(Seat, {-1, 0}, Map),
-     find(Seat, {-1, +1}, Map),
-     find(Seat, {0, -1}, Map),
-     find(Seat, {0, +1}, Map),
-     find(Seat, {+1, -1}, Map),
-     find(Seat, {+1, 0}, Map),
-     find(Seat, {+1, +1}, Map)].
+    [find_seat(Seat, {Dx, Dy}, Map)
+     || Dx <- lists:seq(-1, 1), Dy <- lists:seq(-1, 1), {Dx, Dy} /= {0, 0}].
 
-find({X, Y}, {Dx, Dy} = Dir, Map) ->
+find_seat({X, Y}, {Dx, Dy} = Dir, Map) ->
     case maps:get({X + Dx, Y + Dy}, Map, wall) of
         wall ->
             wall;
         floor ->
-            find({X + Dx, Y + Dy}, Dir, Map);
+            find_seat({X + Dx, Y + Dy}, Dir, Map);
         Value ->
             Value
     end.

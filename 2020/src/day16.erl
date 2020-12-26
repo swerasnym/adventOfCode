@@ -19,72 +19,37 @@ run(Star, File) ->
 star1({Fileds, _MyTicket, Tickets}) ->
     {_Lables, Ranges} = lists:unzip(Fileds),
     RangeList = lists:flatten(Ranges),
-    {_Ok, Nok} =
-        lists:partition(fun(Number) -> verify_any(Number, RangeList) end, lists:flatten(Tickets)),
-    lists:sum(Nok).
+    InvalidValues =
+        [Value || Value <- lists:flatten(Tickets), not verify_any(Value, RangeList)],
+    lists:sum(InvalidValues).
 
 star2({Fileds, MyTicket, Tickets}) ->
     {_Lables, Ranges} = lists:unzip(Fileds),
     RangeList = lists:flatten(Ranges),
-    {Valid, _Invalid} =
-        lists:partition(fun(Ticket) -> verify_ticket(Ticket, RangeList) end, Tickets),
+    ValidTickets = [Ticket || Ticket <- Tickets, verify_all(Ticket, RangeList)],
 
-    Values = [get_values(N, Valid) || N <- lists:seq(1, length(MyTicket))],
-    PossibleMatches = lists:sort([find_pos(Values, Range, []) || Range <- Fileds]),
+    Values = [get_values(N, ValidTickets) || N <- lists:seq(1, length(MyTicket))],
+    PossibleMatches = [find_positions(Values, Range) || Range <- Fileds],
     Order = get_order(PossibleMatches, [], []),
-    Idxs = find_departure_indexes(Order, []),
-    product([lists:nth(N, MyTicket) || N <- Idxs]).
 
-product(List) ->
-    product(List, 1).
-
-product([A], Result) ->
-    A * Result;
-product([A | Rest], Result) ->
-    product(Rest, Result * A).
-
-find_departure_indexes([], Result) ->
-    Result;
-find_departure_indexes([{N, {"departure" ++ _, _}} | Rest], Results) ->
-    find_departure_indexes(Rest, [N | Results]);
-find_departure_indexes([_ | Rest], Results) ->
-    find_departure_indexes(Rest, Results).
-
-get_order([], _, Result) ->
-    Result;
-get_order([{Matches, Range} | PossibleMatches], UsedNumbers, Result) ->
-    [N] = lists:foldr(fun(Used, Left) -> lists:delete(Used, Left) end, Matches, UsedNumbers),
-    get_order(PossibleMatches, [N | UsedNumbers], [{N, Range} | Result]).
+    tools:product([lists:nth(N, MyTicket) || {N, "departure" ++ _} <- Order]).
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
+    [Fields, "your ticket:\n" ++ MyTicket, "nearby tickets:\n" ++ NerbyTickets] =
+        tools:read_blocks(File),
+    {[process_field(Field) || Field <- tools:parse_lines(Fields)],
+     tools:parse_integers(MyTicket, ","),
+     [tools:parse_integers(Ticket, ",") || Ticket <- tools:parse_lines(NerbyTickets)]}.
 
-    [Fields, MyTicket, NerbyTickets] =
-        string:split(
-            string:trim(binary_to_list(Bin)), "\n\n", all),
-
-    {process_field(Fields), process_ticket(MyTicket), process_ticket(NerbyTickets)}.
-
-process_field(Fields) ->
-    F = fun(Field) ->
-           [Name, Data] = string:split(Field, ": "),
-           Ranges =
-               [begin
-                    [Min, Max] = string:split(Range, "-"),
-                    {list_to_integer(Min), list_to_integer(Max)}
-                end
-                || Range <- string:split(Data, " or ", all)],
-           {Name, Ranges}
-        end,
-
-    [F(Filed) || Filed <- string:split(Fields, "\n", all)].
-
-process_ticket("nearby tickets:\n" ++ NerbyTickets) ->
-    [process_ticket(Ticket) || Ticket <- string:split(NerbyTickets, "\n", all)];
-process_ticket("your ticket:\n" ++ MyTicket) ->
-    process_ticket(MyTicket);
-process_ticket(Ticket) ->
-    [list_to_integer(Number) || Number <- string:split(Ticket, ",", all)].
+process_field(Field) ->
+    [Name, Data] = string:split(Field, ": "),
+    Ranges =
+        [begin
+             [Min, Max] = string:split(Range, "-"),
+             {list_to_integer(Min), list_to_integer(Max)}
+         end
+         || Range <- string:split(Data, " or ", all)],
+    {Name, Ranges}.
 
 verify_any(_Number, []) ->
     false;
@@ -93,23 +58,19 @@ verify_any(Number, [{Min, Max} | _Ranges]) when Number >= Min, Number =< Max ->
 verify_any(Number, [_MinMax | Ranges]) ->
     verify_any(Number, Ranges).
 
-verify_ticket(Ticket, Ranges) ->
-    case lists:partition(fun(Number) -> verify_any(Number, Ranges) end, Ticket) of
-        {_, []} ->
-            true;
-        _ ->
-            false
-    end.
-
-find_pos([], Range, Acc) ->
-    {Acc, Range};
-find_pos([{N, Values} | Rest], {_Name, R} = Range, Acc) ->
-    case lists:partition(fun(Number) -> verify_any(Number, R) end, Values) of
-        {_, []} ->
-            find_pos(Rest, Range, [N | Acc]);
-        _ ->
-            find_pos(Rest, Range, Acc)
-    end.
+verify_all(Values, Ranges) ->
+    lists:all(fun(Number) -> verify_any(Number, Ranges) end, Values).
 
 get_values(N, Tickets) ->
     {N, [lists:nth(N, Ticket) || Ticket <- Tickets]}.
+
+find_positions(List, {Name, Ranges}) ->
+    {[N || {N, Values} <- List, verify_all(Values, Ranges)], Name}.
+
+get_order([], [], Result) ->
+    Result;
+get_order([{[Position], Name} | Rest], NoMatch, Result) ->
+    Left = [{Positions -- [Position], N} || {Positions, N} <- NoMatch ++ Rest],
+    get_order(Left, [], [{Position, Name} | Result]);
+get_order([First | Rest], NoMatch, Result) ->
+    get_order(Rest, [First | NoMatch], Result).
