@@ -62,7 +62,7 @@ day14_test() ->
     ?assertEqual(6513443633260, run(day14, star1)),
     ?assertEqual(3442819875191, run(day14, star2)).
 
-day15_1_test() ->
+day15_test() ->
     ?assertEqual(447, run(day15, star1)),
     ?assertEqual(11721679, run(day15, star2)).
 
@@ -70,11 +70,9 @@ day16_test() ->
     ?assertEqual(19060, run(day16, star1)),
     ?assertEqual(953713095011, run(day16, star2)).
 
-day17_1_test() ->
-    ?assertEqual(386, run(day17, star1)).
-
-%% day17_2_test_() ->
-%%     {timeout, 60, ?_assertEqual(2276, run(day17, star2))}.
+day17_test() ->
+    ?assertEqual(386, run(day17, star1)),
+    ?assertEqual(2276, run(day17, star2)).
 
 day18_test() ->
     ?assertEqual(654686398176, run(day18, star1)),
