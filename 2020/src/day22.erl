@@ -24,12 +24,8 @@ star2({P1, P2}) ->
     Score.
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
-    ["Player 1:\n" ++ P1, "Player 2:\n" ++ P2] =
-        string:split(
-            string:trim(binary_to_list(Bin)), "\n\n"),
-    {[list_to_integer(Line) || Line <- string:split(P1, "\n", all)],
-     [list_to_integer(Line) || Line <- string:split(P2, "\n", all)]}.
+    ["Player 1:\n" ++ P1, "Player 2:\n" ++ P2] = tools:read_blocks(File),
+    {tools:parse_integers(P1), tools:parse_integers(P2)}.
 
 play_round(P1, P2) when P1 > P2 ->
     {[P1, P2], []};

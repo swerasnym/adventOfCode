@@ -57,15 +57,11 @@ star2(Data) ->
     string:join(ResultList, ",").
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
-    [process(Line)
-     || Line
-            <- string:split(
-                   string:trim(binary_to_list(Bin)), "\n", all)].
+    [process(Line) || Line <- tools:read_lines(File)].
 
 process(Line) ->
     [IngridientsStr, AllergensStr] = string:split(Line, " (contains "),
-    Ingridients = string:split(IngridientsStr, " ", all),
+    Ingridients = string:tokens(IngridientsStr, " "),
     Allergens =
         string:split(
             lists:droplast(AllergensStr), ", ", all),
@@ -86,9 +82,9 @@ process_counts([{1, Alergen, Set} | Rest], Result, Left) ->
 process_counts([First | Rest], Result, Left) ->
     process_counts(Rest, Result, [First | Left]).
 
-remove_ingridient(List, Ingridient) ->
+remove_ingridient(Lists, Ingridient) ->
     [begin
          Set = sets:del_element(Ingridient, OldSet),
          {sets:size(Set), Alergen, Set}
      end
-     || {_, Alergen, OldSet} <- List].
+     || {_, Alergen, OldSet} <- Lists].
