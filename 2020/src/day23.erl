@@ -17,85 +17,62 @@ run(Star, File) ->
     end.
 
 star1(Cups) ->
-    move(100, Cups).
+    Max = lists:max(Cups),
+    Moves = 100,
+    Ref = atomics:new(Max, []),
+
+    make_circle(Ref, Cups, hd(Cups)),
+    Cup1 = move(Ref, Moves, hd(Cups), Max),
+
+    result(Ref, Cup1, 0).
 
 star2(Cups) ->
-    Min = lists:max(Cups) + 1,
+    Extra = lists:max(Cups) + 1,
     Max = 1000000,
+    Ref = atomics:new(Max, []),
+    Moves = 10000000,
 
-    Map = make_circular(Cups ++ lists:seq(Min, Max), lists:last(Cups)),
-    move_map(10000000, hd(Cups), Max, Map).
+    make_circle(Ref, Cups ++ lists:seq(Extra, Max), hd(Cups)),
+    Cup1 = move(Ref, Moves, hd(Cups), Max),
 
-make_circular([First, Next | Rest], Last) ->
-    %% previous, next
-    make_circular(First, [Next | Rest], #{First => {Last, Next}}, First).
+    Cup1 * next(Ref, Cup1).
 
-make_circular(Previous, [Last], Map, First) ->
-    Map#{Last => {Previous, First}};
-make_circular(Previous, [Current, Next | Rest], Map, First) ->
-    make_circular(Current, [Next | Rest], Map#{Current => {Previous, Next}}, First).
+read(File) ->
+    lists:map(fun(V) -> V - $0 end, tools:read_string(File)).
 
-prev(Current, Map) ->
-    {Prev, _Next} = maps:get(Current, Map),
-    Prev.
+make_circle(Ref, [Elem], First) ->
+    0 = insert(Ref, Elem, First);
+make_circle(Ref, [Elem, Next | Rest], First) ->
+    0 = insert(Ref, Elem, Next),
+    make_circle(Ref, [Next | Rest], First).
 
-next(Current, Map) ->
-    {_Prev, Next} = maps:get(Current, Map),
-    Next.
+move(Ref, 0, _Cup0, _Max) ->
+    next(Ref, 1);
+move(Ref, Times, Cup0, Max) ->
+    Cup1 = next(Ref, Cup0),
+    Cup2 = next(Ref, Cup1),
+    Cup3 = next(Ref, Cup2),
+    Dest = destination(Cup0 - 1, [Cup1, Cup2, Cup3], Max),
+    Tail = insert(Ref, Dest, Cup1),
+    Next = insert(Ref, Cup3, Tail),
+    Cup1 = insert(Ref, Cup0, Next),
+    move(Ref, Times - 1, Next, Max).
 
-move_map(0, _Current, _Max, Map) ->
-    C1 = next(1, Map),
-    C2 = next(C1, Map),
-    C1 * C2;
-move_map(Times, Current, Max, Map) ->
-    P1 = next(Current, Map),
-    P2 = next(P1, Map),
-    P3 = next(P2, Map),
-    Pickup = [P1, P2, P3],
+next(Ref, Current) ->
+    atomics:get(Ref, Current).
 
-    P4 = next(P3, Map),
-
-    Dest = destination(Current - 1, Pickup, Max),
-
-    move_map(Times - 1,
-             P4,
-             Max,
-             if Dest /= P4 ->
-                    Map#{Dest => {prev(Dest, Map), P1},
-                         P1 => {Dest, P2},
-                         P3 => {P2, next(Dest, Map)},
-                         Current => {prev(Current, Map), P4},
-                         P4 => {Current, next(P4, Map)}};
-                Dest == P4 ->
-                    Map#{Dest => {prev(Dest, Map), P1},
-                         P1 => {Dest, P2},
-                         P3 => {P2, next(Dest, Map)},
-                         Current => {prev(Current, Map), P4}}
-             end).
-
-read(example) ->
-    [3, 8, 9, 1, 2, 5, 4, 6, 7];
-read(_) ->
-    [3, 6, 4, 2, 8, 9, 7, 1, 5].
-
-move(Times, Cups) ->
-    move(Times, Cups, lists:max(Cups)).
-
-move(0, Cups, _Max) ->
-    Cups;
-move(Times, [Current, P1, P2, P3 | Rest], Max) ->
-    Pickup = [P1, P2, P3],
-    Destination = destination(Current - 1, Pickup, Max),
-    move(Times - 1, insert(Pickup, Destination, Rest, []) ++ [Current], Max).
+insert(Ref, Pos, New) ->
+    atomics:exchange(Ref, Pos, New).
 
 destination(0, Pickup, Max) ->
     destination(Max, Pickup, Max);
-destination(Dest, [P1, P2, P3], _Max) when Dest /= P1, Dest /= P2, Dest /= P3 ->
+destination(Dest, [Cup1, Cup2, Cup3], _Max)
+    when Dest /= Cup1, Dest /= Cup2, Dest /= Cup3 ->
     Dest;
 destination(Dest, Pickup, Max) ->
     destination(Dest - 1, Pickup, Max).
 
-insert(Pickup, Destination, [Destination | Rest], Previous) ->
-    Previous ++ [Destination] ++ Pickup ++ Rest;
-insert(Pickup, Destination, [First | Rest], Previous) ->
-    insert(Pickup, Destination, Rest, Previous ++ [First]).
+result(_Ref, 1, Result) ->
+    Result;
+result(Ref, Cup, Result) ->
+    result(Ref, next(Ref, Cup), Result * 10 + Cup).

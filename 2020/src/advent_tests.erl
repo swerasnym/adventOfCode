@@ -94,11 +94,9 @@ day22_test() ->
     ?assertEqual(34255, run(day22, star1)),
     ?assertEqual(33369, run(day22, star2)).
 
-day23_1_test() ->
-    ?assertEqual([4, 5, 7, 3, 2, 1, 9, 8, 6], run(day23, star1)).
-
-%% day23_2_test_() ->
-%%      {timeout, 100, ?_assertEqual(689500518476, run(day23, star2))}.
+day23_test() ->
+    ?assertEqual(98645732, run(day23, star1)),
+    ?assertEqual(689500518476, run(day23, star2)).
 
 day24_test() ->
     ?assertEqual(438, run(day24, star1)),

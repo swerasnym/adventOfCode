@@ -25,8 +25,7 @@ star2(Data) ->
     maps:size(iterate(100, BlackTiles)).
 
 read(File) ->
-    [tokenize(Line)
-     || Line <- tools:read_lines(File)].
+    [tokenize(Line) || Line <- tools:read_lines(File)].
 
 tokenize(Line) ->
     tokenize(Line, []).
@@ -76,7 +75,7 @@ iterate(0, Floor) ->
     Floor;
 iterate(N, Floor) ->
     NewPos =
-	 lists:usort(
+        lists:usort(
             lists:flatmap(fun neigbours/1, maps:keys(Floor))),
 
     Update =
@@ -94,4 +93,3 @@ iterate(N, Floor) ->
 
 neigbours(Pos) ->
     [move(Pos, Dir) || Dir <- [e, se, sw, w, nw, ne]].
-
