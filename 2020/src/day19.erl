@@ -16,76 +16,42 @@ run(Star, File) ->
             {Star1, Star2}
     end.
 
-star1({RuleList, Messages}) ->
-    Map = maps:from_list(RuleList),
-    Strings = maps:from_list([{V, ok} || V <- build(0, Map)]),
-    #{ok := Result} = count([maps:get(M, Strings, nok) || M <- Messages]),
-    Result.
+star1({RuleMap, Messages}) ->
+    %% Observation:
+    %% 0: 8 11
+    %% 8: 42
+    %% 11: 42 31
+    %% Gives:
+    %% 0: 42 42 31
+    Rule42 = build(42, RuleMap),
+    Rule31 = build(31, RuleMap),
+    length([Message || Message <- Messages, validate1(Message, [Rule42, Rule42, Rule31])]).
 
--define(LEN, 8).
-
-star2({RuleList, Messages}) ->
+star2({RuleMap, Messages}) ->
+    %% Observation:
+    %% 0: 8 11
     %% 8: 42 | 42 8
     %% 11: 42 31 | 42 11 31
-    %% observation rules 8, 11 only called by rule zero as 0: 8 11
-    %% All substrings by rules 42, 31 have lenght 8.
-    %% All messages length 24..88
-    Map = maps:from_list(RuleList),
-    Map42 = maps:from_list([{V, ok} || V <- build(42, Map)]),
-    Map31 = maps:from_list([{V, ok} || V <- build(31, Map)]),
-    #{ok := Result} = count([matches_substr(M, Map42, Map31, 0) || M <- Messages]),
-    Result.
-
-matches_substr([], _Map42, _Map31, _N) ->
-    nok;
-matches_substr(String, Map42, Map31, N) ->
-    {Head, Tail} = lists:split(?LEN, String),
-    Result =
-        case maps:get(Head, Map42, nok) of
-            ok ->
-                matches_substr(Tail, Map42, Map31, N + 1);
-            nok ->
-                matches_substr(String, Map31, N)
-        end,
-    Result.
-
-matches_substr([], _Map31, N) when N > 0 ->
-    ok;
-matches_substr(_, _Map31, 0) ->
-    nok;
-matches_substr(String, Map31, N) ->
-    {Head, Tail} = lists:split(?LEN, String),
-    Result =
-        case maps:get(Head, Map31, nok) of
-            ok ->
-                matches_substr(Tail, Map31, N - 1);
-            nok ->
-                nok
-        end,
-
-    Result.
+    %% Gives
+    %% 0: 42{m} 42{n} 31{n}
+    %% Where m,n /= 0.
+    Rule42 = build(42, RuleMap),
+    Rule31 = build(31, RuleMap),
+    length([Message || Message <- Messages, validate2(Message, Rule42, Rule31, 0)]).
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
+    [Rules, Messages] = tools:read_blocks(File),
+    {maps:from_list([parse_rule(RuleLine) || RuleLine <- tools:parse_lines(Rules)]),
+     tools:parse_lines(Messages)}.
 
-    [Rules, Messages] =
-        string:split(
-            string:trim(binary_to_list(Bin)), "\n\n", all),
-    {[parse_rule(Rule) || Rule <- string:split(Rules, "\n", all)],
-     string:split(Messages, "\n", all)}.
-
-count(List) ->
-    Fun = fun(V) -> V + 1 end,
-    lists:foldl(fun(Value, Map) -> maps:update_with(Value, Fun, 1, Map) end, #{}, List).
-
-parse_rule(Line) ->
-    {Id, ": " ++ Rule} = string:to_integer(Line),
-    case Rule of
+parse_rule(RuleLine) ->
+    {Id, ": " ++ RuleList} = string:to_integer(RuleLine),
+    case RuleList of
         "\"" ++ Rest ->
             {Id, {str, lists:droplast(Rest)}};
         RuleLists ->
             Rules = string:split(RuleLists, " | ", all),
-            {Id, {rule, [[list_to_integer(R) || R <- string:split(Ru, " ", all)] || Ru <- Rules]}}
+            {Id, {rule, [tools:parse_integers(Rule) || Rule <- Rules]}}
     end.
 
 build(Id, Map) ->
@@ -102,5 +68,43 @@ build_rule(Ids, Map) ->
 build_rule([], Results, _Map) ->
     Results;
 build_rule([Id | Ids], Results, Map) ->
-    Recurse = build(Id, Map),
-    build_rule(Ids, [A ++ B || A <- Results, B <- Recurse], Map).
+    build_rule(Ids, [A ++ B || A <- Results, B <- build(Id, Map)], Map).
+
+remove_prefix(String, Prefixes) ->
+    case lists:search(fun(Prefix) -> lists:prefix(Prefix, String) end, Prefixes) of
+        {value, Prefix} ->
+            lists:nthtail(length(Prefix), String);
+        false ->
+            false
+    end.
+
+validate1([], []) ->
+    true;
+validate1(_, []) ->
+    false;
+validate1(false, _) ->
+    false;
+validate1(String, [Prefix | Rest]) ->
+    validate1(remove_prefix(String, Prefix), Rest).
+
+validate2([], _Rule31, N) ->
+    N > 0;
+validate2(_, [], _N) ->
+    false;
+validate2(String, Rule31, N) ->
+    case remove_prefix(String, Rule31) of
+        false ->
+            false;
+        NewString ->
+            validate2(NewString, Rule31, N - 1)
+    end.
+
+validate2([], _Rule42, _Rule31, _N) ->
+    false;
+validate2(String, Rule42, Rule31, N) ->
+    case remove_prefix(String, Rule42) of
+        false ->
+            validate2(String, Rule31, N);
+        NewString ->
+            validate2(NewString, Rule42, Rule31, N + 1)
+    end.
