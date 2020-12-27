@@ -23,15 +23,12 @@ star2(Data) ->
     lists:sum([calculate(shunt2(Tokens, [], []), []) || Tokens <- Data]).
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
     [begin
          Line1 = string:replace(Line, "(", "( ", all),
          Line2 = string:replace(Line1, ")", " )", all),
-         Tokens = string:split(Line2, " ", all)
+         string:split(Line2, " ", all)
      end
-     || Line
-            <- string:split(
-                   string:trim(binary_to_list(Bin)), "\n", all)].
+     || Line <- tools:read_lines(File)].
 
 shunt([], Out, []) ->
     lists:reverse(Out);
@@ -74,7 +71,7 @@ shunt2(["*" | _] = Rest, Out, ["+" | Ops]) ->
     shunt2(Rest, ["+" | Out], Ops);
 shunt2(["*" | Rest], Out, ["*" | _] = Ops) ->
     shunt2(Rest, ["*" | Out], Ops);
-shunt2([Number | Rest] = Tokens, Out, Ops) ->
+shunt2([Number | Rest], Out, Ops) ->
     shunt2(Rest, [list_to_integer(Number) | Out], Ops).
 
 calculate([], [Result]) ->
