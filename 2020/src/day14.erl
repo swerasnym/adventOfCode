@@ -30,8 +30,8 @@ read(File) ->
     [parse(Line) || Line <- tools:read_lines(File)].
 
 parse("mask = " ++ Mask) ->
-    And = list_to_integer(tools:replace(Mask, $X, $1, all), 2),
-    Or = list_to_integer(tools:replace(Mask, $X, $0, all), 2),
+    And = list_to_integer(tools:replace(Mask, $X, $1), 2),
+    Or = list_to_integer(tools:replace(Mask, $X, $0), 2),
     {mask, And, Or, Mask};
 parse("mem[" ++ Rest) ->
     {Pos, "] = " ++ ValueS} = string:to_integer(Rest),
@@ -46,15 +46,15 @@ process1({mem, Pos, Value}, {{mask, And, Or, _} = Mask, Mem}) ->
 process2({mask, _And, _Or, M} = Mask, {_, Mem}) ->
     {{Mask, generate_masks(M)}, Mem};
 process2({mem, Pos, Value}, {{{mask, _And, Or, M}, OrList} = Mask, Mem}) ->
-    AndMask = tools:replace(M, $0, $1, all),
-    BaseMask = list_to_integer(tools:replace(AndMask, $X, $0, all), 2),
+    AndMask = tools:replace(M, $0, $1),
+    BaseMask = list_to_integer(tools:replace(AndMask, $X, $0), 2),
     BasePos = Pos band BaseMask bor Or,
 
     NewMap = lists:foldl(fun(OrI, Map) -> Map#{BasePos bor OrI => Value} end, Mem, OrList),
     {Mask, NewMap}.
 
 generate_masks(Mask) ->
-    OrMask = tools:replace(Mask, $1, $0, all),
+    OrMask = tools:replace(Mask, $1, $0),
     generate_masks([OrMask], []).
 
 generate_masks([], Acc) ->

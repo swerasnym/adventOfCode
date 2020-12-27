@@ -1,6 +1,6 @@
 -module(tools).
 
--export([ws/0, count/1, count/2, product/1, replace/3, replace/4]).
+-export([ws/0, count/1, count/2, product/1, replace/2, replace/3, replace/4]).
 -export([read_string/1, read_tokens/2]).
 -export([read_format/2, read_integers/1, read_integers/2, read_integers/3, read_lines/1,
          read_blocks/1, read_grid/1, read_grid/2]).
@@ -26,29 +26,37 @@ count(Value, Collection) ->
 product(List) ->
     lists:foldl(fun(Term, Product) -> Term * Product end, 1, List).
 
-%% @doc Do a replacement
-replace(Replace, Replace, With) ->
-    With;
-replace(Value, _Replace, _With) ->
-    Value.
+replace(Values, Replacements) when is_map(Replacements) ->
+    replace(Values, Replacements, all).
 
-%% @doc Relace up to N occurances off Replace with With in a list
-replace(Values, Replace, With, all) when is_list(Values) ->
-    [replace(Value, Replace, With) || Value <- Values];
-replace(Values, Replace, With, N) when is_list(Values), is_integer(N), N > 0 ->
-    replace([], Values, Replace, With, N);
-replace(Values, _Replace, _With, N) when is_list(Values), is_integer(N) ->
-    Values.
+%% All for list
+replace(List, Replacements, all) when is_list(List), is_map(Replacements) ->
+    lists:map(fun(Value) -> maps:get(Value, Replacements, Value) end, List);
+%% All for map
+replace(Map, Replacements, all) when is_map(Map), is_map(Replacements) ->
+    lists:map(fun(_Key, Value) -> maps:get(Value, Replacements, Value) end, Map);
+%% N for list
+replace(List, Replacements, N) when is_list(List), is_map(Replacements), is_integer(N) ->
+    replace_n(List, Replacements, N, []);
+%% No count at end, replace all...
+replace(Values, Replace, With) ->
+    replace(Values, #{Replace => With}, all).
 
-%% internal (Recursivly do the replacements)
-replace(Previous, Values, _Replace, _With, 0) ->
-    lists:reverse(Previous) ++ Values;
-replace(Previous, [], _Replace, _With, _N) ->
-    lists:reverse(Previous);
-replace(Previous, [Replace | Values], Replace, With, N) ->
-    replace([With | Previous], Values, Replace, With, N - 1);
-replace(Previous, [Value | Values], Replace, With, N) ->
-    replace([Value | Previous], Values, Replace, With, N).
+%% @doc Relace up to Count occurances off Replace with With in a list
+replace(Values, Replace, With, Count) ->
+    replace(Values, #{Replace => With}, Count).
+
+%% internal
+replace_n([], _Replacements, _N, Acc) ->
+    lists:reverse(Acc);
+replace_n(List, Replacements, N, []) when N < 0 ->
+    lists:reverse(replace_n(lists:reverse(List), Replacements, -N, []));
+replace_n(List, _Replacements, 0, Acc) ->
+    lists:reverse(Acc, List);
+replace_n([Head | Rest], Replacements, N, Acc) when is_map_key(Head, Replacements) ->
+    replace_n(Rest, Replacements, N - 1, [maps:get(Head, Replacements) | Acc]);
+replace_n([Head | Rest], Replacements, N, Acc) ->
+    replace_n(Rest, Replacements, N, [Head | Acc]).
 
 %% ------------------------
 %% read
