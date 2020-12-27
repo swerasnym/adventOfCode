@@ -17,21 +17,16 @@ run(Star, File) ->
     end.
 
 star1(Data) ->
-    maps:get(black,
-             count(maps:values(
-                       lists:foldl(fun flip/2, #{}, Data)))).
+    tools:count(black, lists:foldl(fun flip/2, #{}, Data)).
 
 star2(Data) ->
     Floor = lists:foldl(fun flip/2, #{}, Data),
-    Day100 = update(100, Floor),
-    maps:get(black, count(maps:values(Day100))).
+    BlackTiles = maps:from_list([{Pos, black} || {Pos, black} <- maps:to_list(Floor)]),
+    maps:size(iterate(100, BlackTiles)).
 
 read(File) ->
-    {ok, Bin} = file:read_file(File),
     [tokenize(Line)
-     || Line
-            <- string:split(
-                   string:trim(binary_to_list(Bin)), "\n", all)].
+     || Line <- tools:read_lines(File)].
 
 tokenize(Line) ->
     tokenize(Line, []).
@@ -77,30 +72,26 @@ flip(Pos, [], Map) ->
 flip(Pos, [Dir | Dirs], Map) ->
     flip(move(Pos, Dir), Dirs, Map).
 
-update(0, Floor) ->
+iterate(0, Floor) ->
     Floor;
-update(N, Floor) ->
+iterate(N, Floor) ->
     NewPos =
-        lists:usort(
-            lists:flatten([neigbours(Pos) || {Pos, black} <- maps:to_list(Floor)])),
-    update(N - 1, maps:from_list([update_tile(Pos, Floor) || Pos <- NewPos])).
+	 lists:usort(
+            lists:flatmap(fun neigbours/1, maps:keys(Floor))),
 
-update_tile(Pos, Floor) ->
-    Neigbours = count([maps:get(N, Floor, white) || N <- neigbours(Pos)]),
+    Update =
+        fun(Pos, Acc) ->
+           Neigbours = [Neigbour || Neigbour <- neigbours(Pos), maps:is_key(Neigbour, Floor)],
 
-    %% Zero black neigbours are taken care of by only considering neigbours to a black tile
-    case {maps:get(Pos, Floor, white), maps:get(black, Neigbours)} of
-        {black, N} when N > 2 ->
-            {Pos, white};
-        {white, 2} ->
-            {Pos, black};
-        {Color, _} ->
-            {Pos, Color}
-    end.
+           case {maps:get(Pos, Floor, white), length(Neigbours)} of
+               {black, 1} -> Acc#{Pos => black};
+               {black, 2} -> Acc#{Pos => black};
+               {white, 2} -> Acc#{Pos => black};
+               _ -> Acc
+           end
+        end,
+    iterate(N - 1, lists:foldl(Update, #{}, NewPos)).
 
 neigbours(Pos) ->
     [move(Pos, Dir) || Dir <- [e, se, sw, w, nw, ne]].
 
-count(List) ->
-    Fun = fun(V) -> V + 1 end,
-    lists:foldl(fun(Value, Map) -> maps:update_with(Value, Fun, 1, Map) end, #{}, List).

@@ -18,11 +18,11 @@ run(Star, File) ->
 
 star1(Data) ->
     Grid = maps:from_list([{{X, Y, 0}, active} || {{X, Y}, active} <- maps:to_list(Data)]),
-    tools:count(active, iterate(6, Grid)).
+    maps:size(iterate(6, Grid)).
 
 star2(Data) ->
     Grid = maps:from_list([{{X, Y, 0, 0}, active} || {{X, Y}, active} <- maps:to_list(Data)]),
-    tools:count(active, iterate(6, Grid)).
+    maps:size(iterate(6, Grid)).
 
 read(File) ->
     tools:read_grid(File, #{$# => active, $. => inactive}).
