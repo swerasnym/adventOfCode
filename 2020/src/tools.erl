@@ -3,9 +3,11 @@
 -export([ws/0, count/1, count/2, product/1, replace/2, replace/3, replace/4]).
 -export([read_string/1, read_tokens/2]).
 -export([read_format/2, read_integers/1, read_integers/2, read_integers/3, read_lines/1,
-         read_blocks/1, read_grid/1, read_grid/2]).
+         read_blocks/1]).
 -export([parse_format/2, parse_lines/1, parse_integers/1, parse_integers/2,
-         parse_integers/3, parse_blocks/1, parse_grid/1, parse_grid/2]).
+         parse_integers/3, parse_blocks/1]).
+-export([read_grid/1, read_grid/2, parse_grid/1, parse_grid/2, rotate_grid/1,
+         rotate_grid/2, flip_grid/1, flip_grid/2, print_grid/1, sub_grid/3]).
 -export([gcd/2, egcd/2, mod_inv/2, mod/2, chinese_remainder/1]).
 
 ws() ->
@@ -34,7 +36,7 @@ replace(List, Replacements, all) when is_list(List), is_map(Replacements) ->
     lists:map(fun(Value) -> maps:get(Value, Replacements, Value) end, List);
 %% All for map
 replace(Map, Replacements, all) when is_map(Map), is_map(Replacements) ->
-    lists:map(fun(_Key, Value) -> maps:get(Value, Replacements, Value) end, Map);
+    maps:map(fun(_Key, Value) -> maps:get(Value, Replacements, Value) end, Map);
 %% N for list
 replace(List, Replacements, N) when is_list(List), is_map(Replacements), is_integer(N) ->
     replace_n(List, Replacements, N, []);
@@ -164,10 +166,12 @@ parse_grid(String) ->
 parse_grid(String, Fun) ->
     parse_grid(String, {0, 0}, #{}, Fun).
 
-parse_grid([], {X, Y}, Grid, _Fun) ->
-    Grid#{max => {X - 1, Y}};
-parse_grid([$\n], {X, Y}, Grid, _Fun) ->
-    Grid#{max => {X - 1, Y}};
+parse_grid([], _Pos, Grid, _Fun) ->
+    {{_Xmin, Xmax}, {_Ymin,Ymax}} = minmax_grid(Grid),
+    Grid#{max => {Xmax, Ymax}};
+parse_grid([$\n], _Pos, Grid, _Fun) ->
+    {{_Xmin, Xmax}, {_Ymin,Ymax}} = minmax_grid(Grid),
+    Grid#{max => {Xmax, Ymax}};
 parse_grid([$\n | Rest], {_X, Y}, Grid, Fun) ->
     parse_grid(Rest, {0, Y + 1}, Grid, Fun);
 parse_grid([Char | Rest], {X, Y} = Pos, Grid, none) ->
@@ -176,6 +180,72 @@ parse_grid([Char | Rest], {X, Y} = Pos, Grid, Map) when is_map(Map) ->
     parse_grid(Rest, {X + 1, Y}, Grid#{Pos => maps:get(Char, Map)}, Map);
 parse_grid([Char | Rest], {X, Y} = Pos, Grid, Fun) when is_function(Fun) ->
     parse_grid(Rest, {X + 1, Y}, Grid#{Pos => Fun(Char)}, Fun).
+
+rotate_grid(Grid) ->
+    rotate_grid(Grid, ccw).
+
+rotate_grid(Grid = #{max := {Xmax, Ymax}}, ccw) ->
+    NewGrid =
+        maps:from_list([{{Y, Xmax - X}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]),
+    NewGrid#{max => {Ymax, Xmax}};
+rotate_grid(Grid = #{max := {Xmax, Ymax}}, cw) ->
+    NewGrid =
+        maps:from_list([{{Ymax - Y, X}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]),
+    NewGrid#{max => {Ymax, Xmax}}.
+
+flip_grid(Grid) ->
+    flip_grid(Grid, x).
+
+flip_grid(Grid = #{max := {Xmax, Ymax}}, x) ->
+    NewGrid =
+        maps:from_list([{{Xmax - X, Y}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]),
+    NewGrid#{max => {Xmax, Ymax}};
+flip_grid(Grid = #{max := {Xmax, Ymax}}, y) ->
+    NewGrid =
+        maps:from_list([{{X, Ymax - Y}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]),
+    NewGrid#{max => {Xmax, Ymax}}.
+
+print_grid(Grid) ->
+    io:format("~s~n", [grid_to_string(Grid)]).
+
+grid_to_string(Grid = #{max := {Xmax, Ymax}}) ->
+    string:join(
+    [[maps:get({X, Y}, Grid, $ ) || X <- lists:seq(0, Xmax)]
+     || Y <- lists:seq(0, Ymax)], "\n");
+grid_to_string(Map) ->
+    grid_to_string(grid_from_2d(Map)).
+
+
+sub_grid(Grid, {Xmin, Ymin}, {Xmax, Ymax}) ->
+    SubGrid =
+        maps:from_list([{{X - Xmin, Y - Ymin}, Value}
+                        || {{X, Y}, Value} <- maps:to_list(Grid),
+                           X >= Xmin,
+                           X =< Xmax,
+                           Y >= Ymin,
+                           Y =< Ymax]),
+    SubGrid#{max => {Xmax - Xmin, Ymax - Ymin}}.
+
+grid_from_2d(Map) ->
+    {{Xmin, Xmax}, {Ymin,Ymax}} = minmax_grid(Map),
+    Grid = translate_grid(Map, {-Xmin, -Ymin}),
+    Grid#{max => {Xmax - Xmin, Ymax - Ymin}}.
+
+
+minmax_grid(Grid) ->
+    {Xlist, Ylist} = lists:unzip(maps:keys(maps:without([max], Grid))),
+    {{lists:min(Xlist), lists:max(Xlist)}, {lists:min(Ylist), lists:max(Ylist)}}.
+
+
+translate_grid(Grid, {Dx, Dy}) ->
+    maps:from_list([{{X + Dx, Y + Dy}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]).
+
+
+    
+
+
+
+
 
 %%%%%%%%%%%%%%%%
 %% math
