@@ -167,10 +167,10 @@ parse_grid(String, Fun) ->
     parse_grid(String, {0, 0}, #{}, Fun).
 
 parse_grid([], _Pos, Grid, _Fun) ->
-    {{_Xmin, Xmax}, {_Ymin,Ymax}} = minmax_grid(Grid),
+    {{_Xmin, Xmax}, {_Ymin, Ymax}} = minmax_grid(Grid),
     Grid#{max => {Xmax, Ymax}};
 parse_grid([$\n], _Pos, Grid, _Fun) ->
-    {{_Xmin, Xmax}, {_Ymin,Ymax}} = minmax_grid(Grid),
+    {{_Xmin, Xmax}, {_Ymin, Ymax}} = minmax_grid(Grid),
     Grid#{max => {Xmax, Ymax}};
 parse_grid([$\n | Rest], {_X, Y}, Grid, Fun) ->
     parse_grid(Rest, {0, Y + 1}, Grid, Fun);
@@ -209,12 +209,11 @@ print_grid(Grid) ->
     io:format("~s~n", [grid_to_string(Grid)]).
 
 grid_to_string(Grid = #{max := {Xmax, Ymax}}) ->
-    string:join(
-    [[maps:get({X, Y}, Grid, $ ) || X <- lists:seq(0, Xmax)]
-     || Y <- lists:seq(0, Ymax)], "\n");
+    string:join([[maps:get({X, Y}, Grid, $ ) || X <- lists:seq(0, Xmax)]
+                 || Y <- lists:seq(0, Ymax)],
+                "\n");
 grid_to_string(Map) ->
     grid_to_string(grid_from_2d(Map)).
-
 
 sub_grid(Grid, {Xmin, Ymin}, {Xmax, Ymax}) ->
     SubGrid =
@@ -227,25 +226,19 @@ sub_grid(Grid, {Xmin, Ymin}, {Xmax, Ymax}) ->
     SubGrid#{max => {Xmax - Xmin, Ymax - Ymin}}.
 
 grid_from_2d(Map) ->
-    {{Xmin, Xmax}, {Ymin,Ymax}} = minmax_grid(Map),
+    {{Xmin, Xmax}, {Ymin, Ymax}} = minmax_grid(Map),
     Grid = translate_grid(Map, {-Xmin, -Ymin}),
     Grid#{max => {Xmax - Xmin, Ymax - Ymin}}.
 
-
 minmax_grid(Grid) ->
-    {Xlist, Ylist} = lists:unzip(maps:keys(maps:without([max], Grid))),
+    {Xlist, Ylist} =
+        lists:unzip(
+            maps:keys(
+                maps:without([max], Grid))),
     {{lists:min(Xlist), lists:max(Xlist)}, {lists:min(Ylist), lists:max(Ylist)}}.
-
 
 translate_grid(Grid, {Dx, Dy}) ->
     maps:from_list([{{X + Dx, Y + Dy}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]).
-
-
-    
-
-
-
-
 
 %%%%%%%%%%%%%%%%
 %% math
