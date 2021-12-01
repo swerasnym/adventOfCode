@@ -1,4 +1,4 @@
--module(day1).
+-module(aoc2021_day1).
 
 -export([run/2, larger/2, window/2]).
 
@@ -16,27 +16,22 @@ run(Star, File) ->
     end.
 
 star1(Data) ->
-    larger(Data,0).
+    larger(Data, 0).
 
 star2(Data) ->
-    larger(window(Data,[]),0).
+    larger(window(Data, []), 0).
 
 read(File) ->
     tools:read_integers(File).
 
-
-
 larger([], Result) ->
     Result;
-larger([A,B| Rest], Result) when A < B->
-    larger([B | Rest], Result+1);
-larger([A|Rest], Result) ->
-    larger( Rest, Result).
+larger([A, B | Rest], Result) when A < B ->
+    larger([B | Rest], Result + 1);
+larger([A | Rest], Result) ->
+    larger(Rest, Result).
 
-    
-window([A,B,C|Rest], Result) ->
-    window([B,C|Rest], [A+B+C | Result]);
+window([A | [B, C |_ ] =  Rest], Result) ->
+    window(Rest, [A + B + C | Result]);
 window(_, Result) ->
     lists:reverse(Result).
-
-    
