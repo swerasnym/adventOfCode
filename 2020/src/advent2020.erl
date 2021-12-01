@@ -1,11 +1,11 @@
--module(advent).
+-module(advent2020).
 
 -export([run/0, run/1, run/2, run/3, average/0, average/1, average/2, average/3,
          average/4]).
 
 file(Name) when is_atom(Name) ->
     file(atom_to_list(Name) ++ ".data");
-file("aoc2019_" ++ Name) ->
+file("aoc2020_" ++ Name) ->
     file(Name);
 file(["../" | _] = Name) ->
     Name;
@@ -19,18 +19,18 @@ file(Name) ->
 
 days() ->
     To = case calendar:universal_time() of
-             {Date, _} when Date > {2019, 12, 25} ->
+             {Date, _} when Date > {2020, 12, 25} ->
                  25;
-             {{2019, 12, Day}, Time} when Time >= {5, 0, 0} ->
+             {{2020, 12, Day}, Time} when Time >= {5, 0, 0} ->
                  Day;
-             {{2019, 12, Day}, _} ->
+             {{2020, 12, Day}, _} ->
                  Day - 1
          end,
     days(To).
 
 days(To) ->
     [begin
-         String = lists:flatten(["aoc2019_day", integer_to_list(Day)]),
+         String = lists:flatten(["aoc2020_day", integer_to_list(Day)]),
          list_to_atom(String)
      end
      || Day <- lists:seq(1, To)].
@@ -143,11 +143,11 @@ execute(Day, Star, File) ->
     end.
 
 print(head) ->
-    io:format("Day   | Star  |      Time    | Result~n");
+    io:format("Day           | Star  |      Time    | Result~n");
 print(sep) ->
-    io:format("------+-------+--------------+----------------~n");
+    io:format("--------------+-------+--------------+----------------~n");
 print({Day, Star, Time, Answer} = Result) ->
-    io:format("~-5s | ~-5s | ~9.3f ms | ~p~n", [Day, Star, Time / 1000, Answer]),
+    io:format("~-13s | ~-5s | ~9.3f ms | ~p~n", [Day, Star, Time / 1000, Answer]),
     Result;
 print(List) ->
     io:nl(),

@@ -31,7 +31,7 @@ larger([A, B | Rest], Result) when A < B ->
 larger([A | Rest], Result) ->
     larger(Rest, Result).
 
-window([A | [B, C |_ ] =  Rest], Result) ->
+window([A | [B, C | _] = Rest], Result) ->
     window(Rest, [A + B + C | Result]);
 window(_, Result) ->
     lists:reverse(Result).
