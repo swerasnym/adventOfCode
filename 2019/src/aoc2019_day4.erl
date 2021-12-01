@@ -1,4 +1,4 @@
--module(day4).
+-module(aoc2019_day4).
 
 -export([run/2]).
 

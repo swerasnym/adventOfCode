@@ -1,4 +1,4 @@
--module(day18).
+-module(aoc2019_day18).
 
 -export([run/2, memmory/1]).
 
@@ -25,7 +25,7 @@ star1({Maze, Start, Keys}) ->
     true = length(maps:keys(Connections)) == length(Paths),
 
     %% Start persistent memory
-    Memmory = spawn_link(day18, memmory, [#{}]),
+    Memmory = spawn_link(?MODULE, memmory, [#{}]),
 
     {Result, [_Start | Path]} = bfs(Memmory, Start, Connections, AllKeys),
 
@@ -71,7 +71,7 @@ star2({Maze0, {X, Y}, Keys}) ->
     Connections = maps:from_list(Paths),
     true = length(maps:keys(Connections)) == length(Paths),
 
-    Memmory = spawn_link(day18, memmory, [#{}]),
+    Memmory = spawn_link(?MODULE, memmory, [#{}]),
 
     Results =
         [bfs2(Memmory, Start, Connections, AllKeys, StartList)

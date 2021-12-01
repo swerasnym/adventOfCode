@@ -4,7 +4,9 @@
          average/4]).
 
 file(Name) when is_atom(Name) ->
-    file([atom_to_list(Name), ".data"]);
+    file(atom_to_list(Name) ++ ".data");
+file("aoc2019_" ++ Name) ->
+    file(Name);
 file(["../" | _] = Name) ->
     Name;
 file(["./" | _] = Name) ->
@@ -28,7 +30,7 @@ days() ->
 
 days(To) ->
     [begin
-         String = lists:flatten(["day", integer_to_list(Day)]),
+         String = lists:flatten(["aoc2019_day", integer_to_list(Day)]),
          list_to_atom(String)
      end
      || Day <- lists:seq(1, To)].

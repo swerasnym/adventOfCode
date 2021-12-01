@@ -1,4 +1,4 @@
--module(day24).
+-module(aoc2019_day24).
 
 -export([run/2, neigbours/1]).
 

@@ -1,4 +1,4 @@
--module(day5).
+-module(aoc2019_day9).
 
 -export([run/2]).
 
@@ -17,10 +17,8 @@ run(Star, File) ->
 
 star1(Program) ->
     Result = intcode:run(Program, [{input, [1]}]),
-    Output = intcode:get_output(Result),
-    {lists:last(Output), lists:droplast(Output)}.
+    hd(intcode:get_output(Result)).
 
 star2(Program) ->
-    Result = intcode:run(Program, [{input, [5]}]),
-    Output = intcode:get_output(Result),
-    lists:last(Output).
+    Result = intcode:run(Program, [{input, [2]}]),
+    hd(intcode:get_output(Result)).
