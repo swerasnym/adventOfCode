@@ -121,9 +121,12 @@ from_string(String) ->
            case string:to_integer(
                     string:trim(S, both))
            of
-               {Int, <<>>} -> Int;
-               {Int, []} -> Int;
-               _ -> error({invalid_format, S})
+               {Int, <<>>} ->
+                   Int;
+               {Int, []} ->
+                   Int;
+               _ ->
+                   error({invalid_format, S})
            end
         end,
     from_list(lists:map(F, List)).

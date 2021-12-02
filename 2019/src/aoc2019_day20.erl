@@ -81,8 +81,10 @@ link(_Pos, {portal, P2}, {Acc, Start}) ->
     Links =
         maps:filter(fun(_Key, Value) ->
                        case Value of
-                           {portal, P2} -> true;
-                           _ -> false
+                           {portal, P2} ->
+                               true;
+                           _ ->
+                               false
                        end
                     end,
                     Acc),

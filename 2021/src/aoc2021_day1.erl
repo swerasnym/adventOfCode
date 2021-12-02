@@ -28,7 +28,7 @@ larger([], Result) ->
     Result;
 larger([A, B | Rest], Result) when A < B ->
     larger([B | Rest], Result + 1);
-larger([A | Rest], Result) ->
+larger([_ | Rest], Result) ->
     larger(Rest, Result).
 
 window([A | [B, C | _] = Rest], Result) ->

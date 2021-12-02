@@ -44,8 +44,10 @@ fill(Maze, [Head | Rest], _) ->
     Dirs =
         lists:filter(fun(Dir) ->
                         case maps:get(move(Head, Dir), Maze) of
-                            {open, _} -> true;
-                            _ -> false
+                            {open, _} ->
+                                true;
+                            _ ->
+                                false
                         end
                      end,
                      Directions),

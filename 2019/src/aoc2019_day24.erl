@@ -86,8 +86,10 @@ cell(Pos, Value, Map) ->
 rating(Map) ->
     maps:fold(fun(Pos, Value, Acc) ->
                  case {Pos, Value} of
-                     {_, empty} -> 0;
-                     {Pos, bug} -> value(Pos)
+                     {_, empty} ->
+                         0;
+                     {Pos, bug} ->
+                         value(Pos)
                  end
                  + Acc
               end,

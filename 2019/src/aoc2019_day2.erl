@@ -26,8 +26,10 @@ star2(Program) ->
            Result = intcode:run(Program, Options),
 
            case intcode:get(0, Result) of
-               19690720 -> done;
-               _ -> continue
+               19690720 ->
+                   done;
+               _ ->
+                   continue
            end
         end,
 

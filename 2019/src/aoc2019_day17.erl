@@ -87,8 +87,10 @@ path(Map) ->
         maps:to_list(
             maps:filter(fun(_, V) ->
                            case V of
-                               {robot, _} -> true;
-                               _ -> false
+                               {robot, _} ->
+                                   true;
+                               _ ->
+                                   false
                            end
                         end,
                         Map)),

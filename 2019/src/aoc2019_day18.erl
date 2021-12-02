@@ -230,8 +230,10 @@ next(#state{pos = Pos,
     Npos =
         lists:filter(fun(Neigbour) ->
                         case maps:get(Neigbour, Maze) of
-                            wall -> false;
-                            _ -> true
+                            wall ->
+                                false;
+                            _ ->
+                                true
                         end
                      end,
                      neigbours(Pos)),

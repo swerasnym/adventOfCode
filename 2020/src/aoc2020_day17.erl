@@ -39,10 +39,14 @@ iterate(N, Map) ->
            ActiveNeigbours = [Neigbour || Neigbour <- neigbours(Pos), maps:is_key(Neigbour, Map)],
 
            case {maps:get(Pos, Map, inactive), length(ActiveNeigbours)} of
-               {active, 2} -> Acc#{Pos => active};
-               {active, 3} -> Acc#{Pos => active};
-               {inactive, 3} -> Acc#{Pos => active};
-               _ -> Acc
+               {active, 2} ->
+                   Acc#{Pos => active};
+               {active, 3} ->
+                   Acc#{Pos => active};
+               {inactive, 3} ->
+                   Acc#{Pos => active};
+               _ ->
+                   Acc
            end
         end,
     iterate(N - 1, lists:foldl(Update, #{}, Check)).
