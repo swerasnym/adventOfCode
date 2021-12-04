@@ -22,7 +22,7 @@ star1({Numbers, Boards}) ->
 
 star2({Numbers, Boards}) ->
     {Number, Board} = play_bingo2(Numbers, Boards),
-    io:format("~p ~p", [Number, Board]),
+    io:format("~p ~p", [Number, tools:grid_to_lists(Board)]),
     Left = lists:filter(fun(V) -> V /= x end, maps:values(Board)),
     Number * lists:sum(Left).
 
@@ -30,16 +30,9 @@ read(File) ->
     [NumbersL | BoardsL] = tools:read_blocks(File),
     Numbers = tools:parse_integers(NumbersL, ", "),
     Boards =
-        [lists_to_grid({0, 0}, tools:parse_format(Board, "~d ~d ~d ~d ~d"), #{})
+        [tools:drop_max(tools:lists_to_grid(tools:parse_format(Board, "~d ~d ~d ~d ~d")))
          || Board <- BoardsL],
     {Numbers, Boards}.
-
-lists_to_grid({X, Y} = Pos, [[Front | RR] | Rest], Grid) ->
-    lists_to_grid({X + 1, Y}, [RR | Rest], Grid#{Pos => Front});
-lists_to_grid({_X, Y}, [[] | Rest], Grid) ->
-    lists_to_grid({0, Y + 1}, Rest, Grid);
-lists_to_grid(_, [], Grid) ->
-    Grid.
 
 mark_board(Number, Board) ->
     maps:map(fun(_K, V) -> mark(V, Number) end, Board).
