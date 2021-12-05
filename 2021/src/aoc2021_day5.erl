@@ -16,23 +16,17 @@ run(Star, File) ->
     end.
 
 star1(Data) ->
-    HorV = lists:filter(fun v_or_h/1,Data),
-    AllPoints = lists:flatmap(fun (List) -> points(List) end, HorV),
-    Count = lists:foldl(fun(Point, Map) -> maps:update_with(Point, fun(V) -> V+1 end, 1, Map) end , #{}, AllPoints),
-    Intersections = maps:filter(fun(_,V) -> V > 1 end, Count ),
+    HorV = lists:filter(fun v_or_h/1, Data),
+    AllPoints = lists:flatmap(fun(List) -> points(List) end, HorV),
+    Count = tools:count(AllPoints),
+    Intersections = maps:filter(fun(_, V) -> V > 1 end, Count),
     maps:size(Intersections).
-    
-
-
-
-		    
 
 star2(Data) ->
-    AllPoints = lists:flatmap(fun (List) -> points(List) end, Data),
-    Count = lists:foldl(fun(Point, Map) -> maps:update_with(Point, fun(V) -> V+1 end, 1, Map) end , #{}, AllPoints),
-    Intersections = maps:filter(fun(_,V) -> V > 1 end, Count ),
+    AllPoints = lists:flatmap(fun(List) -> points(List) end, Data),
+    Count = tools:count(AllPoints),
+    Intersections = maps:filter(fun(_, V) -> V > 1 end, Count),
     maps:size(Intersections).
-
 
 read(File) ->
     tools:read_format(File, "~d,~d -> ~d,~d").
@@ -52,15 +46,11 @@ points([X1, Y, X2, Y]) when X1 =< X2 ->
     [{X, Y} || X <- lists:seq(X1, X2)];
 points([X2, Y, X1, Y]) ->
     [{X, Y} || X <- lists:seq(X1, X2)];
-points([X1, Y1, X2, Y2]) when X1 =< X2 , Y1 =< Y2  ->
-    [{X1+D, Y1+D} || D <- lists:seq(0, X2-X1)];
-points([X1, Y1, X2, _Y2]) when X1 =< X2 -> 
-    [{X1+D, Y1-D} || D <- lists:seq(0, X2-X1)];
-points([X1, Y1, X2, Y2]) when Y1 =< Y2 -> 
-    [{X1-D, Y1+D} || D <- lists:seq(0, X1-X2)];
+points([X1, Y1, X2, Y2]) when X1 =< X2, Y1 =< Y2 ->
+    [{X1 + D, Y1 + D} || D <- lists:seq(0, X2 - X1)];
+points([X1, Y1, X2, _Y2]) when X1 =< X2 ->
+    [{X1 + D, Y1 - D} || D <- lists:seq(0, X2 - X1)];
+points([X1, Y1, X2, Y2]) when Y1 =< Y2 ->
+    [{X1 - D, Y1 + D} || D <- lists:seq(0, X1 - X2)];
 points([X1, Y1, X2, _Y2]) ->
-    [{X1-D, Y1-D} || D <- lists:seq(0, X1-X2)].
-
-
-    
-
+    [{X1 - D, Y1 - D} || D <- lists:seq(0, X1 - X2)].
