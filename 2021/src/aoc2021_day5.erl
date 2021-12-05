@@ -17,13 +17,13 @@ run(Star, File) ->
 
 star1(Data) ->
     HorV = lists:filter(fun v_or_h/1, Data),
-    AllPoints = lists:flatmap(fun(List) -> points(List) end, HorV),
+    AllPoints = lists:flatmap(fun points/1, HorV),
     Count = tools:count(AllPoints),
     Intersections = maps:filter(fun(_, V) -> V > 1 end, Count),
     maps:size(Intersections).
 
 star2(Data) ->
-    AllPoints = lists:flatmap(fun(List) -> points(List) end, Data),
+    AllPoints = lists:flatmap(fun points/1, Data),
     Count = tools:count(AllPoints),
     Intersections = maps:filter(fun(_, V) -> V > 1 end, Count),
     maps:size(Intersections).
