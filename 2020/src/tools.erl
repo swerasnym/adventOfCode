@@ -229,7 +229,7 @@ flip_grid(Grid = #{max := {Xmax, Ymax}}, y) ->
     NewGrid#{max => {Xmax, Ymax}}.
 
 print_grid(Grid) ->
-    io:format("~s~n", [grid_to_string(Grid)]).
+    io:format("~ts~n", [grid_to_string(Grid)]).
 
 grid_to_string(Grid = #{max := {Xmax, Ymax}}) ->
     string:join([[maps:get({X, Y}, Grid, $ ) || X <- lists:seq(0, Xmax)]
