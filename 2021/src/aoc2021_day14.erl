@@ -41,17 +41,15 @@ profile(F, Times) ->
 
 star1({Init, Map}) ->
     Counts = tools:count(insert_n(Map, Init, 10)),
-    Counts2 = [V || {_, V} <- maps:to_list(Counts)],
-    lists:max(Counts2) - lists:min(Counts2).
+    Result = maps:values(Counts),
+    lists:max(Result) - lists:min(Result).
 
 star2({Init, Map}) ->
     Pairs = maps:keys(Map),
-    Counts = maps:from_list([{K, tools:count(K ++ V)} || {K, V} <- maps:to_list(Map)]),
-    Counts1 = combind_n(Pairs, Map, Counts, 39),
-    Counts2 = insert_c(Counts1, Init, #{}),
-    Counts3 = [V || {_, V} <- maps:to_list(Counts2)],
-
-    lists:max(Counts3) - lists:min(Counts3).
+    Counts0 = maps:from_list([{K, tools:count(K)} || K <- Pairs]),
+    Counts40 = combind_n(Pairs, Map, Counts0, 40),
+    Result = maps:values(insert_c(Counts40, Init, #{})),
+    lists:max(Result) - lists:min(Result).
 
 read(File) ->
     [First, Rest] = tools:read_blocks(File),
