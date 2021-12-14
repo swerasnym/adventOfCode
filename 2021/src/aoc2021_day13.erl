@@ -49,29 +49,29 @@ star2({Points, Folds}) ->
     Grid = maps:from_list([{P, $█} || P <- Sort]),
     tools:print_grid(Grid).
 
-
 read(File) ->
-    [Points, Instructions] =     tools:read_blocks(File),
-    
-    {P,I} = {tools:parse_format(Points, "~d,~d"), tools:parse_format(Instructions, "fold along ~c=~d\n")},
-    {[{X,Y} || [X,Y] <- P] ,I}.
+    [Points, Instructions] = tools:read_blocks(File),
 
+    {P, I} =
+        {tools:parse_format(Points, "~d,~d"),
+         tools:parse_format(Instructions, "fold along ~c=~d\n")},
+    {[{X, Y} || [X, Y] <- P], I}.
 
-fold(["x", Xline]) -> 
-    fun ({X,Y}) when X > Xline ->
-	    {2*Xline - X, Y};
-	(Point) ->
-	    Point
+fold(["x", Xline]) ->
+    fun ({X, Y}) when X > Xline ->
+            {2 * Xline - X, Y};
+        (Point) ->
+            Point
     end;
-fold(["y", Yline]) -> 
-    fun ({X,Y}) when Y > Yline ->
-	    {X, 2*Yline -Y};
-	(Point) ->
-	    Point
+fold(["y", Yline]) ->
+    fun ({X, Y}) when Y > Yline ->
+            {X, 2 * Yline - Y};
+        (Point) ->
+            Point
     end.
 
 folds(Points, []) ->
     Points;
-folds(Points, [I|Is]) ->
+folds(Points, [I | Is]) ->
     Fold = lists:map(fold(I), Points),
     folds(lists:usort(Fold), Is).
