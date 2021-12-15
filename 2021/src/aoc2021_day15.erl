@@ -42,32 +42,47 @@ profile(F, Times) ->
 star1(#{max := Max} = Map) ->
     Start = {0, 0},
     Goal = Max,
-    {Risk, Goal, Path} = bfs(Goal, [{0, Start, [Start]}], Map).
+    bfs(Goal, [{0, Start}], Map).
 
-star2(#{max := Max} = Map) ->
+star2(Map) ->
     Start = {0, 0},
-    Goal = Max,
     #{max := BigMax} = BigMap = build_map(Map),
-
-    {Risk, BigMax, Path} = bfs(BigMax, [{0, Start, [Start]}], BigMap).
+    %% astar(BigMax, [{0, 0, Start}], BigMap).
+    bfs(BigMax, [{0, Start}], BigMap).
 
 read(File) ->
     tools:read_grid(File, fun(V) -> V - $0 end).
 
 neigbours({X, Y}) ->
-    [{X, Y - 1}, {X, Y + 1}, {X - 1, Y}, {X + 1, Y}].
+    [{X, Y + 1}, {X + 1, Y}, {X, Y - 1},  {X - 1, Y}].
 
-bfs(End, [{_Risk, End, _Path} = Res | _], _Map) ->
-    Res;
-bfs(End, [{Risk, Pos, Path} | Rest], Map) ->
+bfs(End, [{Risk, End} | _], _Map) ->
+    Risk;
+bfs(End, [{Risk, Pos} | Rest], Map) ->
     case maps:get(Pos, Map, visited) of
         visited ->
             bfs(End, Rest, Map);
-        PosRisk ->
-            New = [{Risk + NRisk, N, Path ++ [N]}
+        _ ->
+            New = [{Risk + NRisk, N}
                    || N <- neigbours(Pos), visited /= (NRisk = maps:get(N, Map, visited))],
-            bfs(End, lists:sort(Rest ++ New), Map#{Pos => visited})
+            bfs(End, lists:umerge(Rest, lists:sort(New)), Map#{Pos => visited})
     end.
+
+%% astar preforms worse than bfs for some reason...
+%% astar(End, [{_E, Risk, End}| _], _Map) ->
+%%     Risk;
+%% astar({Mx, My} = End, [{_E, Risk, Pos} | Rest], Map) ->
+%%     case maps:get(Pos, Map, visited) of
+%%         visited ->
+
+%%             astar(End, Rest, Map);
+%%         _ ->
+%%             New = [{Risk + NRisk + (Mx - Nx) + (My - Ny),
+%% 		    Risk + NRisk,
+%% 		    N}
+%%                    || {Nx, Ny} = N <- neigbours(Pos), visited /= (NRisk = maps:get(N, Map, visited))],
+%%             astar(End, lists:umerge(Rest, lists:sort(New)), Map#{Pos => visited})
+%%     end.
 
 build_map(#{max := {Mx, My}} = Map) ->
     Translated =
