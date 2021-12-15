@@ -8,7 +8,7 @@
          parse_integers/3, parse_blocks/1]).
 -export([read_grid/1, read_grid/2, parse_grid/1, parse_grid/2, rotate_grid/1,
          rotate_grid/2, flip_grid/1, flip_grid/2, print_grid/1, sub_grid/3, drop_max/1,
-         lists_to_grid/1, grid_to_lists/1, grid_to_lists/2]).
+         lists_to_grid/1, grid_to_lists/1, grid_to_lists/2, translate_grid/2]).
 -export([gcd/2, egcd/2, mod_inv/2, mod/2, chinese_remainder/1]).
 
 ws() ->
@@ -260,6 +260,9 @@ minmax_grid(Grid) ->
                 maps:without([max], Grid))),
     {{lists:min(Xlist), lists:max(Xlist)}, {lists:min(Ylist), lists:max(Ylist)}}.
 
+translate_grid(#{max := {Mx, My}} = Grid, {Dx, Dy}) ->
+    M2 = maps:from_list([{{X + Dx, Y + Dy}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]),
+    M2#{max => {Mx + Dx, My + Dy}};
 translate_grid(Grid, {Dx, Dy}) ->
     maps:from_list([{{X + Dx, Y + Dy}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]).
 
