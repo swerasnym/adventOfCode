@@ -68,22 +68,6 @@ bfs(End, [{Risk, Pos} | Rest], Map) ->
             bfs(End, lists:umerge(Rest, lists:sort(New)), Map#{Pos => visited})
     end.
 
-%% astar preforms worse than bfs for some reason...
-%% astar(End, [{_E, Risk, End}| _], _Map) ->
-%%     Risk;
-%% astar({Mx, My} = End, [{_E, Risk, Pos} | Rest], Map) ->
-%%     case maps:get(Pos, Map, visited) of
-%%         visited ->
-
-%%             astar(End, Rest, Map);
-%%         _ ->
-%%             New = [{Risk + NRisk + (Mx - Nx) + (My - Ny),
-%% 		    Risk + NRisk,
-%% 		    N}
-%%                    || {Nx, Ny} = N <- neigbours(Pos), visited /= (NRisk = maps:get(N, Map, visited))],
-%%             astar(End, lists:umerge(Rest, lists:sort(New)), Map#{Pos => visited})
-%%     end.
-
 build_map(#{max := {Mx, My}} = Map) ->
     Translated =
         [{tools:translate_grid(Map, {(Mx + 1) * X, (My + 1) * Y}), X + Y}
