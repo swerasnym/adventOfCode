@@ -54,7 +54,7 @@ read(File) ->
     tools:read_grid(File, fun(V) -> V - $0 end).
 
 neigbours({X, Y}) ->
-    [{X, Y + 1}, {X + 1, Y}, {X, Y - 1},  {X - 1, Y}].
+    [{X, Y + 1}, {X + 1, Y}, {X, Y - 1}, {X - 1, Y}].
 
 bfs(End, [{Risk, End} | _], _Map) ->
     Risk;
