@@ -40,116 +40,97 @@ profile(F, Times) ->
     {Expected, lists:sum(Results) / Times / 1000}.
 
 star1(Data) ->
-    Sum = lists:foldl(fun add_s/2, [], Data),
+    Sum = lists:foldl(fun add/2, [], Data),
     Magnitude = magnitude(Sum),
-    {Magnitude, value_r(Sum)}.
+    {Magnitude, Sum}.
 
 star2(Data) ->
-    lists:max([magnitude(add_s(S1, S2)) || S1 <- Data, S2 <- Data]).
+    lists:max([magnitude(add(S1, S2)) || S1 <- Data, S2 <- Data]).
 
 read(File) ->
-    Lines = tools:read_lines(File),
-    [lists:map(fun value/1, Line) || Line <- Lines].
+    tools:read_lines(File, fun tools:as_term/1).
 
-magnitude([V]) when is_integer(V) ->
+magnitude(V) when is_integer(V) ->
     V;
-magnitude(List) ->
-    magnitude(magnitude([], List)).
+magnitude([L, R]) ->
+    3 * magnitude(L) + 2 * magnitude(R).
 
-magnitude(Left, []) ->
-    lists:reverse(Left);
-magnitude(Left, ['[', A, ',', B, ']' | Right]) when is_integer(A), is_integer(B) ->
-    lists:reverse(Left, [3 * A + 2 * B | Right]);
-magnitude(Left, [C | Right]) ->
-    magnitude([C | Left], Right).
-
-value($[) ->
-    '[';
-value($]) ->
-    ']';
-value($,) ->
-    ',';
-value(C) when $0 =< C, C =< $9 ->
-    C - $0.
-
-value_r(List) when is_list(List) ->
-    lists:flatmap(fun value_r/1, List);
-value_r('[') ->
-    "[";
-value_r(']') ->
-    "]";
-value_r(',') ->
-    ",";
-value_r(C) when is_integer(C) ->
-    integer_to_list(C).
+add(Sn1, []) ->
+    Sn1;
+add(Sn2, Sn1) ->
+    reduse([Sn1, Sn2]).
 
 reduse(Value) ->
-    case reduse("", Value, 0) of
-        Value ->
-            case spl([], Value) of
+    case explode(Value, 0) of
+        {ok, ok, Value} ->
+            case split(Value) of
+                {done, Split} ->
+                    reduse(Split);
                 Value ->
-                    Value;
-                OtherSplit ->
-                    reduse(OtherSplit)
+                    Value
             end;
-        Other ->
+        {_, _, Other} ->
             reduse(Other)
     end.
 
-reduse(Left, [], 0) ->
-    lists:reverse(Left);
-reduse(Left, ['[', A, ',', B, ']' | _] = Right, Depth)
-    when Depth >= 4, is_integer(A), is_integer(B) ->
-    {L, R} = explode(Left, Right),
-    lists:reverse(L, R);
-reduse(Left, ['[' | Right], Depth) ->
-    reduse(['[' | Left], Right, Depth + 1);
-reduse(Left, [']' | Right], Depth) ->
-    reduse([']' | Left], Right, Depth - 1);
-reduse(Left, [C | Right], Depth) ->
-    reduse([C | Left], Right, Depth).
+explode([A, B], Depth) when Depth >= 4, is_integer(A), is_integer(B) ->
+    {A, B, 0};
+explode([A, B], _Depth) when is_integer(A), is_integer(B) ->
+    {ok, ok, [A, B]};
+explode([Left, Right], Depth) when is_list(Left), is_list(Right) ->
+    case explode(Left, Depth + 1) of
+        {ok, ok, Left} ->
+            {L, R, Result} = explode(Right, Depth + 1),
+            {ok, R, [push_left(L, Left), Result]};
+        {ok, ok, Result} ->
+            {ok, ok, [Result, Right]};
+        {L, R, Vl} ->
+            {L, ok, [Vl, push_right(R, Right)]}
+    end;
+explode([A, Right], Depth) when is_integer(A), is_list(Right) ->
+    case explode(Right, Depth + 1) of
+        {ok, R, Result} ->
+            {ok, R, [A, Result]};
+        {L, R, Result} ->
+            {ok, R, [A + L, Result]}
+    end;
+explode([Left, B], Depth) when is_integer(B), is_list(Left) ->
+    case explode(Left, Depth + 1) of
+        {L, ok, Result} ->
+            {L, ok, [Result, B]};
+        {L, R, Result} ->
+            {L, ok, [Result, R + B]}
+    end.
 
-spl(Left, []) ->
-    lists:reverse(Left);
-spl(Left, [C | Right]) when is_integer(C), C > 9 ->
-    Res = lists:reverse(Left, split(C) ++ Right),
-    %io:format("S: ~p~n", [value_r(lists:reverse(Left, [C | Right]))]),
-    %io:format(" : ~p~n", [value_r(Res)]),
-    Res;
-spl(Left, [C | Right]) ->
-    spl([C | Left], Right).
+split(A) when is_integer(A), A > 9 ->
+    An = A div 2,
+    Bn = A - An,
+    {done, [An, Bn]};
+split(A) when is_integer(A) ->
+    A;
+split([Left, Right]) ->
+    case split(Left) of
+        {done, Result} ->
+            {done, [Result, Right]};
+        Left ->
+            case split(Right) of
+                {done, Result} ->
+                    {done, [Left, Result]};
+                Right ->
+                    [Left, Right]
+            end
+    end.
 
-explode(Left, ['[', A, ',', B, ']' | Right]) ->
-    Rl = explode_i(A, Left),
-    Rr = explode_i(B, Right),
+push_right(ok, Right) ->
+    Right;
+push_right(R, [L, Right]) when is_integer(L) ->
+    [R + L, Right];
+push_right(R, [Left, Right]) ->
+    [push_right(R, Left), Right].
 
-    Res = {[0] ++ Rl, Rr},
-    %io:format("E: ~p~n", [value_r(lists:reverse(Left)) ++
-    %% "<" ++
-    %% integer_to_list(A) ++
-    %% "," ++
-    %% integer_to_list(B) ++
-    %% ">" ++  value_r(Right)]),
-    %io:format(" : ~p~n~n", [value_r(lists:reverse(Rl)) ++ "#" ++ value_r(Rr)]),
-    Res.
-
-explode_i(_A, []) ->
-    [];
-explode_i(A, [C | Stack]) when is_integer(C) ->
-    [A + C] ++ Stack;
-explode_i(A, [C | Stack]) ->
-    [C | explode_i(A, Stack)].
-
-split(A) when A < 9 ->
-    [A];
-split(Sum) ->
-    An = Sum div 2,
-    Bn = Sum - An,
-    ['[', An, ',', Bn, ']'].
-
-add_s(Sn1, []) ->
-    Sn1;
-add_s(Sn2, Sn1) ->
-    Res = reduse(['['] ++ Sn1 ++ [','] ++ Sn2 ++ [']']),
-    % io:format("  ~p~n+ ~p~n= ~p~n~n", [value_r(Sn1), value_r(Sn2), value_r(Res)]),
-    Res.
+push_left(ok, Left) ->
+    Left;
+push_left(L, [Left, R]) when is_integer(R) ->
+    [Left, L + R];
+push_left(L, [Left, Right]) ->
+    [Left, push_left(L, Right)].
