@@ -3,9 +3,10 @@
 -export([ws/0, count/1, count/2, product/1, replace/2, replace/3, replace/4]).
 -export([read_string/1, read_tokens/2]).
 -export([read_format/2, read_integers/1, read_integers/2, read_integers/3, read_lines/1,
-         read_blocks/1]).
--export([parse_format/2, parse_lines/1, parse_integers/1, parse_integers/2,
-         parse_integers/3, parse_blocks/1]).
+         read_lines/2, read_blocks/1, read_blocks/2]).
+-export([parse_format/2, parse_lines/1, parse_lines/2, parse_integers/1, parse_integers/2,
+         parse_integers/3, parse_blocks/1, parse_blocks/2]).
+-export([as_term/1, eval/1]).
 -export([read_grid/1, read_grid/2, parse_grid/1, parse_grid/2, rotate_grid/1,
          rotate_grid/2, flip_grid/1, flip_grid/2, print_grid/1, sub_grid/3, drop_max/1,
          lists_to_grid/1, grid_to_lists/1, grid_to_lists/2, translate_grid/2]).
@@ -77,10 +78,23 @@ read_tokens(File, Separators) ->
 read_lines(File) ->
     string:split(read_string(File), "\n", all).
 
+%% @dock Reads a whole file into a list of lines without trailing linebreaks and applies function
+read_lines(File, Fun) when is_function(Fun, 1) ->
+    [Fun(Line) || Line <- read_lines(File)];
+read_lines(File, Fun) when is_atom(Fun) ->
+    read_lines(File, fun ?MODULE:Fun/1).
+
 %% @doc Reads a whole file into a lists of blocks that where separated by a
 %% single empty line.
 read_blocks(File) ->
     string:split(read_string(File), "\n\n", all).
+
+%% @dock Reads a whole file into a lists of blocks that where separated by a
+%% single empty line and applies function.
+read_blocks(File, Fun) when is_function(Fun, 1) ->
+    [Fun(Line) || Line <- read_blocks(File)];
+read_blocks(File, Fun) when is_atom(Fun) ->
+    read_blocks(File, fun ?MODULE:Fun/1).
 
 %% @doc Reads a file of whitespace separated integers to a list.
 read_integers(File) ->
@@ -119,8 +133,18 @@ read_format(Device, Format, Acc) ->
 parse_lines(String) ->
     string:split(String, "\n", all).
 
+parse_lines(String, Fun) when is_function(Fun, 1) ->
+    [Fun(Line) || Line <- parse_lines(String)];
+parse_lines(String, Fun) when is_atom(Fun) ->
+    parse_lines(String, fun ?MODULE:Fun/1).
+
 parse_blocks(String) ->
     string:split(String, "\n\n", all).
+
+parse_blocks(String, Fun) when is_function(Fun, 1) ->
+    [Fun(Line) || Line <- parse_blocks(String)];
+parse_blocks(String, Fun) when is_atom(Fun) ->
+    parse_blocks(String, fun ?MODULE:Fun/1).
 
 %% @doc Reads a string of whitespace separated integers to a list.
 parse_integers(String) ->
@@ -154,6 +178,29 @@ parse_format(String, Format, Acc) ->
 
 %% ------------------------
 %% grid
+
+as_term(String) ->
+    Str = case lists:last(String) of
+              $. ->
+                  String;
+              _ ->
+                  String ++ [$.]
+          end,
+    {ok, Tokens, _} = erl_scan:string(Str),
+    {ok, Term} = erl_parse:parse_term(Tokens),
+    Term.
+
+eval(String) ->
+    Str = case lists:last(String) of
+              $. ->
+                  String;
+              _ ->
+                  String ++ [$.]
+          end,
+    {ok, Tokens, _} = erl_scan:string(Str),
+    {ok, Parsed} = erl_parse:parse_exprs(Tokens),
+    {value, Result, _} = erl_eval:exprs(Parsed, []),
+    Result.
 
 drop_max(Grid) ->
     maps:without([max], Grid).
