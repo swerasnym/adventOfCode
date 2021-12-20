@@ -1,6 +1,9 @@
 -module(aoc2021_day20).
 
--export([run/2, profile/3]).
+-export([run/2, profile/3, eprof/2]).
+
+-define(DARK, $0).
+-define(LIGHT, $1).
 
 run(Star, File) ->
     Data = read(File),
@@ -17,7 +20,6 @@ run(Star, File) ->
 
 profile(Star, File, Times) ->
     Data = read(File),
-
     case Star of
         star1 ->
             profile(fun() -> star1(Data) end, Times);
@@ -39,54 +41,71 @@ profile(F, Times) ->
          || _ <- lists:seq(1, Times)],
     {Expected, lists:sum(Results) / Times / 1000}.
 
-star1({Line, #{max := {Mx, My}} = Grid}) ->
-    {Grid1, Out1} = enhance(Grid, Line, dark),
+eprof(Star, File) ->
+    eprof:start(),
+    eprof:start_profiling([self()]),
+    Result = run(Star, File),
+    eprof:stop_profiling(),
+    eprof:analyze(),
+    eprof:stop(),
+    Result.
 
-    {Grid2, Out2} = enhance(Grid1, Line, Out1),
+star1(Grid) ->
+    {Grid1, Out1} = enhance(Grid, ?DARK),
+
+    {Grid2, _Out2} = enhance(Grid1, Out1),
     print(Grid2),
-    tools:count(light, Grid2).
+    tools:count(?LIGHT, Grid2).
 
-star2({Line, Grid}) ->
-    Grid50 = enhance(Grid, Line, dark, 50),
-    print(Grid50),
-    tools:count(light, Grid50).
+star2(Grid) ->
+    Grid50 = enhance(Grid, ?DARK, 50),
+    tools:count(?LIGHT, Grid50).
 
 read(File) ->
-    Replacements = #{$# => light, $. => dark},
+    erase(),
+    Replacements = #{$# => ?LIGHT, $. => ?DARK},
 
-    [Line, Grid] = tools:read_blocks(File),
-    {tools:replace(Line, Replacements), tools:parse_grid(Grid, Replacements)}.
+    [LineStr, GridBlock] = tools:read_blocks(File),
+    Grid = tools:parse_grid(GridBlock, Replacements),
+    Line = tools:replace(LineStr, Replacements),
+    ok = build_nth(Line, 0),
+    Grid#{min => {0, 0}}.
 
 print(Grid) ->
     tools:print_grid(
-        tools:replace(Grid, #{light => $█, dark => $ })).
+        tools:replace(Grid, #{?LIGHT => $█, ?DARK => $ })).
 
-neigbours({X, Y} = Pos) ->
-    [{X + Dx, Y + Dy} || Dy <- lists:seq(-1, 1), Dx <- lists:seq(-1, 1)].
+index({X, Y} = Pos, Grid, Outside) ->
+    Sequence =
+        [maps:get({X + Dx, Y + Dy}, Grid, Outside) || Dy <- [-1, 0, 1], Dx <- [-1, 0, 1]],
+    Index = list_to_integer(Sequence, 2),
+    {Pos, nth(Index)}.
 
-index(Pos, Grid, Line, Outside) ->
-    Sequence = [maps:get(P, Grid, Outside) || P <- neigbours(Pos)],
-    Index = list_to_integer(tools:replace(Sequence, #{light => $1, dark => $0}), 2),
-    {Pos, lists:nth(Index + 1, Line)}.
-
-enhance(Grid, Line, Outside, 0) ->
+enhance(Grid, _Outside, 0) ->
     Grid;
-enhance(Grid, Line, Outside, N) ->
-    io:format("~p: ~p ~p~n", [N, tools:minmax_grid(Grid), Outside]),
-    {Grid1, Out1} = enhance(Grid, Line, Outside),
-    enhance(Grid1, Line, Out1, N - 1).
+enhance(Grid, Outside, N) ->
+    {Grid1, Out1} = enhance(Grid, Outside),
+    enhance(Grid1, Out1, N - 1).
 
-enhance(Grid, Line, Outside) ->
-    {{Xmin, Xmax}, {Ymin, Ymax}} = tools:minmax_grid(Grid),
-
+enhance(#{min := {Xmin, Ymin}, max := {Xmax, Ymax}} = Grid, Outside) ->
     Processed =
-        [index({X, Y}, Grid, Line, Outside)
+        [index({X, Y}, Grid, Outside)
          || X <- lists:seq(Xmin - 1, Xmax + 1), Y <- lists:seq(Ymin - 1, Ymax + 1)],
-    Out = maps:from_list(Processed),
+    Out = maps:from_list(Processed
+                         ++ [{min, {Xmin - 1, Ymin - 1}}, {max, {Xmax + 1, Ymax + 1}}]),
     Os = case Outside of
-             dark ->
-                 lists:nth(1, Line);
-             light ->
-                 lists:nth(512, Line)
+             ?DARK ->
+                 nth(0);
+             ?LIGHT ->
+                 nth(511)
          end,
     {Out, Os}.
+
+build_nth([], _) ->
+    ok;
+build_nth([Hd | Rest], N) ->
+    erlang:put(N, Hd),
+    build_nth(Rest, N + 1).
+
+nth(N) ->
+    erlang:get(N).
