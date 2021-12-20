@@ -9,7 +9,7 @@
 -export([as_term/1, eval/1]).
 -export([read_grid/1, read_grid/2, parse_grid/1, parse_grid/2, rotate_grid/1,
          rotate_grid/2, flip_grid/1, flip_grid/2, print_grid/1, sub_grid/3, drop_max/1,
-         lists_to_grid/1, grid_to_lists/1, grid_to_lists/2, translate_grid/2]).
+         lists_to_grid/1, grid_to_lists/1, grid_to_lists/2, translate_grid/2, minmax_grid/1]).
 -export([gcd/2, egcd/2, mod_inv/2, mod/2, chinese_remainder/1]).
 
 ws() ->
