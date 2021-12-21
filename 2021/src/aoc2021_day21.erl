@@ -52,13 +52,14 @@ star1(Data) ->
     3 * Turn * Score.
 
 star2([{1, Pos1, Score1}, {2, Pos2, Score2}]) ->
-    {W1, W2} = dirac_play([{Pos1, Score1}, {Pos2, Score2}, 0]),
+    erase(),
+    put(dirac_roll, dirac_roll()),
+    {W1, W2} = dirac_play({Pos1, Score1}, {Pos2, Score2}),
     max(W1, W2).
 
 %%    Data.
 
 read(File) ->
-    erase(),
     [{Pl, Pos, 0} || [Pl, Pos] <- tools:read_format(File, "Player ~d starting position: ~d")].
 
 play([{Player, Pos, Score}, NextPlayer], Die, Turn) ->
@@ -88,25 +89,21 @@ dirac_roll() ->
     maps:to_list(
         tools:count([A + B + C || A <- R, B <- R, C <- R])).
 
-dirac_play([{Pos, Score}, P2, 3]) ->
-    {W2, W1} = dirac_play([P2, {Pos, Score + Pos}, 0]),
-    {W1, W2};
-dirac_play([{_Pos1, Score1}, {_Pos2, _Score2}, _Turn]) when Score1 >= 21 ->
-    {1, 0};
-dirac_play([{_Pos1, _Score1}, {_Pos2, Score2}, _Turn]) when Score2 >= 21 ->
+dirac_play(_P1, {_Pos2, Score2}) when Score2 >= 21 ->
     {0, 1};
-dirac_play([{Pos, Score}, {_Pos2, _Score2} = P2, Turn] = State) ->
-    case get(State) of
+dirac_play({Pos, Score} = P1, P2) ->
+    case get({P1, P2}) of
         undefined ->
             Results =
                 [begin
                      NextPos = (Pos + Roll - 1) rem 10 + 1,
-                     {_W1, _W2} = dirac_play([{NextPos, Score}, P2, Turn + 1])
+                     {W2, W1} = dirac_play(P2, {NextPos, Score + NextPos}),
+                     {M * W1, M * W2}
                  end
-                 || Roll <- [1, 2, 3]],
+                 || {Roll, M} <- get(dirac_roll)],
 
             Result = sum(Results, {0, 0}),
-            put(State, Result),
+            put({P1, P2}, Result),
             Result;
         Result ->
             Result
