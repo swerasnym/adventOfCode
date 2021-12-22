@@ -73,10 +73,10 @@ star2(Data) ->
 
 read(File) ->
     [#cube{state = S,
-           x = {X_min, X_Max + 1},
-           y = {Y_min, Y_Max + 1},
-           z = {Z_min, Z_Max + 1}}
-     || [S, X_min, X_Max, Y_min, Y_Max, Z_min, Z_Max]
+           x = {Xmin, Xmax + 1},
+           y = {Ymin, Ymax + 1},
+           z = {Zmin, Zmax + 1}}
+     || [S, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax]
             <- tools:read_format(File, "~a x=~d..~d,y=~d..~d,z=~d..~d")].
 
 is_init(#cube{x = {Xmin, XMax},
