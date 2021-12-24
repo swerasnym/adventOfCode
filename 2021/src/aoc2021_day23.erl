@@ -94,8 +94,6 @@ starts(Map) ->
     maps:to_list(
         maps:filter(fun amphipod/2, Map)).
 
-bfs([{Cost, Goal} | _Rest], Goal) ->
-    Cost;
 bfs(Set1, Goal) ->
     {Element, Set2} = gb_sets:take_smallest(Set1),
     case Element of
