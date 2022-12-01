@@ -1,6 +1,6 @@
 -module(tools).
 
--export([ws/0, count/1, count/2, product/1, replace/2, replace/3, replace/4]).
+-export([ws/0, count/1, count/2, product/1, dsort/1, replace/2, replace/3, replace/4]).
 -export([read_string/1, read_tokens/2]).
 -export([read_format/2, read_integers/1, read_integers/2, read_integers/3, read_lines/1,
          read_lines/2, read_blocks/1, read_blocks/2]).
@@ -29,6 +29,10 @@ count(Value, Collection) ->
 %% @doc Calculates the procuct of a list of numbers.
 product(List) ->
     lists:foldl(fun(Term, Product) -> Term * Product end, 1, List).
+
+%% Sort in decending (reverse) order
+dsort(List) ->
+    lists:sort(fun erlang:'>'/2, List).
 
 replace(Values, Replacements) when is_map(Replacements) ->
     replace(Values, Replacements, all).
