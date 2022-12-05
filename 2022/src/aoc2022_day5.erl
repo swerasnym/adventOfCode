@@ -20,64 +20,40 @@ run(Star, File) ->
             {Star1, Star2}
     end.
 
--spec read(_) -> [any(), ...].
 read(File) ->
     [B1, B2] = tools:read_blocks(File),
-    Grid1 = string:replace(B1, "    ", "[ ] ", all),
-    Grid2 = string:replace(Grid1, "]  [", "] [", all),
-    Grid3 = string:replace(Grid2, "][", "] [", all),
-    Grid4 = string:replace(Grid3, "] [", "", all),
-    Grid5 = string:replace(Grid4, "]", "", all),
-    Grid6 = string:replace(Grid5, "[", "", all),
-    Grid7 = tools:parse_lines(Grid6),
-    Grid8 = lists:droplast(Grid7),
-    Grid = tools:lists_to_grid(Grid8),
-    RGrid = tools:rotate_grid(Grid, cw),
-    Lists = tools:grid_to_lists(RGrid),
-    NoSpaces =
-        [lists:filter(fun ($ ) ->
-                              false;
-                          (_) ->
-                              true
-                      end,
-                      L)
-         || L <- Lists],
+    G = tools:parse_grid(B1),
+    RG = tools:rotate_grid(G, cw),
+    Lists = tools:grid_to_lists(RG),
+    Stacks1 = lists:filter(fun(L) -> hd(L) /= $  end, Lists),
+    Stacks = [string:trim(tl(S)) || S <- Stacks1],
+    Moves = tools:parse_format(B2, "move ~d from ~d to ~d\n"),
 
-    Moves =
-        [begin
-             [[C, T, F]] = tools:parse_format(L, "move ~d from ~d to ~d"),
-             {C, T, F}
-         end
-         || L <- tools:parse_lines(B2)],
-    {NoSpaces, Moves}.
+    {maps:from_list(
+         lists:enumerate(Stacks)),
+     Moves}.
 
-star1({Stacks, Moves}) ->
-    State =
-        maps:from_list(
-            lists:enumerate(Stacks)),
+star1({State, Moves}) ->
     Lists = maps:to_list(move(Moves, State)),
     [lists:last(S) || {_, S} <- lists:sort(Lists)].
 
-star2({Stacks, Moves}) ->
-    State =
-        maps:from_list(
-            lists:enumerate(Stacks)),
+star2({State, Moves}) ->
     Lists = maps:to_list(move9001(Moves, State)),
     [lists:last(S) || {_, S} <- lists:sort(Lists)].
 
 move([], State) ->
     State;
-move([{0, _, _} | Rest], State) ->
+move([[0, _, _] | Rest], State) ->
     move(Rest, State);
-move([{N, F, T} | Rest], State) ->
+move([[N, F, T] | Rest], State) ->
     Lf = maps:get(F, State),
     Lt = maps:get(T, State),
     State1 = State#{F := lists:droplast(Lf), T := Lt ++ [lists:last(Lf)]},
-    move([{N - 1, F, T} | Rest], State1).
+    move([[N - 1, F, T] | Rest], State1).
 
 move9001([], State) ->
     State;
-move9001([{N, F, T} | Rest], State) ->
+move9001([[N, F, T] | Rest], State) ->
     Lf = maps:get(F, State),
     Lt = maps:get(T, State),
     {Head, Tail} = lists:split(length(Lf) - N, Lf),
