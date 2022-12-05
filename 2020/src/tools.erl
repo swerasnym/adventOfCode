@@ -1,4 +1,4 @@
--module(tools).
+-module(tools).%% @doc tools used for solving AdventOfCode
 
 -export([ws/0, count/1, count/2, product/1, dsort/1, replace/2, replace/3, replace/4]).
 -export([read_string/1, read_tokens/2]).
@@ -12,35 +12,44 @@
          lists_to_grid/1, grid_to_lists/1, grid_to_lists/2, translate_grid/2, minmax_grid/1]).
 -export([gcd/2, egcd/2, mod_inv/2, mod/2, chinese_remainder/1]).
 
+-spec ws() -> string().
 ws() ->
     " \t\n\r\v".
 
 %% @doc Generates a map of counnts of the terims in the collection.
+
+-spec count(Map) -> #{Value => integer()} when Map :: #{_ => Value};
+           (List) -> #{Value => integer()} when List :: [Value].
 count(Map) when is_map(Map) ->
     count(maps:values(Map));
 count(List) when is_list(List) ->
     Fun = fun(V) -> V + 1 end,
     lists:foldl(fun(Value, Map) -> maps:update_with(Value, Fun, 1, Map) end, #{}, List).
 
-%% @doc Counts the number of occurances of Value in Collection.
+%% @doc Counts the number of occurances of 'Value' in the Collection.
+-spec count(Value, [Value | any()] | map()) -> integer().
 count(Value, Collection) ->
     maps:get(Value, count(Collection), 0).
 
 %% @doc Calculates the procuct of a list of numbers.
+
+-spec product([number()]) -> number().
 product(List) ->
     lists:foldl(fun(Term, Product) -> Term * Product end, 1, List).
 
-%% Sort in decending (reverse) order
+%% @doc Sorts in decending (reverse) order
+-spec dsort([any()]) -> [any()].
 dsort(List) ->
     lists:sort(fun erlang:'>'/2, List).
 
 replace(Values, Replacements) when is_map(Replacements) ->
     replace(Values, Replacements, all).
 
-%% All for list
+%% @doc All for list
+-spec replace(maybe_improper_list() | map(), _, _) -> any().
 replace(List, Replacements, all) when is_list(List), is_map(Replacements) ->
     lists:map(fun(Value) -> maps:get(Value, Replacements, Value) end, List);
-%% All for map
+%% @doc All for map
 replace(Map, Replacements, all) when is_map(Map), is_map(Replacements) ->
     maps:map(fun(_Key, Value) -> maps:get(Value, Replacements, Value) end, Map);
 %% N for list
@@ -82,7 +91,7 @@ read_tokens(File, Separators) ->
 read_lines(File) ->
     string:split(read_string(File), "\n", all).
 
-%% @dock Reads a whole file into a list of lines without trailing linebreaks and applies function
+%% @doc Reads a whole file into a list of lines without trailing linebreaks and applies function
 read_lines(File, Fun) when is_function(Fun, 1) ->
     [Fun(Line) || Line <- read_lines(File)];
 read_lines(File, Fun) when is_atom(Fun) ->
@@ -93,7 +102,7 @@ read_lines(File, Fun) when is_atom(Fun) ->
 read_blocks(File) ->
     string:split(read_string(File), "\n\n", all).
 
-%% @dock Reads a whole file into a lists of blocks that where separated by a
+%% @doc Reads a whole file into a lists of blocks that where separated by a
 %% single empty line and applies function.
 read_blocks(File, Fun) when is_function(Fun, 1) ->
     [Fun(Line) || Line <- read_blocks(File)];
@@ -114,7 +123,8 @@ read_integers(File, Separators, sort) ->
     lists:sort(read_integers(File, Separators)).
 
 %% @doc Reads a file of repeated formats ino a list of lits of terms.
-%% @see io:fread for format specification.
+%% @see io:format().
+%% for format specification
 read_format(File, Format) ->
     {ok, Device} = file:open(File, [read]),
     read_format(Device, Format, []).
@@ -338,6 +348,8 @@ mod_inv(A, B) ->
            undefined
     end.
 
+%% @doc Calculates modulo of two numbers.
+%% @return A positive integer
 mod(A, M) ->
     X = A rem M,
     if X < 0 ->
