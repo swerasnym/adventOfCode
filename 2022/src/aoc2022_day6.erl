@@ -28,27 +28,22 @@ star1(Data) ->
     start(4, Data).
 
 star2(Data) ->
-   start_m(14, Data).
+    start_m(14, Data).
 
-start(Pos, [A | Rest = [B,C,D | _]]) ->
-    case length(lists:uniq([A,B,C,D])) of
-	4 ->
-	    Pos;
-	_ ->
-	    start(Pos+1,Rest)
-    end.
-	    
-
-
-start_m(Pos, L = [_ | Rest ]) ->
-    case length(lists:uniq(lists:sublist(L,14))) of
-	14 ->
-	    Pos;
-	_ ->
-	    start_m(Pos+1,Rest)
+start(Pos, [A | Rest = [B, C, D | _]]) ->
+    case length(lists:uniq([A, B, C, D])) of
+        4 ->
+            Pos;
+        _ ->
+            start(Pos + 1, Rest)
     end.
 
-
-
-    
-    
+start_m(Pos, L = [_ | Rest]) ->
+    case length(lists:uniq(
+                    lists:sublist(L, 14)))
+    of
+        14 ->
+            Pos;
+        _ ->
+            start_m(Pos + 1, Rest)
+    end.
