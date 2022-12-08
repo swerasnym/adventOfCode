@@ -243,8 +243,11 @@ parse_grid([Char | Rest], {X, Y} = Pos, Grid, none) ->
     parse_grid(Rest, {X + 1, Y}, Grid#{Pos => Char}, none);
 parse_grid([Char | Rest], {X, Y} = Pos, Grid, Map) when is_map(Map) ->
     parse_grid(Rest, {X + 1, Y}, Grid#{Pos => maps:get(Char, Map)}, Map);
-parse_grid([Char | Rest], {X, Y} = Pos, Grid, Fun) when is_function(Fun) ->
-    parse_grid(Rest, {X + 1, Y}, Grid#{Pos => Fun(Char)}, Fun).
+parse_grid([Char | Rest], {X, Y} = Pos, Grid, Fun) when is_function(Fun, 1) ->
+    parse_grid(Rest, {X + 1, Y}, Grid#{Pos => Fun(Char)}, Fun);
+parse_grid([Char | Rest], {X, Y} = Pos, Grid, Fun) when is_function(Fun, 2) ->
+    parse_grid(Rest, {X + 1, Y}, Grid#{Pos => Fun(Pos, Char)}, Fun).
+
 
 lists_to_grid(NestledList) ->
     lists_to_grid({0, 0}, NestledList, #{}).
