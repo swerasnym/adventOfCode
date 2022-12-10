@@ -67,10 +67,11 @@ step(Map, Step) ->
 
     Movements = maps:size(East) div 2 + maps:size(South) div 2,
 
-    if Movements > 0 ->
-           step(Result, Step + 1);
-       Movements == 0 ->
-           Step
+    case Movements of
+        0 ->
+            Step;
+        _ ->
+            step(Result, Step + 1)
     end.
 
 east(#{max := {MaxX, _}} = Grid) ->

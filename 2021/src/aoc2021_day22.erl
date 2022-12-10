@@ -113,20 +113,21 @@ overlaps(_, _) ->
 split(Dir, C1, C2) ->
     L1 = {Min1, Max1} = element(Dir, C1),
     L2 = {Min2, Max2} = element(Dir, C2),
-    if L1 == L2 ->
-           {[C1, C2], []};
-       Min1 =< Min2, Min2 < Max1, Max1 =< Max2 ->
-           {[setelement(Dir, C1, {Min2, Max1}), setelement(Dir, C2, {Min2, Max1})],
-            [setelement(Dir, C1, {Min1, Min2}), setelement(Dir, C2, {Max1, Max2})]};
-       Min1 =< Min2, Max1 >= Max2 ->
-           {[setelement(Dir, C1, L2), C2],
-            [setelement(Dir, C1, {Min1, Min2}), setelement(Dir, C1, {Max2, Max1})]};
-       Min2 =< Min1, Min1 < Max2, Max2 =< Max1 ->
-           {[setelement(Dir, C1, {Min1, Max2}), setelement(Dir, C2, {Min1, Max2})],
-            [setelement(Dir, C1, {Max2, Max1}), setelement(Dir, C2, {Min2, Min1})]};
-       Min2 =< Min1, Max2 >= Max1 ->
-           {[C1, setelement(Dir, C2, L1)],
-            [setelement(Dir, C2, {Min2, Min1}), setelement(Dir, C2, {Max1, Max2})]}
+    case {L1, L2} of
+        {L, L} ->
+            {[C1, C2], []};
+        _ when Min1 =< Min2, Min2 < Max1, Max1 =< Max2 ->
+            {[setelement(Dir, C1, {Min2, Max1}), setelement(Dir, C2, {Min2, Max1})],
+             [setelement(Dir, C1, {Min1, Min2}), setelement(Dir, C2, {Max1, Max2})]};
+        _ when Min1 =< Min2, Max1 >= Max2 ->
+            {[setelement(Dir, C1, L2), C2],
+             [setelement(Dir, C1, {Min1, Min2}), setelement(Dir, C1, {Max2, Max1})]};
+        _ when Min2 =< Min1, Min1 < Max2, Max2 =< Max1 ->
+            {[setelement(Dir, C1, {Min1, Max2}), setelement(Dir, C2, {Min1, Max2})],
+             [setelement(Dir, C1, {Max2, Max1}), setelement(Dir, C2, {Min2, Min1})]};
+        _ when Min2 =< Min1, Max2 >= Max1 ->
+            {[C1, setelement(Dir, C2, L1)],
+             [setelement(Dir, C2, {Min2, Min1}), setelement(Dir, C2, {Max1, Max2})]}
     end.
 
 split(C1, C2) ->

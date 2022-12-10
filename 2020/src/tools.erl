@@ -193,25 +193,21 @@ parse_format(String, Format, Acc) ->
 %% ------------------------
 %% grid
 
+ensure_period_at_end(String) ->
+    case lists:last(String) of
+        $. ->
+            String;
+        _ ->
+            String ++ [$.]
+    end.
+
 as_term(String) ->
-    Str = case lists:last(String) of
-              $. ->
-                  String;
-              _ ->
-                  String ++ [$.]
-          end,
-    {ok, Tokens, _} = erl_scan:string(Str),
+    {ok, Tokens, _} = erl_scan:string(ensure_period_at_end(String)),
     {ok, Term} = erl_parse:parse_term(Tokens),
     Term.
 
 eval(String) ->
-    Str = case lists:last(String) of
-              $. ->
-                  String;
-              _ ->
-                  String ++ [$.]
-          end,
-    {ok, Tokens, _} = erl_scan:string(Str),
+    {ok, Tokens, _} = erl_scan:string(ensure_period_at_end(String)),
     {ok, Parsed} = erl_parse:parse_exprs(Tokens),
     {value, Result, _} = erl_eval:exprs(Parsed, []),
     Result.
@@ -232,11 +228,9 @@ parse_grid(String, Fun) ->
     parse_grid(String, {0, 0}, #{}, Fun).
 
 parse_grid([], _Pos, Grid, _Fun) ->
-    {{_Xmin, Xmax}, {_Ymin, Ymax}} = minmax_grid(Grid),
-    Grid#{max => {Xmax, Ymax}};
+    Grid#{max => max_grid(Grid)};
 parse_grid([$\n], _Pos, Grid, _Fun) ->
-    {{_Xmin, Xmax}, {_Ymin, Ymax}} = minmax_grid(Grid),
-    Grid#{max => {Xmax, Ymax}};
+    Grid#{max => max_grid(Grid)};
 parse_grid([$\n | Rest], {_X, Y}, Grid, Fun) ->
     parse_grid(Rest, {0, Y + 1}, Grid, Fun);
 parse_grid([Char | Rest], {X, Y} = Pos, Grid, none) ->
@@ -256,8 +250,7 @@ lists_to_grid({X, Y} = Pos, [[Front | RowRest] | Rest], Grid) ->
 lists_to_grid({_X, Y}, [[] | Rest], Grid) ->
     lists_to_grid({0, Y + 1}, Rest, Grid);
 lists_to_grid(_, [], Grid) ->
-    {{_Xmin, Xmax}, {_Ymin, Ymax}} = minmax_grid(Grid),
-    Grid#{max => {Xmax, Ymax}}.
+    Grid#{max => max_grid(Grid)}.
 
 grid_to_lists(Grid) ->
     grid_to_lists(Grid, missing).
@@ -295,7 +288,7 @@ print_grid(Grid) ->
     io:format("~ts~n", [grid_to_string(Grid)]).
 
 grid_to_string(Grid = #{max := {Xmax, Ymax}}) ->
-    string:join([[maps:get({X, Y}, Grid, $ ) || X <- lists:seq(0, Xmax)]
+    string:join([[maps:get({X, Y}, Grid, $\s) || X <- lists:seq(0, Xmax)]
                  || Y <- lists:seq(0, Ymax)],
                 "\n");
 grid_to_string(Map) ->
@@ -315,6 +308,12 @@ grid_from_2d(Map) ->
     {{Xmin, Xmax}, {Ymin, Ymax}} = minmax_grid(Map),
     Grid = translate_grid(Map, {-Xmin, -Ymin}),
     Grid#{max => {Xmax - Xmin, Ymax - Ymin}}.
+
+max_grid(#{max := {Xmax, Ymax}}) ->
+    {Xmax, Ymax};
+max_grid(Grid) ->
+    {{_, Xmax}, {_, Ymax}} = minmax_grid(Grid),
+    {Xmax, Ymax}.
 
 minmax_grid(Grid) ->
     {Xlist, Ylist} = lists:unzip(maps:keys(maps:without([max], Grid))),
@@ -341,20 +340,22 @@ egcd(A, B) ->
 
 mod_inv(A, B) ->
     {X, Y} = egcd(A, B),
-    if A * X + B * Y =:= 1 ->
-           X;
-       true ->
-           undefined
+    case A * X + B * Y =:= 1 of
+        true ->
+            X;
+        false ->
+            undefined
     end.
 
 %% @doc Calculates modulo of two numbers.
 %% @return A positive integer
 mod(A, M) ->
     X = A rem M,
-    if X < 0 ->
-           X + abs(M);
-       true ->
-           X
+    case X < 0 of
+        true ->
+            X + abs(M);
+        false ->
+            X
     end.
 
 %% internal
@@ -371,15 +372,15 @@ calc_inverses([N | Ns], [M | Ms]) ->
 chinese_remainder(Congruences) ->
     {Residues, Modulii} = lists:unzip(Congruences),
     ModPI = lists:foldl(fun(A, B) -> A * B end, 1, Modulii),
-    CRT_Modulii = [ModPI div M || M <- Modulii],
-    case calc_inverses(CRT_Modulii, Modulii) of
+    CRTModulii = [ModPI div M || M <- Modulii],
+    case calc_inverses(CRTModulii, Modulii) of
         undefined ->
             undefined;
         Inverses ->
             Solution =
                 lists:sum([A * B
                            || {A, B}
-                                  <- lists:zip(CRT_Modulii,
+                                  <- lists:zip(CRTModulii,
                                                [A * B
                                                 || {A, B} <- lists:zip(Residues, Inverses)])]),
             mod(Solution, ModPI)

@@ -88,7 +88,7 @@ parse_message(Other, [Lt | Message]) ->
     case Lt of
         $0 ->
             {LengthB, Message1} = lists:split(15, Message),
-            %%	    io:format("~p~n", [{LengthB, Message1}]),
+            %%    io:format("~p~n", [{LengthB, Message1}]),
             {SubPacket, Rest} = lists:split(list_to_integer(LengthB, 2), Message1),
             {sp(SubPacket, []), {rest, Rest}};
         $1 ->

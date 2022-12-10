@@ -83,7 +83,7 @@ read(File) ->
 remove_fluff(Map) ->
     maps:filter(fun (_, $#) ->
                         false;
-                    (_, $ ) ->
+                    (_, $\s) ->
                         false;
                     (_, _) ->
                         true

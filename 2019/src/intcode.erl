@@ -43,7 +43,6 @@
           8 => {equals, 3, fun equals/1},
           9 => {relative_base_offset, 1, fun relative_base_offset/1},
           99 => {halt, 0, fun halt/1}}).
--define(vva(V1, V2, A), #state{values = [V1, V2, _], addresses = [_, _, A]}).
 
 %%------------------------------------------------------------------------------
 %% Intcode function calls
@@ -51,9 +50,11 @@
 call(#state{function = Function} = State) ->
     Function(State).
 
-add( ?vva( Term1 , Term2 , To ) = State ) -> set( Term1 + Term2 , To , State ) .
+add(#state{values = [Term1, Term2, _], addresses = [_, _, To]} = State) ->
+    set(Term1 + Term2, To, State).
 
-multiply( ?vva( Factor1 , Factor2 , To ) = State ) -> set( Factor1 * Factor2 , To , State ) .
+multiply(#state{values = [Factor1, Factor2, _], addresses = [_, _, To]} = State) ->
+    set(Factor1 * Factor2, To, State).
 
 input(#state{addresses = [To],
              input = [],
@@ -99,9 +100,16 @@ jump_if_false(#state{values = [Value, To]} = State) ->
             State
     end.
 
-less_than( ?vva( Term1 , Term2 , To ) = State ) when Term1 < Term2 -> set( 1 , To , State ) ; less_than( ?vva( _ , _ , To ) = State ) -> set( 0 , To , State ) .
+less_than(#state{values = [Term1, Term2, _], addresses = [_, _, To]} = State)
+    when Term1 < Term2 ->
+    set(1, To, State);
+less_than(#state{values = [_, _, _], addresses = [_, _, To]} = State) ->
+    set(0, To, State).
 
-equals( ?vva( Term , Term , To ) = State ) -> set( 1 , To , State ) ; equals( ?vva( _ , _ , To ) = State ) -> set( 0 , To , State ) .
+equals(#state{values = [Term, Term, _], addresses = [_, _, To]} = State) ->
+    set(1, To, State);
+equals(#state{values = [_, _, _], addresses = [_, _, To]} = State) ->
+    set(0, To, State).
 
 relative_base_offset(#state{values = [Value], relative_base = Rel} = State) ->
     State#state{relative_base = Rel + Value}.

@@ -62,16 +62,17 @@ play_recursive_round(P1 = [C1 | C1s], P2 = [C2 | C2s], Set) ->
         false ->
             NewSet = sets:add_element({P1, P2}, Set),
 
-            if C1 =< length(C1s), C2 =< length(C2s) ->
-                   case play_recursive(lists:sublist(C1s, C1), lists:sublist(C2s, C2)) of
-                       {p1, _Score} ->
-                           play_recursive_round(C1s ++ [C1, C2], C2s, NewSet);
-                       {p2, _Score} ->
-                           play_recursive_round(C1s, C2s ++ [C2, C1], NewSet)
-                   end;
-               C1 > C2 ->
-                   play_recursive_round(C1s ++ [C1, C2], C2s, NewSet);
-               C2 > C1 ->
-                   play_recursive_round(C1s, C2s ++ [C2, C1], NewSet)
+            case {C1, C2} of
+                {C1, C2} when C1 =< length(C1s), C2 =< length(C2s) ->
+                    case play_recursive(lists:sublist(C1s, C1), lists:sublist(C2s, C2)) of
+                        {p1, _Score} ->
+                            play_recursive_round(C1s ++ [C1, C2], C2s, NewSet);
+                        {p2, _Score} ->
+                            play_recursive_round(C1s, C2s ++ [C2, C1], NewSet)
+                    end;
+                {C1, C2} when C1 > C2 ->
+                    play_recursive_round(C1s ++ [C1, C2], C2s, NewSet);
+                {C1, C2} when C2 > C1 ->
+                    play_recursive_round(C1s, C2s ++ [C2, C1], NewSet)
             end
     end.

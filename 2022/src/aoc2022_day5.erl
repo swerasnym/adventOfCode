@@ -25,7 +25,7 @@ read(File) ->
     G = tools:parse_grid(B1),
     RG = tools:rotate_grid(G, cw),
     Lists = tools:grid_to_lists(RG),
-    Stacks1 = lists:filter(fun(L) -> hd(L) /= $  end, Lists),
+    Stacks1 = lists:filter(fun(L) -> hd(L) /= $\s end, Lists),
     Stacks = [string:trim(tl(S)) || S <- Stacks1],
     Moves = tools:parse_format(B2, "move ~d from ~d to ~d\n"),
 

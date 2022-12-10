@@ -65,7 +65,8 @@ play([{Player, Pos, Score}, NextPlayer], Die, Turn) ->
     NextPos = (Pos + Move - 1) rem 10 + 1,
     NextScore = Score + NextPos,
 
-    %% io:format("Player ~p rolls ~p:~p moves ~p score ~p~n", [Player, Move, NextDie, NextPos,  NextScore] ),
+    %% io:format("Player ~p rolls ~p:~p moves ~p score ~p~n",
+    %%           [Player, Move, NextDie, NextPos,  NextScore] ),
     case NextScore >= 1000 of
         true ->
             {Turn + 1, [{Player, NextPos, NextScore}, NextPlayer]};

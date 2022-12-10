@@ -100,18 +100,20 @@ find_serial([{push, V} | Rest], MinMax, Pos, Stack, Result) ->
     find_serial(Rest, MinMax, Pos + 1, [{Pos, V} | Stack], Result);
 find_serial([{pop, V} | Rest], max, Pos, [{SPos, Sv} | Stack], Result) ->
     Diff = Sv + V,
-    New = if Diff >= 0 ->
-                 [{Pos, 9}, {SPos, 9 - Diff}];
-             Diff < 0 ->
-                 [{Pos, 9 + Diff}, {SPos, 9}]
+    New = case Diff >= 0 of
+              true ->
+                  [{Pos, 9}, {SPos, 9 - Diff}];
+              false ->
+                  [{Pos, 9 + Diff}, {SPos, 9}]
           end,
     find_serial(Rest, max, Pos + 1, Stack, New ++ Result);
 find_serial([{pop, V} | Rest], min, Pos, [{SPos, Sv} | Stack], Result) ->
     Diff = Sv + V,
-    New = if Diff >= 0 ->
-                 [{Pos, 1 + Diff}, {SPos, 1}];
-             Diff < 0 ->
-                 [{Pos, 1}, {SPos, 1 - Diff}]
+    New = case Diff >= 0 of
+              true ->
+                  [{Pos, 1 + Diff}, {SPos, 1}];
+              false ->
+                  [{Pos, 1}, {SPos, 1 - Diff}]
           end,
     find_serial(Rest, min, Pos + 1, Stack, New ++ Result).
 

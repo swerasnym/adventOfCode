@@ -41,13 +41,13 @@ star2(Program, Timeout) ->
             [intcode:send(Halt, halt) || Halt <- proplists:get_keys(Table)],
             Result
     catch
-        not_all_messages_receved ->
+        error:not_all_messages_receved ->
             io:format("Problem when checking for idle. ~n"),
             [intcode:send(Halt, halt) || Halt <- proplists:get_keys(Table)],
             star2(Program, Timeout + 1);
         error:{badmatch, Value}:Stack ->
             case hd(Stack) of
-                {day23, switch2, 5, Where} ->
+                {?MODULE, switch2, 5, Where} ->
                     io:format("Problem when routing ~p at ~p. ~n", [Value, Where]),
                     [intcode:send(Halt, halt) || Halt <- proplists:get_keys(Table)],
                     star2(Program, Timeout + 1);
@@ -145,7 +145,7 @@ is_idle(Messages, Input, Set, Timeout) ->
                         [self() ! M0 || M0 <- lists:reverse(Input)],
                         idle;
                     _ ->
-                        throw(not_all_messages_receved)
+                        error(not_all_messages_receved)
                 end;
             Messages ->
                 [self() ! M1 || M1 <- lists:reverse(Messages)],

@@ -93,10 +93,11 @@ pattern(Position, Length) ->
     end.
 
 split(N, List) ->
-    if N > length(List) ->
-           {List, []};
-       true ->
-           lists:split(N, List)
+    case N > length(List) of
+        true ->
+            {List, []};
+        false ->
+            lists:split(N, List)
     end.
 
 phase3(List) ->

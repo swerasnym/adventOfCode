@@ -34,10 +34,10 @@ star2(Images) ->
         [Side
          || {Side, Value} <- maps:to_list(FirstEdges),
             maps:get(Value, Count) == 1,
-            Side /= topRev,
-            Side /= botRev,
-            Side /= leftRev,
-            Side /= rightRev],
+            Side /= top_rev,
+            Side /= bot_rev,
+            Side /= left_rev,
+            Side /= right_rev],
 
     Neigbours = build(Internal, hd(Counrers), Images, Sides, Count),
     Grid = orient(Neigbours, Images, Sides, Count),
@@ -169,30 +169,30 @@ opposed(left) ->
     right;
 opposed(right) ->
     left;
-opposed(topRev) ->
-    botRev;
-opposed(botRev) ->
-    topRev;
-opposed(leftRev) ->
-    rightRev;
-opposed(rightRev) ->
-    leftRev.
+opposed(top_rev) ->
+    bot_rev;
+opposed(bot_rev) ->
+    top_rev;
+opposed(left_rev) ->
+    right_rev;
+opposed(right_rev) ->
+    left_rev.
 
 flip(top) ->
-    topRev;
+    top_rev;
 flip(bot) ->
-    botRev;
+    bot_rev;
 flip(left) ->
-    leftRev;
+    left_rev;
 flip(right) ->
-    rightRev;
-flip(topRev) ->
+    right_rev;
+flip(top_rev) ->
     top;
-flip(botRev) ->
+flip(bot_rev) ->
     bot;
-flip(leftRev) ->
+flip(left_rev) ->
     left;
-flip(rightRev) ->
+flip(right_rev) ->
     right.
 
 build([E1, _E2], Id, Images, Sides, Count) ->
@@ -243,15 +243,16 @@ is_corner(Edges, Map) ->
 
 get_edges(ImageMap = #{max := {Xmax, Ymax}}) ->
     #{top => list_to_integer([maps:get({X, 0}, ImageMap) || X <- lists:seq(0, Xmax)], 2),
-      topRev => list_to_integer([maps:get({X, 0}, ImageMap) || X <- lists:seq(Xmax, 0, -1)], 2),
+      top_rev =>
+          list_to_integer([maps:get({X, 0}, ImageMap) || X <- lists:seq(Xmax, 0, -1)], 2),
       bot => list_to_integer([maps:get({X, Ymax}, ImageMap) || X <- lists:seq(0, Xmax)], 2),
-      botRev =>
+      bot_rev =>
           list_to_integer([maps:get({X, Ymax}, ImageMap) || X <- lists:seq(Xmax, 0, -1)], 2),
       left => list_to_integer([maps:get({0, Y}, ImageMap) || Y <- lists:seq(0, Ymax)], 2),
-      leftRev =>
+      left_rev =>
           list_to_integer([maps:get({0, Y}, ImageMap) || Y <- lists:seq(Ymax, 0, -1)], 2),
       right => list_to_integer([maps:get({Xmax, Y}, ImageMap) || Y <- lists:seq(0, Ymax)], 2),
-      rightRev =>
+      right_rev =>
           list_to_integer([maps:get({Xmax, Y}, ImageMap) || Y <- lists:seq(Ymax, 0, -1)], 2)}.
 
 top(ImageMap = #{max := {Xmax, _Ymax}}) ->

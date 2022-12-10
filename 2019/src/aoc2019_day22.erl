@@ -51,10 +51,11 @@ instruction("deal into new stack", Deck) ->
 instruction("cut " ++ NumberStr, Deck) ->
     Number = list_to_integer(NumberStr),
     {Top, Bottom} =
-        if Number >= 0 ->
-               lists:split(Number, Deck);
-           Number < 0 ->
-               lists:split(length(Deck) + Number, Deck)
+        case Number >= 0 of
+            true ->
+                lists:split(Number, Deck);
+            false ->
+                lists:split(length(Deck) + Number, Deck)
         end,
     Bottom ++ Top;
 instruction("deal with increment " ++ NumberStr, Deck) ->

@@ -50,10 +50,10 @@ move_tail(H = {Hx, Hy}, T = {Tx, Ty}) ->
               {0, 2} ->
                   {Tx, Ty + Dy div 2};
               {2, _} ->
-                  [P] = [P1 || P1 <- neigbours(H), P2 <- neigboursDiag(T), P1 == P2],
+                  [P] = [P1 || P1 <- neigbours(H), P2 <- neigbours_diag(T), P1 == P2],
                   P;
               {_, 2} ->
-                  [P] = [P1 || P1 <- neigbours(H), P2 <- neigboursDiag(T), P1 == P2],
+                  [P] = [P1 || P1 <- neigbours(H), P2 <- neigbours_diag(T), P1 == P2],
                   P;
               _ ->
                   T
@@ -72,5 +72,5 @@ move_head(["L", L], {X, Y}) ->
 neigbours({X, Y}) ->
     [{X + Dx, Y + Dy} || Dx <- [-1, 0, 1], Dy <- [-1, 0, 1], {Dx, Dy} /= {0, 0}].
 
-neigboursDiag({X, Y}) ->
+neigbours_diag({X, Y}) ->
     [{X + Dx, Y + Dy} || Dx <- [-1, 1], Dy <- [-1, 1]].

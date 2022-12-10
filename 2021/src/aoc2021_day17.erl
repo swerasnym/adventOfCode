@@ -39,16 +39,13 @@ profile(F, Times) ->
          || _ <- lists:seq(1, Times)],
     {Expected, lists:sum(Results) / Times / 1000}.
 
-star1([Xmin, Xmax, Ymin, Ymax] = Target) ->
+star1([Xmin, Xmax, _Ymin, _Ymax] = Target) ->
     Vxmin = find_inital_vx_range(Xmin, 0),
     Vxmax = find_inital_vx_range(Xmax, 0),
     lists:max([step({0, 0}, {Vx, Vy}, Target, [])
                || Vx <- lists:seq(Vxmin - 1, Vxmax + 1), Vy <- lists:seq(0, 10000)]).
 
-star2([Xmin, Xmax, Ymin, Ymax] = Target) ->
-    Vxmin = find_inital_vx_range(Xmin, 0),
-    Vxmax = find_inital_vx_range(Xmax, 0),
-
+star2([_Xmin, Xmax, Ymin, _Ymax] = Target) ->
     Steps =
         [{Vx, Vy, step({0, 0}, {Vx, Vy}, Target, [])}
          || Vx <- lists:seq(0, Xmax), Vy <- lists:seq(Ymin, 100)],
@@ -60,24 +57,24 @@ read(File) ->
     [Tuple] = tools:read_format(File, "target area: x=~d..~d, y=~d..~d"),
     Tuple.
 
-step({X, Y}, {Vx, Vy}, [Xmin, Xmax, Ymin, Ymax], Ys)
+step({X, Y}, {_Vx, _Vy}, [Xmin, Xmax, Ymin, Ymax], Ys)
     when X >= Xmin, X =< Xmax, Y >= Ymin, Y =< Ymax ->
     lists:max([Y | Ys]);
-step({X, Y}, {Vx, Vy}, [Xmin, Xmax, Ymin, Ymax], Ys) when Y < Ymin ->
+step({_X, Y}, {_Vx, _Vy}, [_Xmin, _Xmax, Ymin, _Ymax], _Ys) when Y < Ymin ->
     -1;
 step({X, Y}, {Vx, Vy}, Target, Ys) ->
-    step({X + Vx, Y + Vy}, {uVx(Vx), Vy - 1}, Target, [Y | Ys]).
+    step({X + Vx, Y + Vy}, {u_vx(Vx), Vy - 1}, Target, [Y | Ys]).
 
-uVx(Vx) when Vx > 0 ->
+u_vx(Vx) when Vx > 0 ->
     Vx - 1;
-uVx(Vx) when Vx < 0 ->
+u_vx(Vx) when Vx < 0 ->
     Vx + 1;
-uVx(0) ->
+u_vx(0) ->
     0.
 
 %% find_inital_vx_range(X, 0) when X < 0 ->
 %%     -find_inital_vx_range(-X, 0);
 find_inital_vx_range(X, Vx) when X > 0 ->
     find_inital_vx_range(X - Vx - 1, Vx + 1);
-find_inital_vx_range(X, Vx) ->
+find_inital_vx_range(_X, Vx) ->
     Vx.
