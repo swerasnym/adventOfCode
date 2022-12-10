@@ -23,8 +23,7 @@ star1(Program) ->
          end
          || X <- lists:seq(0, 49), Y <- lists:seq(0, 49)],
 
-    lists:sum(
-        lists:flatten(Result)).
+    lists:sum(lists:flatten(Result)).
 
 star2(Program) ->
     %Pick any point to the Right of the 100x100 areas
@@ -32,12 +31,11 @@ star2(Program) ->
     X * 10000 + Y.
 
 square(Xi, Yi, Program) ->
-    lists:sum(
-        lists:flatten([begin
-                           Result = intcode:run(Program, [{input, [X, Y]}]),
-                           intcode:get_output(Result)
-                       end
-                       || X <- [Xi, Xi + 99], Y <- [Yi, Yi + 99]])).
+    lists:sum(lists:flatten([begin
+                                 Result = intcode:run(Program, [{input, [X, Y]}]),
+                                 intcode:get_output(Result)
+                             end
+                             || X <- [Xi, Xi + 99], Y <- [Yi, Yi + 99]])).
 
 find(X, Y, Program) ->
     case square(X, Y, Program) of

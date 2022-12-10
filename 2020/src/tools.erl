@@ -248,7 +248,6 @@ parse_grid([Char | Rest], {X, Y} = Pos, Grid, Fun) when is_function(Fun, 1) ->
 parse_grid([Char | Rest], {X, Y} = Pos, Grid, Fun) when is_function(Fun, 2) ->
     parse_grid(Rest, {X + 1, Y}, Grid#{Pos => Fun(Pos, Char)}, Fun).
 
-
 lists_to_grid(NestledList) ->
     lists_to_grid({0, 0}, NestledList, #{}).
 
@@ -318,10 +317,7 @@ grid_from_2d(Map) ->
     Grid#{max => {Xmax - Xmin, Ymax - Ymin}}.
 
 minmax_grid(Grid) ->
-    {Xlist, Ylist} =
-        lists:unzip(
-            maps:keys(
-                maps:without([max], Grid))),
+    {Xlist, Ylist} = lists:unzip(maps:keys(maps:without([max], Grid))),
     {{lists:min(Xlist), lists:max(Xlist)}, {lists:min(Ylist), lists:max(Ylist)}}.
 
 translate_grid(#{max := {Mx, My}} = Grid, {Dx, Dy}) ->

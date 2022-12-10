@@ -30,9 +30,7 @@ read(File) ->
 iterate(0, Map) ->
     Map;
 iterate(N, Map) ->
-    Check =
-        lists:usort(
-            lists:flatmap(fun neigbours/1, maps:keys(Map))),
+    Check = lists:usort(lists:flatmap(fun neigbours/1, maps:keys(Map))),
 
     Update =
         fun(Pos, Acc) ->

@@ -25,9 +25,7 @@ star2(Data) ->
     {Links, Start} = maps:fold(fun link/3, {Portals, none}, Portals),
 
     {Cx, Cy} =
-        lists:max(
-            maps:keys(
-                maps:filter(fun(_Key, Value) -> Value == wall end, Links))),
+        lists:max(maps:keys(maps:filter(fun(_Key, Value) -> Value == wall end, Links))),
 
     bfs2([{Start, 0, 0, [{"AA", 0, 0}]}],
          #{0 => Links,

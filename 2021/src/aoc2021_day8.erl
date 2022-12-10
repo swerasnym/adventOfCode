@@ -28,10 +28,7 @@ read(File) ->
 
 num({Values, Number}) ->
     VM = maps:from_list(find_values(Values)),
-    [A, B, C, D] =
-        [maps:get(
-             lists:sort(C), VM)
-         || C <- Number],
+    [A, B, C, D] = [maps:get(lists:sort(C), VM) || C <- Number],
     1000 * A + 100 * B + 10 * C + D.
 
 count_low(OP) ->

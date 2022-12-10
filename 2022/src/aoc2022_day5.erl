@@ -29,9 +29,7 @@ read(File) ->
     Stacks = [string:trim(tl(S)) || S <- Stacks1],
     Moves = tools:parse_format(B2, "move ~d from ~d to ~d\n"),
 
-    {maps:from_list(
-         lists:enumerate(Stacks)),
-     Moves}.
+    {maps:from_list(lists:enumerate(Stacks)), Moves}.
 
 star1({State, Moves}) ->
     Lists = maps:to_list(move(Moves, State)),

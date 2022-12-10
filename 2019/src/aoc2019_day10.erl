@@ -23,9 +23,7 @@ star1(Data) ->
 star2(Data) ->
     {_, Base} = lists:max(hits(Data)),
     Hits = vaporize(Base, Data),
-    Map = maps:from_list(
-              lists:zip(
-                  lists:seq(1, length(Hits)), Hits)),
+    Map = maps:from_list(lists:zip(lists:seq(1, length(Hits)), Hits)),
     {X, Y} = maps:get(200, Map, none),
     X * 100 + Y.
 
@@ -46,8 +44,7 @@ read(Device, Row, Acc) ->
     end.
 
 dim(Data) ->
-    lists:max(
-        maps:keys(Data)).
+    lists:max(maps:keys(Data)).
 
 directions(Data) ->
     {Rows, Cols} = dim(Data),

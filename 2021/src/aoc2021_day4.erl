@@ -30,9 +30,7 @@ read(File) ->
     [NumbersL | BoardsL] = tools:read_blocks(File),
     Numbers = tools:parse_integers(NumbersL, ", "),
     Boards =
-        [tools:drop_max(
-             tools:lists_to_grid(
-                 tools:parse_format(Board, "~d ~d ~d ~d ~d")))
+        [tools:drop_max(tools:lists_to_grid(tools:parse_format(Board, "~d ~d ~d ~d ~d")))
          || Board <- BoardsL],
     {Numbers, Boards}.
 

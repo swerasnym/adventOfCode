@@ -17,8 +17,7 @@ run(Star, File) ->
 
 star1(Data) ->
     {C, Map} = step(Data, 100, 0),
-    tools:print_grid(
-        maps:map(fun(_, V) -> V + $0 end, Map)),
+    tools:print_grid(maps:map(fun(_, V) -> V + $0 end, Map)),
 
     C.
 
@@ -26,8 +25,7 @@ star2(Data) ->
     step2(Data, 1).
 
 read(File) ->
-    tools:drop_max(
-        tools:read_grid(File, fun(V) -> V - $0 end)).
+    tools:drop_max(tools:read_grid(File, fun(V) -> V - $0 end)).
 
 neigbours({X, Y} = Pos) ->
     lists:delete(Pos, [{X + Dx, Y + Dy} || Dx <- lists:seq(-1, 1), Dy <- lists:seq(-1, 1)]).

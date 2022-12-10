@@ -19,9 +19,7 @@ run(Star, File) ->
 star1(Data) ->
     G = build_graph(Data),
 
-    Order =
-        lists:droplast(
-            digraph_utils:topsort(G)),
+    Order = lists:droplast(digraph_utils:topsort(G)),
 
     F = fun(Result) -> react(Result, Data) end,
     Reactions = lists:map(F, Order),
@@ -31,9 +29,7 @@ star1(Data) ->
 star2(Data) ->
     G = build_graph(Data),
 
-    Order =
-        lists:droplast(
-            digraph_utils:topsort(G)),
+    Order = lists:droplast(digraph_utils:topsort(G)),
 
     F = fun(Result) -> react(Result, Data) end,
     Reactions = lists:map(F, Order),

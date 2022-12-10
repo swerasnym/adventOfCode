@@ -97,8 +97,7 @@ pairs() ->
     [{X, Y} || X <- List, Y <- List -- [X]].
 
 energy(Data) when is_map(Data) ->
-    lists:sum(
-        lists:map(fun energy/1, maps:values(Data)));
+    lists:sum(lists:map(fun energy/1, maps:values(Data)));
 energy(#moon{pos = {X, Y, Z}, vel = {Vx, Vy, Vz}}) ->
     (abs(X) + abs(Y) + abs(Z)) * (abs(Vx) + abs(Vy) + abs(Vz)).
 

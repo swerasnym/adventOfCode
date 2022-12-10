@@ -44,8 +44,7 @@ star2(Data) ->
 read(File) ->
     {ok, Bin} = file:read_file(File),
     List = binary_to_list(Bin),
-    string:split(
-        string:trim(List, trailing, "\n"), "\n", all).
+    string:split(string:trim(List, trailing, "\n"), "\n", all).
 
 instruction("deal into new stack", Deck) ->
     lists:reverse(Deck);
@@ -63,9 +62,7 @@ instruction("deal with increment " ++ NumberStr, Deck) ->
     Number = list_to_integer(NumberStr),
     Order =
         [{Pos rem Size, Card}
-         || {Pos, Card}
-                <- lists:zip(
-                       lists:seq(0, Number * Size - 1, Number), Deck)],
+         || {Pos, Card} <- lists:zip(lists:seq(0, Number * Size - 1, Number), Deck)],
     [Card || {_Pos, Card} <- lists:sort(Order)].
 
 % Creates a linear function mod Cards to do one shuffle

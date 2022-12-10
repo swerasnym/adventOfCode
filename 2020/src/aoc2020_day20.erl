@@ -18,15 +18,13 @@ run(Star, File) ->
 
 star1(Images) ->
     Count =
-        tools:count(
-            lists:flatten([maps:values(Edges) || {_Id, {Edges, _Image}} <- Images])),
+        tools:count(lists:flatten([maps:values(Edges) || {_Id, {Edges, _Image}} <- Images])),
     Counrers = [Id || {Id, {Edges, _Image}} <- Images, is_corner(maps:values(Edges), Count)],
     product(Counrers).
 
 star2(Images) ->
     Count =
-        tools:count(
-            lists:flatten([maps:values(Edges) || {_Id, {Edges, _Image}} <- Images])),
+        tools:count(lists:flatten([maps:values(Edges) || {_Id, {Edges, _Image}} <- Images])),
     Counrers = [Id || {Id, {Edges, _Image}} <- Images, is_corner(maps:values(Edges), Count)],
     Sides = lists:flatten([reorder(Edges, Id) || {Id, {Edges, _Image}} <- Images]),
 
@@ -100,16 +98,12 @@ commbind(Grid = #{{0, 0} := #{max := {Xmax, Ymax}}}) ->
             X /= Xmax,
             Y /= Xmax],
     Map = maps:from_list(List),
-    {Mx, My} =
-        lists:max(
-            maps:keys(Map)),
+    {Mx, My} = lists:max(maps:keys(Map)),
     Map#{max => {Mx, My}}.
 
 orient(Neigbours, Images, Sides, Count) ->
     Grid = to_grid(Neigbours),
-    {Gx, Gy} =
-        lists:max(
-            maps:keys(Grid)),
+    {Gx, Gy} = lists:max(maps:keys(Grid)),
     orient({0, 0}, Grid, Images, Sides, Count, #{}, {Gx + 1, Gy + 1}).
 
 orient({_X, Ymax}, _Grid, _Images, _Sides, _Count, Acc, {_Xmax, Ymax}) ->
@@ -138,13 +132,11 @@ get_tansforms(Grid) ->
     [Grid,
      tools:rotate_grid(Grid, cw),
      tools:rotate_grid(Grid, ccw),
-     tools:rotate_grid(
-         tools:rotate_grid(Grid)),
+     tools:rotate_grid(tools:rotate_grid(Grid)),
      Flip,
      tools:rotate_grid(Flip, cw),
      tools:rotate_grid(Flip, ccw),
-     tools:rotate_grid(
-         tools:rotate_grid(Flip))].
+     tools:rotate_grid(tools:rotate_grid(Flip))].
 
 is_neigbour(_Id, Value, edge, _Sides, Count) ->
     maps:get(Value, Count) == 1;

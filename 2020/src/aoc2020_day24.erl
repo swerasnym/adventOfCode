@@ -74,9 +74,7 @@ flip(Pos, [Dir | Dirs], Map) ->
 iterate(0, Floor) ->
     Floor;
 iterate(N, Floor) ->
-    NewPos =
-        lists:usort(
-            lists:flatmap(fun neigbours/1, maps:keys(Floor))),
+    NewPos = lists:usort(lists:flatmap(fun neigbours/1, maps:keys(Floor))),
 
     Update =
         fun(Pos, Acc) ->

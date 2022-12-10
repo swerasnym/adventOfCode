@@ -62,14 +62,12 @@ star1(Data) ->
     Init = lists:filter(fun is_init/1, Data),
     Pices = remove_overlaps(Init),
     On = on(Pices),
-    lists:sum(
-        lists:map(fun volume/1, On)).
+    lists:sum(lists:map(fun volume/1, On)).
 
 star2(Data) ->
     Pices = remove_overlaps(Data),
     On = on(Pices),
-    lists:sum(
-        lists:map(fun volume/1, On)).
+    lists:sum(lists:map(fun volume/1, On)).
 
 read(File) ->
     [#cube{state = S,

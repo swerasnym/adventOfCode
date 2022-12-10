@@ -28,9 +28,7 @@ star2(Instructions) ->
 
 read(File) ->
     Ops = [{Op, Int} || [Op, Int] <- tools:read_format(File, "~3a ~d")],
-    maps:from_list(
-        lists:zip(
-            lists:seq(1, length(Ops)), Ops)).
+    maps:from_list(lists:zip(lists:seq(1, length(Ops)), Ops)).
 
 run(Instructions) ->
     run(1, Instructions, 0).

@@ -31,9 +31,7 @@ star1(Data) ->
     {_Allergens, IngridientsWAllergenSets} = lists:unzip(PossibleAllergens),
     PossibleAlergyIngridients = sets:union(IngridientsWAllergenSets),
 
-    AllergenFree =
-        sets:to_list(
-            sets:subtract(Ingridiens, PossibleAlergyIngridients)),
+    AllergenFree = sets:to_list(sets:subtract(Ingridiens, PossibleAlergyIngridients)),
 
     length([Af || Af <- AllergenFree, {Is, _As} <- Data, sets:is_element(Af, Is)]).
 
@@ -51,9 +49,7 @@ star2(Data) ->
     ProcessResult =
         process_counts([{sets:size(Set), Ingridient, Set}
                         || {Ingridient, Set} <- PossibleAllergens]),
-    {_, ResultList} =
-        lists:unzip(
-            lists:sort(ProcessResult)),
+    {_, ResultList} = lists:unzip(lists:sort(ProcessResult)),
     string:join(ResultList, ",").
 
 read(File) ->
@@ -62,9 +58,7 @@ read(File) ->
 process(Line) ->
     [IngridientsStr, AllergensStr] = string:split(Line, " (contains "),
     Ingridients = string:tokens(IngridientsStr, " "),
-    Allergens =
-        string:split(
-            lists:droplast(AllergensStr), ", ", all),
+    Allergens = string:split(lists:droplast(AllergensStr), ", ", all),
 
     {sets:from_list(Ingridients), sets:from_list(Allergens)}.
 

@@ -94,12 +94,8 @@ paint(Hull) ->
     Ys = [Y || {_, Y} <- maps:keys(Hull)],
 
     [paint({X, Y}, Hull, lists:max(Xs))
-     || Y
-            <- lists:seq(
-                   lists:min(Ys), lists:max(Ys)),
-        X
-            <- lists:seq(
-                   lists:min(Xs), lists:max(Xs))],
+     || Y <- lists:seq(lists:min(Ys), lists:max(Ys)),
+        X <- lists:seq(lists:min(Xs), lists:max(Xs))],
     ok.
 
 paint({X, _} = Pos, Hull, X) ->

@@ -84,8 +84,7 @@ roll(98) ->
 
 dirac_roll() ->
     R = [1, 2, 3],
-    maps:to_list(
-        tools:count([A + B + C || A <- R, B <- R, C <- R])).
+    maps:to_list(tools:count([A + B + C || A <- R, B <- R, C <- R])).
 
 dirac_play(_P1, {_Pos2, Score2}) when Score2 >= 21 ->
     {0, 1};

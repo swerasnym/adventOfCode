@@ -19,9 +19,7 @@ run(Star, File) ->
 star1({Data1, Data2}) ->
     S1 = sets:from_list(move(Data1)),
     S2 = sets:from_list(move(Data2)),
-    Crossings =
-        sets:to_list(
-            sets:intersection(S1, S2)),
+    Crossings = sets:to_list(sets:intersection(S1, S2)),
     Distanses = lists:map(fun distance/1, Crossings),
     lists:min(Distanses).
 
@@ -30,9 +28,7 @@ star2({Data1, Data2}) ->
     M2 = move(Data2),
     S1 = sets:from_list(M1),
     S2 = sets:from_list(M2),
-    Crossings =
-        sets:to_list(
-            sets:intersection(S1, S2)),
+    Crossings = sets:to_list(sets:intersection(S1, S2)),
     Z1 = lists:zip(M1, lists:seq(1, length(M1))),
     Z2 = lists:zip(M2, lists:seq(1, length(M2))),
 
@@ -45,12 +41,8 @@ read(File) ->
     Row1 = io:get_line(Device, ""),
     Row2 = io:get_line(Device, ""),
 
-    List1 =
-        string:split(
-            string:trim(Row1), ",", all),
-    List2 =
-        string:split(
-            string:trim(Row2), ",", all),
+    List1 = string:split(string:trim(Row1), ",", all),
+    List2 = string:split(string:trim(Row2), ",", all),
 
     Data1 = lists:map(fun parse/1, List1),
     Data2 = lists:map(fun parse/1, List2),

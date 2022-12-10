@@ -26,10 +26,7 @@ star2(Data) ->
     {First, _} = lists:split(7, Data),
     Offset = list_to_integer([C + $0 || C <- First]),
 
-    {_, List} =
-        split(Offset,
-              lists:flatten(
-                  lists:duplicate(10000, Data))),
+    {_, List} = split(Offset, lists:flatten(lists:duplicate(10000, Data))),
     Result = phases2(100, List),
 
     {First2, _} = lists:split(8, Result),
@@ -56,8 +53,7 @@ phase(List) ->
 
 phase(List, Position) ->
     Didgit =
-        lists:sum(
-            lists:zipwith(fun(A, B) -> A * B end, List, pattern(Position, length(List)))),
+        lists:sum(lists:zipwith(fun(A, B) -> A * B end, List, pattern(Position, length(List)))),
     abs(Didgit) rem 10.
 
 phase2(List) ->
@@ -91,9 +87,7 @@ pattern(Position, Length) ->
         false ->
             Repititions = Length div length(Rep) + 1,
 
-            [_ | Rest] =
-                lists:flatten(
-                    lists:duplicate(Repititions, Rep)),
+            [_ | Rest] = lists:flatten(lists:duplicate(Repititions, Rep)),
             {Pattern, _} = lists:split(Length, Rest),
             Pattern
     end.

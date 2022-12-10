@@ -18,13 +18,11 @@ run(Star, File) ->
 
 star1(Data) ->
     {_Mask, Memory} = lists:foldl(fun process1/2, {{mask, 0, 0}, #{}}, Data),
-    lists:sum(
-        maps:values(Memory)).
+    lists:sum(maps:values(Memory)).
 
 star2(Data) ->
     {_Mask, Memory} = lists:foldl(fun process2/2, {{mask, 0, 0}, #{}}, Data),
-    lists:sum(
-        maps:values(Memory)).
+    lists:sum(maps:values(Memory)).
 
 read(File) ->
     [parse(Line) || Line <- tools:read_lines(File)].

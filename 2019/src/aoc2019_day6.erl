@@ -43,9 +43,7 @@ star2(G) ->
 
 read(File) ->
     {ok, Data} = file:read_file(File),
-    List =
-        string:split(
-            string:trim(Data), "\n", all),
+    List = string:split(string:trim(Data), "\n", all),
 
     [begin
          [A, B] = string:split(Item, ")"),

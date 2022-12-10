@@ -39,9 +39,7 @@ start(Pos, [A | Rest = [B, C, D | _]]) ->
     end.
 
 start_m(Pos, L = [_ | Rest]) ->
-    case length(lists:uniq(
-                    lists:sublist(L, 14)))
-    of
+    case length(lists:uniq(lists:sublist(L, 14))) of
         14 ->
             Pos;
         _ ->

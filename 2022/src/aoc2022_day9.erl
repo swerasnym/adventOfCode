@@ -45,14 +45,14 @@ move_tail(H = {Hx, Hy}, T = {Tx, Ty}) ->
     Dx = Hx - Tx,
     Dy = Hy - Ty,
     Res = case {abs(Dx), abs(Dy)} of
-              {2, 0}  ->
+              {2, 0} ->
                   {Tx + Dx div 2, Ty};
-              {0, 2}  ->
+              {0, 2} ->
                   {Tx, Ty + Dy div 2};
               {2, _} ->
                   [P] = [P1 || P1 <- neigbours(H), P2 <- neigboursDiag(T), P1 == P2],
                   P;
-              {_, 2}  ->
+              {_, 2} ->
                   [P] = [P1 || P1 <- neigbours(H), P2 <- neigboursDiag(T), P1 == P2],
                   P;
               _ ->

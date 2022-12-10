@@ -81,12 +81,8 @@ paint(Screen) ->
     Ys = [Y || {_, Y} <- maps:keys(Screen)],
 
     [paint({X, Y}, Screen, lists:max(Xs))
-     || Y
-            <- lists:seq(
-                   lists:min(Ys), lists:max(Ys)),
-        X
-            <- lists:seq(
-                   lists:min(Xs), lists:max(Xs))],
+     || Y <- lists:seq(lists:min(Ys), lists:max(Ys)),
+        X <- lists:seq(lists:min(Xs), lists:max(Xs))],
     ok.
 
 paint({X, _} = Pos, Screen, X) ->

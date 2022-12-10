@@ -78,5 +78,4 @@ ls([L | Rest], Path, Files, TotalSize) ->
 
 sum_dir({dir, Path}, Directories) ->
     SubDirs = maps:filter(fun({dir, D}, _) -> lists:prefix(Path, D) end, Directories),
-    lists:sum(
-        maps:values(SubDirs)).
+    lists:sum(maps:values(SubDirs)).

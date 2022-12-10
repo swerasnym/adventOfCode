@@ -87,9 +87,7 @@ star2({Maze0, {X, Y}, Keys}) ->
         Map ->
             Map
     end,
-    {lists:sum(Result),
-     lists:concat(
-         lists:concat(SolutionPath))}.
+    {lists:sum(Result), lists:concat(lists:concat(SolutionPath))}.
 
 memmory(Map) ->
     receive
@@ -161,8 +159,7 @@ distance(From, To, Connections) ->
 
 read(File) ->
     {ok, Bin} = file:read_file(File),
-    string:split(
-        string:trim(Bin), <<"\n">>, all),
+    string:split(string:trim(Bin), <<"\n">>, all),
     List = binary_to_list(string:trim(Bin)),
     read(List, 0, 0, #{}, none, []).
 

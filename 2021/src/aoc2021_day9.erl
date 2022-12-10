@@ -25,9 +25,7 @@ star2(Data) ->
     Low = lists:map(fun(V) -> {V, low(V, Map)} end, maps:to_list(Map)),
     Lowpoints = [K || {{K, _V}, true} <- Low],
     Sizes = [basin([P], [], Map) || P <- Lowpoints],
-    [A, B, C | _] =
-        lists:reverse(
-            lists:sort(Sizes)),
+    [A, B, C | _] = lists:reverse(lists:sort(Sizes)),
     A * B * C.
 
 read(File) ->

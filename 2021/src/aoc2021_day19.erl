@@ -143,6 +143,5 @@ oo(P1s, P2s) ->
     [{O, offsets(P1s, orient(P2s, O))} || O <- orientations()].
 
 offsets(P1s, P2s) ->
-    maps:keys(
-        maps:filter(fun(_K, V) -> V >= 12 end,
-                    tools:count([diff(P1, P2) || P1 <- P1s, P2 <- P2s]))).
+    maps:keys(maps:filter(fun(_K, V) -> V >= 12 end,
+                          tools:count([diff(P1, P2) || P1 <- P1s, P2 <- P2s]))).

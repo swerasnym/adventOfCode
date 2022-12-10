@@ -94,9 +94,7 @@ find_serial(AocData, MinMax) ->
     find_serial([F(Row) || Row <- AocData], MinMax, 0, [], []).
 
 find_serial([], _MinMax, _Pos, [], Result) ->
-    {_, Input} =
-        lists:unzip(
-            lists:sort(Result)),
+    {_, Input} = lists:unzip(lists:sort(Result)),
     Input;
 find_serial([{push, V} | Rest], MinMax, Pos, Stack, Result) ->
     find_serial(Rest, MinMax, Pos + 1, [{Pos, V} | Stack], Result);

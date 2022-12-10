@@ -91,8 +91,7 @@ remove_fluff(Map) ->
                 Map).
 
 starts(Map) ->
-    maps:to_list(
-        maps:filter(fun amphipod/2, Map)).
+    maps:to_list(maps:filter(fun amphipod/2, Map)).
 
 bfs(Set1, Goal) ->
     {Element, Set2} = gb_sets:take_smallest(Set1),

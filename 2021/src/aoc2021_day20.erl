@@ -72,8 +72,7 @@ read(File) ->
     Grid#{min => {0, 0}}.
 
 print(Grid) ->
-    tools:print_grid(
-        tools:replace(Grid, #{?LIGHT => $█, ?DARK => $ })).
+    tools:print_grid(tools:replace(Grid, #{?LIGHT => $█, ?DARK => $ })).
 
 index({X, Y} = Pos, Grid, Outside) ->
     Sequence =

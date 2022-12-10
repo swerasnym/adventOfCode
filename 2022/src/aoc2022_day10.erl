@@ -33,8 +33,7 @@ star2(Data) ->
     {ValeLists, _} = lists:mapfoldl(fun runi/2, 1, Data),
     Values = [1] ++ lists:flatten(ValeLists),
     Display = [draw(E) || E <- lists:enumerate(0, Values)],
-    tools:print_grid(
-        maps:from_list(Display)).
+    tools:print_grid(maps:from_list(Display)).
 
 runi("noop", X) ->
     {[X], X};
@@ -56,5 +55,6 @@ draw({I, V}) ->
                 $#;
             _ ->
                 $
+
         end,
     {{P, R}, Symbol}.

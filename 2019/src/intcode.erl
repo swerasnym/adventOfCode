@@ -118,9 +118,7 @@ from_list(List) ->
 from_string(String) ->
     List = string:split(String, ",", all),
     F = fun(S) ->
-           case string:to_integer(
-                    string:trim(S, both))
-           of
+           case string:to_integer(string:trim(S, both)) of
                {Int, <<>>} ->
                    Int;
                {Int, []} ->

@@ -26,9 +26,7 @@ read(File) ->
     [process_bag(BagContent) || BagContent <- tools:read_lines(File)].
 
 process_bag(BagContent) ->
-    [Bag, Contents] =
-        string:split(
-            lists:droplast(BagContent), "s contain "),
+    [Bag, Contents] = string:split(lists:droplast(BagContent), "s contain "),
 
     F = fun ("no other bags") ->
                 {emty, 0};
@@ -66,7 +64,5 @@ has_any(Map, [Key | Keys]) ->
 inside(_Map, emty) ->
     0;
 inside(Map, Bag) ->
-    Content =
-        maps:to_list(
-            maps:get(Bag, Map)),
+    Content = maps:to_list(maps:get(Bag, Map)),
     lists:sum([(1 + inside(Map, IBag)) * N || {IBag, N} <- Content]).

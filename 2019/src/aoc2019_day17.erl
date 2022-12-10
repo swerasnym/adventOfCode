@@ -84,16 +84,15 @@ neigbours({X, Y}, Map) ->
 
 path(Map) ->
     [{Pos, {robot, Direction}}] =
-        maps:to_list(
-            maps:filter(fun(_, V) ->
-                           case V of
-                               {robot, _} ->
-                                   true;
-                               _ ->
-                                   false
-                           end
-                        end,
-                        Map)),
+        maps:to_list(maps:filter(fun(_, V) ->
+                                    case V of
+                                        {robot, _} ->
+                                            true;
+                                        _ ->
+                                            false
+                                    end
+                                 end,
+                                 Map)),
 
     path(Pos, Direction, Map, []).
 
@@ -114,9 +113,7 @@ path(Pos, Direction, Map, Acc) ->
 
             path(Pos1, NewDir, Map, [Command | Acc]);
         _ ->
-            lists:droplast(
-                lists:flatten(
-                    lists:reverse(Acc)))
+            lists:droplast(lists:flatten(lists:reverse(Acc)))
     end.
 
 find_end(Pos0, Dir, Map, N) ->

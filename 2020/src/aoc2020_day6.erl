@@ -17,18 +17,13 @@ run(Star, File) ->
     end.
 
 star1(Data) ->
-    Anyone =
-        [length(lists:usort(
-                    lists:flatten(Group)))
-         || Group <- Data],
+    Anyone = [length(lists:usort(lists:flatten(Group))) || Group <- Data],
     lists:sum(Anyone).
 
 star2(Data) ->
     Evryone =
         [begin
-             Count =
-                 tools:count(
-                     lists:flatten(Group)),
+             Count = tools:count(lists:flatten(Group)),
              [K || {K, V} <- maps:to_list(Count), V == length(Group)]
          end
          || Group <- Data],
