@@ -3,7 +3,7 @@
 -export([run/0, run/2]).
 
 run() ->
-    {S1, S2} = Res = run(all, "../data/day11-ex.txt"),
+    {S1, S2} = Res = run(all, "../data/day11.txt"),
     io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
     Res.
 
