@@ -9,50 +9,49 @@ run() ->
 
 run(Star, File) ->
     Data = read(File),
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+    Res = case Star of
+              star1 ->
+                  star1(Data);
+              star2 ->
+                  star2(Data);
+              _ ->
+                  Star1 = star1(Data),
+                  Star2 = star2(Data),
+                  {Star1, Star2}
+          end,
+    erlang:erase(),
+    Res.
 
 read(File) ->
-    tools:read_blocks(File, parse_lines).
-
-star1(Blocks) ->
+    Blocks = tools:read_blocks(File, parse_lines),
     Monkeys = maps:from_list([parse_monkey(M) || M <- Blocks]),
+    erlang:put(ids, lists:sort(maps:keys(Monkeys))),
+    erlang:put(lcm, tools:lcm([test(M) || M <- maps:values(Monkeys)])),
+    Monkeys.
+
+star1(Monkeys) ->
     End = lists:foldl(fun(_, M) -> process(M) end, Monkeys, lists:seq(1, 20)),
     [A, B | _] = tools:dsort([count(M) || M <- maps:values(End)]),
     A * B.
 
-star2(Blocks) ->
-    Monkeys = maps:from_list([parse_monkey(M) || M <- Blocks]),
-    Lcm = tools:lcm([test(M) || M <- maps:values(Monkeys)]),
-    erlang:put(lcm, Lcm),
+star2(Monkeys) ->
     End = lists:foldl(fun(_, M) -> process2(M) end, Monkeys, lists:seq(1, 10000)),
     [A, B | _] = tools:dsort([count(M) || M <- maps:values(End)]),
-    erlang:erase(),
     A * B.
 
-parse_monkey(["Monkey " ++ Monkey,
-              "  Starting items: " ++ Items,
+parse_monkey(["Monkey " ++ IdS,
+              "  Starting items: " ++ ItemsS,
               "  Operation: new = " ++ New,
               "  Test: divisible by " ++ TestS,
               "    If true: throw to monkey " ++ TrueS,
               "    If false: throw to monkey " ++ FalseS]) ->
-    [[Id]] = tools:parse_format(Monkey, "~d:"),
-    ItemIds = tools:parse_integers(Items, " ,"),
-    %% New,
-    [[Test]] = tools:parse_format(TestS, "~d"),
-    [[True]] = tools:parse_format(TrueS, "~d"),
-    [[False]] = tools:parse_format(FalseS, "~d"),
+    [Id] = tools:parse_integers(IdS, ":"),
+    Items = tools:parse_integers(ItemsS, ", "),
+    [Test] = tools:parse_integers(TestS),
+    [True] = tools:parse_integers(TrueS),
+    [False] = tools:parse_integers(FalseS),
     {Id,
-     #{id => Id,
-       items => ItemIds,
+     #{items => Items,
        new => New,
        test => Test,
        true => True,
@@ -62,10 +61,10 @@ parse_monkey(["Monkey " ++ Monkey,
 new("old * old", Old) ->
     Old * Old;
 new("old + " ++ Ds, Old) ->
-    [[D]] = tools:parse_format(Ds, "~d"),
+    [D] = tools:parse_integers(Ds),
     Old + D;
 new("old * " ++ Ds, Old) ->
-    [[D]] = tools:parse_format(Ds, "~d"),
+    [D] = tools:parse_integers(Ds),
     Old * D.
 
 releaf(Worry) ->
@@ -75,14 +74,10 @@ rems(Worry) ->
     Worry rem erlang:get(lcm).
 
 process(Monkeys) ->
-    lists:foldl(fun(I, M) -> process(I, M, fun releaf/1) end,
-                Monkeys,
-                lists:sort(maps:keys(Monkeys))).
+    lists:foldl(fun(I, M) -> process(I, M, fun releaf/1) end, Monkeys, erlang:get(ids)).
 
 process2(Monkeys) ->
-    lists:foldl(fun(I, M) -> process(I, M, fun rems/1) end,
-                Monkeys,
-                lists:sort(maps:keys(Monkeys))).
+    lists:foldl(fun(I, M) -> process(I, M, fun rems/1) end, Monkeys, erlang:get(ids)).
 
 count(#{count := C}) ->
     C.
@@ -92,8 +87,7 @@ test(#{test := T}) ->
 
 process(Id, Monkeys, F) ->
     ThisM =
-        #{id := Id,
-          items := Items,
+        #{items := Items,
           new := New,
           test := Test,
           true := TrueId,
@@ -103,8 +97,8 @@ process(Id, Monkeys, F) ->
     NewItems = [F(new(New, Old)) || Old <- Items],
     {ToTrue, ToFalse} = lists:partition(fun(I) -> I rem Test == 0 end, NewItems),
 
-    TrueM = #{id := TrueId, items := TrueItems} = maps:get(TrueId, Monkeys),
-    FalseM = #{id := FalseId, items := FalseItems} = maps:get(FalseId, Monkeys),
+    TrueM = #{items := TrueItems} = maps:get(TrueId, Monkeys),
+    FalseM = #{items := FalseItems} = maps:get(FalseId, Monkeys),
 
     Monkeys#{Id => ThisM#{items => [], count => C + length(Items)},
              TrueId => TrueM#{items => TrueItems ++ ToTrue},
