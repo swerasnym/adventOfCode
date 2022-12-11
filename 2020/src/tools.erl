@@ -10,7 +10,7 @@
 -export([read_grid/1, read_grid/2, parse_grid/1, parse_grid/2, rotate_grid/1,
          rotate_grid/2, flip_grid/1, flip_grid/2, print_grid/1, sub_grid/3, drop_max/1,
          lists_to_grid/1, grid_to_lists/1, grid_to_lists/2, translate_grid/2, minmax_grid/1]).
--export([gcd/2, egcd/2, mod_inv/2, mod/2, chinese_remainder/1]).
+-export([gcd/1, gcd/2, lcm/1, lcm/2, egcd/2, mod_inv/2, mod/2, chinese_remainder/1]).
 
 -spec ws() -> string().
 ws() ->
@@ -331,6 +331,19 @@ gcd(A, 0) ->
     abs(A);
 gcd(A, B) ->
     gcd(B, A rem B).
+
+lcm(A, B) ->
+    A * B div gcd(A, B).
+
+gcd([A]) ->
+    A;
+gcd([A, B | Rest]) ->
+    gcd([gcd(A, B) | Rest]).
+
+lcm([A]) ->
+    A;
+lcm([A, B | Rest]) ->
+    lcm([lcm(A, B) | Rest]).
 
 egcd(_, 0) ->
     {1, 0};
