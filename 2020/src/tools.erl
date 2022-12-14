@@ -1,6 +1,7 @@
 -module(tools).%% @doc tools used for solving AdventOfCode
 
--export([ws/0, count/1, count/2, product/1, dsort/1, replace/2, replace/3, replace/4]).
+-export([ws/0, count/1, count/2, product/1, dsort/1, group/2, replace/2, replace/3,
+         replace/4]).
 -export([read_string/1, read_tokens/2]).
 -export([read_format/2, read_integers/1, read_integers/2, read_integers/3, read_lines/1,
          read_lines/2, read_blocks/1, read_blocks/2]).
@@ -41,6 +42,16 @@ product(List) ->
 -spec dsort([any()]) -> [any()].
 dsort(List) ->
     lists:sort(fun erlang:'>'/2, List).
+
+group(N, List) when length(List) rem N == 0 ->
+    group(N, List, []).
+
+%% internal
+group(_, [], Acc) ->
+    lists:reverse(Acc);
+group(N, List, Acc) ->
+    {G, Rest} = lists:split(N, List),
+    group(N, Rest, [list_to_tuple(G) | Acc]).
 
 replace(Values, Replacements) when is_map(Replacements) ->
     replace(Values, Replacements, all).
