@@ -32,27 +32,48 @@ star1(Data) ->
     Endpoints = [E || E <- PossibleEndpoints, E /= none],
     sum_endpoints(Endpoints, 0).
 
-star2(_Data) ->
-    ok.
+star2(Data) ->
+    SensorDist = [{S, distm(S, B)} || [S, B] <- Data],
+    {X, Y} = check_y(SensorDist, 0),
+    X * 4000000 + Y.
 
 distm({X1, Y1}, {X2, Y2}) ->
     abs(X1 - X2) + abs(Y1 - Y2).
 
-no_beacons_at_y({S = {SX, SY}, D}, Y) ->
+no_beacons_at_y({{SX, SY}, D}, Y) ->
     case D - abs(SY - Y) of
         Delta when Delta >= 0 ->
-            A = SX - Delta,
-            B = SX + Delta,
-            D = distm(S, {A, Y}),
-            D = distm(S, {B, Y}),
-            {A, B};
+            {SX - Delta, SX + Delta};
         _ ->
             none
     end.
 
 sum_endpoints([], Acc) ->
     Acc;
-sum_endpoints([{Min1, Max1}, {Min2, Max2} | Rest], Acc) when Min2 =< Max2 ->
+sum_endpoints([{Min1, Max1}, {Min2, Max2} | Rest], Acc) when Min2 =< Max1 + 1 ->
     sum_endpoints([{Min1, max(Max1, Max2)} | Rest], Acc);
 sum_endpoints([{Min, Max} | Rest], Acc) ->
     sum_endpoints(Rest, Acc + Max - Min).
+
+group_endpoints([], Acc) ->
+    lists:reverse(Acc);
+group_endpoints([{Min1, Max1}, {Min2, Max2} | Rest], Acc) when Min2 =< Max1 + 1 ->
+    group_endpoints([{Min1, max(Max1, Max2)} | Rest], Acc);
+group_endpoints([{Min, Max} | Rest], Acc) ->
+    group_endpoints(Rest, [{Min, Max} | Acc]).
+
+check_y(SensorDist, Y) ->
+    PossibleEndpoints = lists:sort([no_beacons_at_y(SD, Y) || SD <- SensorDist]),
+    Endpoints =
+        [{Min, Max} || {Min, Max} <- PossibleEndpoints, Max >= 0, Min =< 2 * ?STAR1_Y],
+    Group = group_endpoints(Endpoints, []),
+    case length(Group) of
+        0 ->
+            check_y(SensorDist, Y + 1);
+        1 ->
+            check_y(SensorDist, Y + 1);
+        2 ->
+            [{_Min1, Max1}, {Min2, _Max2}] = Group,
+            Max1 = Min2 - 2,
+            {Max1 + 1, Y}
+    end.
