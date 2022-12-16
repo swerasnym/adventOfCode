@@ -21,6 +21,8 @@ run(Star, File) ->
             {Star1, Star2}
     end.
 
+%% TODO: Optimize by reducing to a graph with only nonzero nodes, with varrying distance on edges.
+
 read(File) ->
     tools:read_lines(File, fun parse_valves/1).
 
