@@ -28,41 +28,21 @@ read(File) ->
     tools:read_lines(File).
 
 star1([Movements]) ->
-    %% Rocks = [maps:from_list([{P, $#} || P <- rock(N)]) || N <- lists:seq(0, 4)],
-    [begin
-         tools:print_grid(stopped(rock(N))),
-         io:format("~n")
-     end
-     || N <- lists:seq(0, 4)],
-
     Well = tools:drop_max(tools:lists_to_grid(["FFFFFFF"])),
-    Rock0 = start(0, Well),
-    tools:print_grid(maps:merge(Well, falling(Rock0))),
-
-    {End, Floors} = simulate(0, ?STOP1, Well, Movements, Movements, []),
-
-    tools:print_grid(End),
+    End = simulate(0, ?STOP1, Well, Movements, Movements),
+    %%ools:print_grid(End),
     {{0, 6}, {NegHeight, _}} = tools:minmax_grid(End),
     -NegHeight.
 
 star2([Movements]) ->
-    %% Rocks = [maps:from_list([{P, $#} || P <- rock(N)]) || N <- lists:seq(0, 4)],
-    [begin
-         tools:print_grid(stopped(rock(N))),
-         io:format("~n")
-     end
-     || N <- lists:seq(0, 4)],
-
     Well = tools:drop_max(tools:lists_to_grid(["FFFFFFF"])),
-    Rock0 = start(0, Well),
-    tools:print_grid(maps:merge(Well, falling(Rock0))),
-
-    {End, Floors} = simulate(0, ?STOP2, Well, Movements, Movements, []),
-
-    tools:print_grid(End),
+    End = simulate(0, ?STOP2, Well, Movements, Movements),
+    %%tools:print_grid(End),
     {{0, 6}, {NegHeight, _}} = tools:minmax_grid(End),
     -NegHeight.
 
+%% Ponints to form a rock in starting configuration with its lowest point at 0,
+%% A point closest to the left edge first, A point closest to the right edge last.
 rock(0) ->
     [{2, 0}, {3, 0}, {4, 0}, {5, 0}];
 rock(1) ->
@@ -96,14 +76,14 @@ falling(Points) ->
 overlapps(Points, Well) ->
     lists:min([maps:get(P, Well, empty) || P <- Points]) /= empty.
 
-moveh(Points, $>) ->
+move_horisontally(Points, $>) ->
     case lists:last(Points) of
         {6, _} ->
             Points;
         _ ->
             [{X + 1, Y} || {X, Y} <- Points]
     end;
-moveh(Points, $<) ->
+move_horisontally(Points, $<) ->
     case hd(Points) of
         {0, _} ->
             Points;
@@ -112,7 +92,7 @@ moveh(Points, $<) ->
     end.
 
 move(Points, Well, Dir) ->
-    MovedH = moveh(Points, Dir),
+    MovedH = move_horisontally(Points, Dir),
     MovedV = [{X, Y + 1} || {X, Y} <- Points],
     MovedHV = [{X, Y + 1} || {X, Y} <- MovedH],
 
@@ -127,16 +107,19 @@ move(Points, Well, Dir) ->
             {continue, MovedHV}
     end.
 
-simulate(Stop, Stop, Well, _, _, Floors) ->
-    {Well, Floors};
-simulate(RockN, Stop, Well, Movements, AllMovements, Floors) ->
+simulate(Stop, Stop, Well, _, _) ->
+    Well;
+simulate(RockN, Stop, Well, Movements, AllMovements) ->
     {_, Offset} = lists:min(maps:keys(Well)),
 
-    State = {stopped([{X, Y - Offset} || {X, Y} <- maps:keys(Well)]), RockN rem 5, Movements},
+    State =
+        {lists:sort([{X, Y - Offset} || {X, Y} <- maps:keys(Well)]),
+         RockN rem 5,
+         length(Movements)},
     case erlang:get(State) of
         undefined ->
             erlang:put(State, {RockN, Offset}),
-            io:format("~p~n", [RockN]),
+            %% io:format("~p~n", [RockN]),
             %% tools:print_grid(Well),
             Rock = start(RockN, Well),
             {Rock1, Rest} = simulate_rock(Rock, Well, Movements, AllMovements),
@@ -144,26 +127,19 @@ simulate(RockN, Stop, Well, Movements, AllMovements, Floors) ->
             Floor = find_floor(NextWell),
 
             %% tools:print_grid(Floor),
-            simulate(RockN + 1, Stop, Floor, Rest, AllMovements, [Floor | Floors]);
+            simulate(RockN + 1, Stop, Floor, Rest, AllMovements);
         {LastRockN, LastOffset} ->
-            erlang:erase(), %% remove states to do the final simulation
+            erlang:erase(), %% remove states to not end in an infinite loop
             Distance = RockN - LastRockN,
             RocksLeft = Stop - RockN,
             LoopsLeft = RocksLeft div Distance,
             Next = LoopsLeft * Distance + RockN,
-
             DOffset = Offset - LastOffset,
             NextOffset = DOffset * LoopsLeft,
 
             Floor = stopped([{X, Y + NextOffset} || {X, Y} <- maps:keys(Well)]),
 
-            io:format("LastRockN ~p  RockN ~p  Distance ~p LoopsLeft  ~p Next ~p ~n",
-                      [LastRockN, RockN, Distance, LoopsLeft, Next]),
-
-            io:format("Offset ~p   LastOffset ~p DOffset  ~p NextOffset ~p ~n",
-                      [Offset, LastOffset, DOffset, NextOffset]),
-
-            simulate(Next, Stop, Floor, Movements, AllMovements, Floors)
+            simulate(Next, Stop, Floor, Movements, AllMovements)
     end.
 
 simulate_rock(Rock, Well, [], AllMovements) ->
@@ -180,14 +156,11 @@ find_floor(Well) ->
     Leftmost = lists:sort([P || P = {X, _} <- maps:keys(Well), X == 0]),
     Floor = find_floor(Leftmost, Well),
 
-    FloorMax = [lists:max([P || P = {PX, _} <- Floor, PX == X]) || X <- lists:seq(0, 6)],
-
-    io:format("~p~n", [FloorMax]),
-    AboveFloor = lists:filter(fun(P) -> above(P, FloorMax) end, maps:keys(Well)),
+    LowestPartsOfFloor =
+        [lists:max([P || P = {PX, _} <- Floor, PX == X]) || X <- lists:seq(0, 6)],
+    AboveFloor = lists:filter(fun(P) -> above(P, LowestPartsOfFloor) end, maps:keys(Well)),
     maps:merge(stopped(Floor), falling(AboveFloor)).
 
-find_floor([], _Well) ->
-    error(none);
 find_floor([P | Rest], Well) ->
     case find_floor(P, Well) of
         none ->
@@ -200,7 +173,7 @@ find_floor(P, Well) ->
 
 find_floor([], _Well, _Floor, _) ->
     none;
-find_floor([P = {6, _} | _], _Well, Floor, Tested) ->
+find_floor([P = {6, _} | _], _Well, Floor, _Tested) ->
     [P | Floor];
 find_floor([P | Rest], Well, Floor, Tested) ->
     case find_floor(neigbours(P, Well) -- Tested, Well, [P | Floor], [P | Tested]) of
@@ -213,28 +186,9 @@ find_floor([P | Rest], Well, Floor, Tested) ->
 above({X, Y}, Floor) ->
     Y < lists:min([Yf || {Xf, Yf} <- Floor, Xf == X]).
 
-%% above(_, []) ->
-%%     true;
-%% above({X, Y1}, [{X, Y2} | _]) when Y2 =< Y1 ->
-%%     false;
-%% above(P, Points) ->
-%%     above(P, tl(Points)).
-
 neigbours(P, Well) ->
     [N || N <- neigbours(P), maps:is_key(N, Well)].
 
 neigbours({X, Y}) ->
     [{X + Dx, Y + Dy}
      || Dx <- [1, 0, -1], Dy <- [-1, 0, 1], {Dx, Dy} /= {0, 0}, Dx * Dy == 0].
-
-compare([], []) ->
-    true;
-compare([A | RestA], [A | RestB]) ->
-    compare(RestA, RestB);
-compare([{I, A} | _], [{I, B} | _]) ->
-    io:format("~n~n Wrong A ~p~n ~p~n", [I, tools:minmax_grid(A)]),
-    io:format("~n~n Wrong B ~p~n ~p~n", [I, tools:minmax_grid(B)]),
-    tools:print_grid(A),
-    io:format("0123456~n", []),
-
-    tools:print_grid(B).
