@@ -92,8 +92,8 @@ heuristic(Time,
     Ore
     + 10 * Clay
     + 100 * Obsidian
-    + 1000 * Geode
-    + Time * (ROre + 10 * RClay + 100 * RObsidian + 1000 * RGeode).
+    + 10000 * Geode
+    + Time * (ROre + 10 * RClay + 100 * RObsidian + 10000 * RGeode).
 
 buy(Type,
     Costs,
@@ -102,7 +102,7 @@ buy(Type,
           clay := Clay,
           obsidian := Obsidian},
     Robots) ->
-    case {Type, maps:get(Type, Costs, none)} of
+    case {Type, maps:get(Type, Costs)} of
         {ore, [{OOre, ore}]} when OOre =< Ore ->
             {Resourses#{ore => Ore - OOre}, Robots#{Type => maps:get(Type, Robots) + 1}};
         {clay, [{OClay, ore}]} when OClay =< Ore ->
@@ -137,9 +137,9 @@ bfs(Time, Bp = {_, Costs}, L) ->
     H = lists:usort([{heuristic(Time + 10, State), State} || State <- L]),
     New = [begin
                Buy = [buy(Type, Costs, ResoursesIn, Robots)
-                      || Type <- [ore, clay, obsidian, geode, none]],
+                      || Type <- [ore, clay, obsidian, geode]],
                [{collect(ResOut, Robots), RobOut} || {ResOut, RobOut} <- Buy]
            end
-           || {_, {ResoursesIn, Robots}} <- lists:sublist(lists:reverse(H), 5000)],
+           || {_, {ResoursesIn, Robots}} <- lists:sublist(lists:reverse(H), 1500)],
 
     bfs(Time - 1, Bp, lists:flatten(New)).
