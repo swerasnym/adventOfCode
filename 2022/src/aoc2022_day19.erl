@@ -54,7 +54,7 @@ star1(Data) ->
          || Blueprint <- Data],
 
     S = lists:sum(L),
-    io:format("~p ~p~n", [S, L]),
+    io:format("~p ~w~n", [S, L]),
     S.
 
 star2(Data) ->
@@ -75,7 +75,7 @@ star2(Data) ->
          end
          || Blueprint <- lists:sublist(Data, 3)],
     S = tools:product(L),
-    io:format("~p ~p~n", [S, L]),
+    io:format("~p ~w~n", [S, L]),
     S.
 
 heuristic(Time,
@@ -133,8 +133,8 @@ collect(#{ore := Ore,
 
 bfs(0, {_, _Costs}, L) ->
     lists:max([maps:get(geode, Resourses) || {Resourses, _} <- L]);
-bfs(Time, Bp = {N, Costs}, L) ->
-    H = lists:usort([{heuristic(Time + 10, State), State} || State = {Res, Rob} <- L]),
+bfs(Time, Bp = {_, Costs}, L) ->
+    H = lists:usort([{heuristic(Time + 10, State), State} || State <- L]),
     New = [begin
                Buy = [buy(Type, Costs, ResoursesIn, Robots)
                       || Type <- [ore, clay, obsidian, geode, none]],
@@ -143,8 +143,3 @@ bfs(Time, Bp = {N, Costs}, L) ->
            || {_, {ResoursesIn, Robots}} <- lists:sublist(lists:reverse(H), 5000)],
 
     bfs(Time - 1, Bp, lists:flatten(New)).
-
-e_max([]) ->
-    0;
-e_max(L) ->
-    lists:max(L).
