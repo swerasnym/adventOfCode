@@ -32,7 +32,7 @@ star2(Data) ->
 result(IdxMixed) ->
     {_, Mixed} = lists:unzip(IdxMixed),
     ZeroFirst = tools:rotatewhile(fun(X) -> X /= 0 end, Mixed),
-    lists:sum([lists:nth(N rem length(IdxMixed), ZeroFirst) || N <- [1001, 2001, 3001]]).
+    lists:sum([lists:nth(N rem length(IdxMixed) + 1, ZeroFirst) || N <- [1000, 2000, 3000]]).
 
 mix(IdxList) ->
     mix(lists:seq(1, length(IdxList)), IdxList).
