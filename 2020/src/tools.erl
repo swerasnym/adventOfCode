@@ -51,9 +51,9 @@ rotatewhile(Pred, List) ->
     {H, T} = lists:splitwith(Pred, List),
     T ++ H.
 
-repeat(N, Fun, Acc0) when N > 0, is_function(Fun, 1) ->
+repeat(N, Fun, Acc0) when N >= 1, is_function(Fun, 1) ->
     lists:foldl(fun(_, Acc) -> Fun(Acc) end, Acc0, lists:seq(1, N));
-repeat(N, Fun, Acc0) when N > 0, is_function(Fun, 2) ->
+repeat(N, Fun, Acc0) when N >= 1, is_function(Fun, 2) ->
     lists:foldl(Fun, Acc0, lists:seq(1, N)).
 
 group(N, List) when length(List) rem N == 0 ->

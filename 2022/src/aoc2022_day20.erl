@@ -35,10 +35,8 @@ result(IdxMixed) ->
     lists:sum([lists:nth(N rem length(IdxMixed) + 1, ZeroFirst) || N <- [1000, 2000, 3000]]).
 
 mix(IdxList) ->
-    mix(lists:seq(1, length(IdxList)), IdxList).
+    tools:repeat(length(IdxList), fun mix/2, IdxList).
 
-mix([], Mixed) ->
-    Mixed;
-mix([Idx | Rest], Mixed) ->
-    [Elem = {Idx, N} | MRest] = tools:rotatewhile(fun({X, _}) -> X /= Idx end, Mixed),
-    mix(Rest, [Elem | tools:rotate(N, MRest)]).
+mix(Idx, Mixed) ->
+    [Elem = {Idx, N} | Rest] = tools:rotatewhile(fun({X, _}) -> X /= Idx end, Mixed),
+    [Elem | tools:rotate(N, Rest)].
