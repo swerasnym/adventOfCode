@@ -1,7 +1,7 @@
 -module(tools).%% @doc tools used for solving AdventOfCode
 
--export([ws/0, count/1, count/2, product/1, dsort/1, group/2, replace/2, replace/3,
-         replace/4]).
+-export([ws/0, count/1, count/2, product/1, dsort/1, rotate/2, rotatewhile/2, repeat/3,
+         group/2, replace/2, replace/3, replace/4]).
 -export([read_string/1, read_tokens/2]).
 -export([read_format/2, read_integers/1, read_integers/2, read_integers/3, read_lines/1,
          read_lines/2, read_blocks/1, read_blocks/2]).
@@ -42,6 +42,19 @@ product(List) ->
 -spec dsort([any()]) -> [any()].
 dsort(List) ->
     lists:sort(fun erlang:'>'/2, List).
+
+rotate(N, List) ->
+    {H, T} = lists:split(mod(N, length(List)), List),
+    T ++ H.
+
+rotatewhile(Pred, List) ->
+    {H, T} = lists:splitwith(Pred, List),
+    T ++ H.
+
+repeat(N, Fun, Acc0) when N > 0, is_function(Fun, 1) ->
+    lists:foldl(fun(_, Acc) -> Fun(Acc) end, Acc0, lists:seq(1, N));
+repeat(N, Fun, Acc0) when N > 0, is_function(Fun, 2) ->
+    lists:foldl(Fun, Acc0, lists:seq(1, N)).
 
 group(N, List) when length(List) rem N == 0 ->
     group(N, List, []).
