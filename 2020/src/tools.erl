@@ -11,7 +11,8 @@
 -export([read_grid/1, read_grid/2, parse_grid/1, parse_grid/2, rotate_grid/1,
          rotate_grid/2, flip_grid/1, flip_grid/2, print_grid/1, sub_grid/3, drop_max/1,
          lists_to_grid/1, grid_to_lists/1, grid_to_lists/2, translate_grid/2, minmax_grid/1]).
--export([gcd/1, gcd/2, lcm/1, lcm/2, egcd/2, mod_inv/2, mod/2, chinese_remainder/1]).
+-export([sign/1, gcd/1, gcd/2, lcm/1, lcm/2, egcd/2, mod_inv/2, mod/2,
+         chinese_remainder/1]).
 
 -spec ws() -> string().
 ws() ->
@@ -351,6 +352,14 @@ translate_grid(Grid, {Dx, Dy}) ->
 
 %%%%%%%%%%%%%%%%
 %% math
+
+sign(0) ->
+    0;
+sign(N) when is_number(N), N > 0 ->
+    1;
+sign(N) when is_number(N), N < 0 ->
+    -1.
+
 gcd(A, 0) ->
     abs(A);
 gcd(A, B) ->

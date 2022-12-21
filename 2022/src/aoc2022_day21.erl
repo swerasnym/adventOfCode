@@ -27,15 +27,13 @@ star1(Data) ->
     yell("root", Data).
 
 star2(Data) ->
-    {M1, _, Wanted} = yell2("root", 0, Data),
-    {M1, _, Wanted} = yell2("root", 1, Data),
-    search(0, limits(Wanted, M1, Data), Wanted, M1, Data).
+    search(Data).
 
 parse_monkey(Line) ->
     [Monkey, Job] = string:split(Line, ": "),
     case string:split(Job, " ", all) of
         [M1, "/", M2] ->
-            {Monkey, {M1, 'div', M2}};
+            {Monkey, {M1, 'div', M2}}; %% assumption for the right results we get nice integers
         [M1, "+", M2] ->
             {Monkey, {M1, '+', M2}};
         [M1, "-", M2] ->
@@ -54,9 +52,10 @@ yell(M, Map) ->
             apply(erlang, Op, [yell(M1, Map), yell(M2, Map)])
     end.
 
-yell2("root", Humn, Map) ->
+yell2(Humn, Map) ->
     {M1, _Op, M2} = maps:get("root", Map),
-    {M1, yell2(M1, Humn, Map), yell2(M2, Humn, Map)};
+    yell2(M1, Humn, Map) - yell2(M2, Humn, Map).
+
 yell2("humn", Humn, _Map) ->
     Humn;
 yell2(M, Humn, Map) ->
@@ -67,29 +66,34 @@ yell2(M, Humn, Map) ->
             apply(erlang, Op, [yell2(M1, Humn, Map), yell2(M2, Humn, Map)])
     end.
 
-limits(Wanted, M1, Map) ->
-    true = yell2(M1, 0, Map) > Wanted,
-    true = yell2(M1, 0, Map) > yell2(M1, 1, Map),
-    find_upper(M1, 1, Map, Wanted).
+search(Map) ->
+    %% Assumption the function is linear wrt humn.
+    Neg = find(fun(X) -> X < 0 end, 1, Map),
+    Pos = find(fun(X) -> X > 0 end, 1, Map),
+    search(Neg, Pos, Map, tools:sign(Pos - Neg)).
 
-find_upper(M1, N, Map, Wanted) ->
-    case yell2(M1, N, Map) > Wanted of
-        true ->
-            find_upper(M1, N * 2, Map, Wanted);
-        false ->
-            N
-    end.
-
-search(N, N, Wanted, M1, Map) ->
-    Wanted = yell2(M1, N, Map);
-search(Lower, Upper, Wanted, M1, Map) ->
-    Mid = (Lower + Upper) div 2,
-
-    case yell2(M1, Mid, Map) - Wanted of
+search(N, N, _, _) ->
+    N;
+search(Neg, Pos, Map, PM1) ->
+    Mid = (Neg + Pos) div 2,
+    case yell2(Mid, Map) of
         0 ->
             Mid;
         N when N > 0 ->
-            search(Mid, Upper, Wanted, M1, Map);
+            search(Neg, Mid + PM1, Map, PM1);
+        N when N < 0 ->
+            search(Mid, Pos - PM1, Map, PM1)
+    end.
+
+find(_, N, _) when N > 1 bsl 64 ->
+    %% Asume 64 bits are enough
+    error(out_of_range);
+find(F, N, Map) ->
+    case {F(yell2(N, Map)), F(yell2(-N, Map))} of
+        {true, _} ->
+            N;
+        {_, true} ->
+            -N;
         _ ->
-            search(Lower, Mid, Wanted, M1, Map)
+            find(F, 2 * N, Map)
     end.
