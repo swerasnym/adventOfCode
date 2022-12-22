@@ -28,63 +28,34 @@ read(File) ->
     {Map, Path}.
 
 star1({Map, Path}) ->
-    {{Cm1, Rm1}, F} = traverse(Path, wrap({0, 0}, east, Map), east, Map),
+    {F, {Cm1, Rm1}} = traverse(Path, wrap({0, 0}, east, Map), {Map, fun wrap/3}),
     1000 * (Rm1 + 1) + 4 * (Cm1 + 1) + facing(F).
 
 star2({Map, Path}) ->
-    {{Cm1, Rm1}, F} = traverse2(Path, wrap({0, 0}, east, Map), east, Map),
+    {F, {Cm1, Rm1}} = traverse(Path, wrap({0, 0}, east, Map), {Map, fun wrap2/3}),
     1000 * (Rm1 + 1) + 4 * (Cm1 + 1) + facing(F).
 
-%% parse_path(
-
-traverse([], Pos, Dir, _Map) ->
-    {Pos, Dir};
-traverse([LR | Rest], Pos, Dir, Map) when is_atom(LR) ->
-    traverse(Rest, Pos, turn(Dir, LR), Map);
-traverse([0 | Rest], Pos, Dir, Map) ->
-    traverse(Rest, Pos, Dir, Map);
-traverse([N | Rest], Pos, Dir, Map) ->
+traverse([], DirPos, _MW) ->
+    DirPos;
+traverse([LR | Rest], {Dir, Pos}, MW) when is_atom(LR) ->
+    traverse(Rest, {turn(Dir, LR), Pos}, MW);
+traverse([0 | Rest], DirPos, MW) ->
+    traverse(Rest, DirPos, MW);
+traverse([N | Rest], DirPos = {Dir, Pos}, MW = {Map, Wrapper}) ->
     Next = move(Pos, Dir),
     case maps:get(Next, Map, $\s) of
         $. ->
-            traverse([N - 1 | Rest], Next, Dir, Map);
+            traverse([N - 1 | Rest], {Dir, Next}, MW);
         $# ->
-            traverse(Rest, Pos, Dir, Map);
+            traverse(Rest, DirPos, MW);
         $\s ->
-            NextW = wrap(Next, Dir, Map),
-            case maps:get(NextW, Map, outside) of
+            Wrapped = {_, NextW} = Wrapper(Pos, Dir, Map),
+            %%    io:format("~p to ~p~n", [DirPos, Wrapped]),
+            case maps:get(NextW, Map) of
                 $. ->
-                    traverse([N - 1 | Rest], NextW, Dir, Map);
+                    traverse([N - 1 | Rest], Wrapped, MW);
                 $# ->
-                    traverse(Rest, Pos, Dir, Map)
-            end
-    end.
-
-traverse2([], Pos, Dir, _Map) ->
-    {Pos, Dir};
-traverse2([LR | Rest], Pos, Dir, Map) when is_atom(LR) ->
-    traverse2(Rest, Pos, turn(Dir, LR), Map);
-traverse2([0 | Rest], Pos, Dir, Map) ->
-    traverse2(Rest, Pos, Dir, Map);
-traverse2([N | Rest], Pos, Dir, Map = #{max := {X, Y}}) ->
-    Next = move(Pos, Dir),
-    case maps:get(Next, Map, $\s) of
-        $. ->
-            traverse2([N - 1 | Rest], Next, Dir, Map);
-        $# ->
-            traverse2(Rest, Pos, Dir, Map);
-        $\s ->
-            50 = tools:gcd(X + 1, Y + 1),
-            {NextD, NextP} = wrap2(Pos, Dir),
-            io:format("(~p, ~p) to {~p, ~p}~n", [Pos, Dir, NextD, NextP]),
-
-            case maps:get(NextP, Map, outside) of
-                $. ->
-                    traverse2([N - 1 | Rest], NextP, NextD, Map);
-                $# ->
-                    traverse2(Rest, Pos, Dir, Map);
-                outside ->
-                    error({Pos, Dir})
+                    traverse(Rest, DirPos, MW)
             end
     end.
 
@@ -122,42 +93,47 @@ move({X, Y}, west) ->
     {X - 1, Y}.
 
 wrap({X, _}, north, Map) ->
-    lists:max([P || P = {Xk, _} <- maps:keys(Map), Xk == X, maps:get(P, Map) /= $\s]);
+    {north,
+     lists:max([P || P = {Xk, _} <- maps:keys(Map), Xk == X, maps:get(P, Map) /= $\s])};
 wrap({X, _}, south, Map) ->
-    lists:min([P || P = {Xk, _} <- maps:keys(Map), Xk == X, maps:get(P, Map) /= $\s]);
+    {south,
+     lists:min([P || P = {Xk, _} <- maps:keys(Map), Xk == X, maps:get(P, Map) /= $\s])};
 wrap({_, Y}, east, Map) ->
-    lists:min([P || P = {_, Yk} <- maps:keys(Map), Yk == Y, maps:get(P, Map) /= $\s]);
+    {east, lists:min([P || P = {_, Yk} <- maps:keys(Map), Yk == Y, maps:get(P, Map) /= $\s])};
 wrap({_, Y}, west, Map) ->
-    lists:max([P || P = {_, Yk} <- maps:keys(Map), Yk == Y, maps:get(P, Map) /= $\s]).
+    {west, lists:max([P || P = {_, Yk} <- maps:keys(Map), Yk == Y, maps:get(P, Map) /= $\s])}.
+
+wrap2(Pos, Dir, _Map) ->
+    wrap2(Pos, Dir).
 
 wrap2({X, 100}, north) ->
-    {east, {50, X + 50}}; %ok
+    {east, {50, X + 50}};
 wrap2({X, 0}, north) when X < 100 ->
-    {east, {0, X + 100}}; %ok
+    {east, {0, X + 100}};
 wrap2({X, 0}, north) when X < 150 ->
-    {north, {X - 100, 199}}; %ok
+    {north, {X - 100, 199}};
 wrap2({149, Y}, east) ->
-    {west, {99, 149 - Y}}; %ok
+    {west, {99, 149 - Y}};
 wrap2({99, Y}, east) when Y < 100 ->
-    {north, {50 + Y, 49}}; %ok
+    {north, {50 + Y, 49}};
 wrap2({99, Y}, east) when Y < 150 ->
-    {west, {149, 149 - Y}}; %ok
+    {west, {149, 149 - Y}};
 wrap2({49, Y}, east) when Y < 200 ->
-    {north, {Y - 100, 149}}; %ok
+    {north, {Y - 100, 149}};
 wrap2({X, 199}, south) ->
-    {south, {X + 100, 0}}; %ok
+    {south, {X + 100, 0}};
 wrap2({X, 149}, south) ->
-    {west, {49, 100 + X}}; %ok
+    {west, {49, 100 + X}};
 wrap2({X, 49}, south) ->
-    {west, {99, X - 50}}; %ok
+    {west, {99, X - 50}};
 wrap2({0, Y}, west) when Y < 150 ->
-    {east, {50, 149 - Y}}; %ok
+    {east, {50, 149 - Y}};
 wrap2({0, Y}, west) when Y < 200 ->
-    {south, {Y - 100, 0}}; %ok
+    {south, {Y - 100, 0}};
 wrap2({50, Y}, west) when Y < 50 ->
-    {east, {0, 149 - Y}}; %ok
+    {east, {0, 149 - Y}};
 wrap2({50, Y}, west) when Y < 100 ->
-    {south, {Y - 50, 100}}. %ok
+    {south, {Y - 50, 100}}.
 
 facing(east) ->
     0;
