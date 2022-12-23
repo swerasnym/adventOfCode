@@ -42,16 +42,9 @@ same(N, Map) ->
     end.
 
 step(N, Map) ->
-    %% Count = tools:count($#, Map),
-    ProposedMove =
-        lists:sort([{decide((N - 1) rem 4, P, Map), P} || {P, $#} <- maps:to_list(Map)]),
-    Move = avoid_colitions(ProposedMove, []),
-
-    Out = maps:from_keys(Move, $#),
-    %% io:format("~n~p ---------~n", [N]),
-    %% tools:print_grid(Out),
-    %% Count = tools:count($#, Out),
-    Out.
+    Prop = lists:sort([{decide((N - 1) rem 4, P, Map), P} || {P, $#} <- maps:to_list(Map)]),
+    Move = avoid_colitions(Prop, []),
+    maps:from_keys(Move, $#).
 
 avoid_colitions([{P, A}, {P, B}, {P, C}, {P, D} | Rest], Acc) ->
     avoid_colitions(Rest, [A, B, C, D | Acc]);
@@ -64,7 +57,7 @@ avoid_colitions([{P, _} | Rest], Acc) ->
 avoid_colitions([], Acc) ->
     Acc.
 
-decide(0, P = {X, Y}, Map) ->
+decide(Step, P = {X, Y}, Map) ->
     Around =
         [NW, N, NE, SW, S, SE, W, E] =
             [maps:get({Nx, Ny}, Map, $.)
@@ -81,124 +74,48 @@ decide(0, P = {X, Y}, Map) ->
     case tools:count($#, Around) of
         0 ->
             P;
+        K when K > 5 ->
+            P;
         _ ->
             case {tools:count($#, [N, NW, NE]),
                   tools:count($#, [S, SW, SE]),
                   tools:count($#, [W, NW, SW]),
                   tools:count($#, [E, NE, SE])}
             of
-                {0, _, _, _} ->
+                {0, _, _, _} when Step == 0 ->
                     {X, Y - 1};
-                {_, 0, _, _} ->
+                {_, 0, _, _} when Step == 0 ->
                     {X, Y + 1};
-                {_, _, 0, _} ->
+                {_, _, 0, _} when Step == 0 ->
                     {X - 1, Y};
-                {_, _, _, 0} ->
+                {_, _, _, 0} when Step == 0 ->
                     {X + 1, Y};
-                _ ->
-                    P
-            end
-    end;
-decide(1, P = {X, Y}, Map) ->
-    Around =
-        [NW, N, NE, SW, S, SE, W, E] =
-            [maps:get({Nx, Ny}, Map, $.)
-             || {Nx, Ny}
-                    <- [{X - 1, Y - 1},
-                        {X, Y - 1},
-                        {X + 1, Y - 1},
-                        {X - 1, Y + 1},
-                        {X, Y + 1},
-                        {X + 1, Y + 1},
-                        {X - 1, Y},
-                        {X + 1, Y}]],
-
-    case tools:count($#, Around) of
-        0 ->
-            P;
-        _ ->
-            case {tools:count($#, [N, NW, NE]),
-                  tools:count($#, [S, SW, SE]),
-                  tools:count($#, [W, NW, SW]),
-                  tools:count($#, [E, NE, SE])}
-            of
-                {_, 0, _, _} ->
+                %%
+                {_, 0, _, _} when Step == 1 ->
                     {X, Y + 1};
-                {_, _, 0, _} ->
+                {_, _, 0, _} when Step == 1 ->
                     {X - 1, Y};
-                {_, _, _, 0} ->
+                {_, _, _, 0} when Step == 1 ->
                     {X + 1, Y};
-                {0, _, _, _} ->
+                {0, _, _, _} when Step == 1 ->
                     {X, Y - 1};
-                _ ->
-                    P
-            end
-    end;
-decide(2, P = {X, Y}, Map) ->
-    Around =
-        [NW, N, NE, SW, S, SE, W, E] =
-            [maps:get({Nx, Ny}, Map, $.)
-             || {Nx, Ny}
-                    <- [{X - 1, Y - 1},
-                        {X, Y - 1},
-                        {X + 1, Y - 1},
-                        {X - 1, Y + 1},
-                        {X, Y + 1},
-                        {X + 1, Y + 1},
-                        {X - 1, Y},
-                        {X + 1, Y}]],
-
-    case tools:count($#, Around) of
-        0 ->
-            P;
-        _ ->
-            case {tools:count($#, [N, NW, NE]),
-                  tools:count($#, [S, SW, SE]),
-                  tools:count($#, [W, NW, SW]),
-                  tools:count($#, [E, NE, SE])}
-            of
-                {_, _, 0, _} ->
+                %%
+                {_, _, 0, _} when Step == 2 ->
                     {X - 1, Y};
-                {_, _, _, 0} ->
+                {_, _, _, 0} when Step == 2 ->
                     {X + 1, Y};
-                {0, _, _, _} ->
+                {0, _, _, _} when Step == 2 ->
                     {X, Y - 1};
-                {_, 0, _, _} ->
+                {_, 0, _, _} when Step == 2 ->
                     {X, Y + 1};
-                _ ->
-                    P
-            end
-    end;
-decide(3, P = {X, Y}, Map) ->
-    Around =
-        [NW, N, NE, SW, S, SE, W, E] =
-            [maps:get({Nx, Ny}, Map, $.)
-             || {Nx, Ny}
-                    <- [{X - 1, Y - 1},
-                        {X, Y - 1},
-                        {X + 1, Y - 1},
-                        {X - 1, Y + 1},
-                        {X, Y + 1},
-                        {X + 1, Y + 1},
-                        {X - 1, Y},
-                        {X + 1, Y}]],
-
-    case tools:count($#, Around) of
-        0 ->
-            P;
-        _ ->
-            case {tools:count($#, [N, NW, NE]),
-                  tools:count($#, [S, SW, SE]),
-                  tools:count($#, [W, NW, SW]),
-                  tools:count($#, [E, NE, SE])}
-            of
-                {_, _, _, 0} ->
+                %%
+                {_, _, _, 0} when Step == 3 ->
                     {X + 1, Y};
-                {0, _, _, _} ->
+                {0, _, _, _} when Step == 3 ->
                     {X, Y - 1};
-                {_, 0, _, _} ->
+                {_, 0, _, _} when Step == 3 ->
                     {X, Y + 1};
-                {_, _, 0, _} ->
+                {_, _, 0, _} when Step == 3 ->
                     {X - 1, Y};
                 _ ->
                     P
