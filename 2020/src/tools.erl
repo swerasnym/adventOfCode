@@ -30,8 +30,17 @@ count(List) when is_list(List) ->
 
 %% @doc Counts the number of occurances of 'Value' in the Collection.
 -spec count(Value, [Value | any()] | map()) -> integer().
-count(Value, Collection) ->
-    maps:get(Value, count(Collection), 0).
+count(Value, List) when is_list(List) ->
+    count(Value, List, 0);
+count(Value, Map) when is_map(Map) ->
+    count(Value, maps:values(Map), 0).
+
+count(_, [], Count) ->
+    Count;
+count(V, [V | Rest], Count) ->
+    count(V, Rest, Count + 1);
+count(V, List, Count) ->
+    count(V, tl(List), Count).
 
 %% @doc Calculates the procuct of a list of numbers.
 
