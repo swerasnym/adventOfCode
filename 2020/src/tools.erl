@@ -76,6 +76,10 @@ group(N, List, Acc) ->
     {G, Rest} = lists:split(N, List),
     group(N, Rest, [list_to_tuple(G) | Acc]).
 
+replace(Map, Fun) when is_map(Map), is_function(Fun, 1) ->
+    maps:map(fun(_, V) -> Fun(V) end, Map);
+replace(Map, Fun) when is_map(Map), is_function(Fun, 2) ->
+    maps:map(Fun, Map);
 replace(Values, Replacements) when is_map(Replacements) ->
     replace(Values, Replacements, all).
 
