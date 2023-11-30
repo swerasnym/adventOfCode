@@ -1,0 +1,32 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "compile",
+            "type": "shell",
+            "options": {
+            "cwd": "${fileDirname}",
+            },
+            "command": "erl -make",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+              }
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "options": {
+            "cwd": "${fileDirname}",
+            },
+            "command": "erl -noshell -pa ebin -eval '${fileBasenameNoExtension}:run()'  -eval 'init:stop()'",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+              },
+            "dependsOn": "compile"
+        },
+    ]
+}
