@@ -13,7 +13,7 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-              }
+              },
         },
         {
             "label": "run",
@@ -21,12 +21,46 @@
             "options": {
             "cwd": "${fileDirname}",
             },
-            "command": "erl -noshell -pa ebin -eval '${fileBasenameNoExtension}:run()'  -eval 'init:stop()'",
+            "command": "erl -noshell -eval '${fileBasenameNoExtension}:run()' -eval 'init:stop()'",
             "group": {
                 "kind": "build",
                 "isDefault": true
               },
-            "dependsOn": "compile"
+            "dependsOn": "compile",
         },
-    ]
+
+        {
+            "label": "run-with-input",
+            "type": "shell",
+            "options": {
+            "cwd": "${fileDirname}",
+            },
+            "command": "erl -noshell -pa ebin -eval '${fileBasenameNoExtension}:run(${input:star},\"${input:file}\")'  -eval 'init:stop()'",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+              },
+            "dependsOn": "compile",
+        },
+    ],
+    "inputs": [
+        {
+          "id": "star",
+          "type": "pickString",
+          "description": "Which Star of the day?",
+          "options": [
+            "star1",
+            "star2",
+            "all",
+          ],
+          "default": "all",
+        },
+        {
+            "id": "file",
+            "type": "promptString",
+            "description": "file",
+            "default": "../data/day1.txt",
+          },
+      ],
+
 }
