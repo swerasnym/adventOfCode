@@ -21,13 +21,28 @@
             "options": {
             "cwd": "${fileDirname}",
             },
-            "command": "erl -noshell -eval '${fileBasenameNoExtension}:run()' -eval 'init:stop()'",
+            "command": "erl -noshell -run ${fileBasenameNoExtension} run -run erlang halt",
             "group": {
                 "kind": "build",
                 "isDefault": true
               },
             "dependsOn": "compile",
         },
+
+
+        {
+          "label": "run2",
+          "type": "shell",
+          "options": {
+          "cwd": "${fileDirname}",
+          },
+          "command": "echo \"${fileBasenameNoExtension}:run().\\nq().\n\" | erl",
+          "group": {
+              "kind": "build",
+              "isDefault": true
+            },
+          "dependsOn": "compile",
+      },
 
         {
             "label": "run-with-input",
