@@ -49,5 +49,5 @@ filter2([_ | Rest] = L, V) ->
     Numbers =
         lists:enumerate($1,
                         ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]),
-    Match = [D || {D, Text} <- Numbers, tools:is_prefix(Text, L)],
+    Match = [D || {D, Text} <- Numbers, lists:prefix(Text, L)],
     filter2(Rest, Match ++ V).
