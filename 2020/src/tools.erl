@@ -12,7 +12,7 @@
          rotate_grid/2, flip_grid/1, flip_grid/2, print_grid/1, sub_grid/3, drop_max/1,
          lists_to_grid/1, grid_to_lists/1, grid_to_lists/2, translate_grid/2, minmax_grid/1]).
 -export([sign/1, gcd/1, gcd/2, lcm/1, lcm/2, egcd/2, mod_inv/2, mod/2,
-         chinese_remainder/1]).
+         chinese_remainder/1, is_prefix/2]).
 
 -spec ws() -> string().
 ws() ->
@@ -444,3 +444,15 @@ chinese_remainder(Congruences) ->
                                                 || {A, B} <- lists:zip(Residues, Inverses)])]),
             mod(Solution, ModPI)
     end.
+
+-spec is_prefix(Prefix, List) -> true | false
+    when Prefix :: [T],
+         List :: [T],
+         T :: term().
+%% @doc Checks if the list starts with the given prefix.
+is_prefix(Prefix, List) when length(Prefix) == length(List) ->
+    Prefix == List;
+is_prefix(Prefix, List) when length(Prefix) < length(List) ->
+    Prefix == lists:sublist(List, length(Prefix));
+is_prefix(_, _) ->
+    false.
