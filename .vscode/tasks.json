@@ -36,7 +36,7 @@
           "options": {
           "cwd": "${fileDirname}",
           },
-          "command": "echo \"${fileBasenameNoExtension}:run().\\nq().\n\" | erl",
+          "command": "echo \"${fileBasenameNoExtension}:run().\\nhalt().\n\" | erl",
           "group": {
               "kind": "build",
               "isDefault": true
