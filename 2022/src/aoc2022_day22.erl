@@ -41,7 +41,7 @@ traverse([LR | Rest], {Dir, Pos}, MW) when is_atom(LR) ->
     traverse(Rest, {turn(Dir, LR), Pos}, MW);
 traverse([0 | Rest], DirPos, MW) ->
     traverse(Rest, DirPos, MW);
-traverse([N | Rest], DirPos = {Dir, Pos}, MW = {Map, Wrapper}) ->
+traverse([N | Rest], {Dir, Pos} = DirPos, {Map, Wrapper} = MW) ->
     Next = move(Pos, Dir),
     case maps:get(Next, Map, $\s) of
         $. ->

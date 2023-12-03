@@ -62,7 +62,7 @@ highlight_mosters(Grid) ->
 
 highlight_mosters([], _Monster) ->
     no_monsters_found;
-highlight_mosters([Map = #{max := {Xmax, Ymax}} | Maps], Monster = #{max := {Mx, My}}) ->
+highlight_mosters([#{max := {Xmax, Ymax}} = Map | Maps], #{max := {Mx, My}} = Monster) ->
     Positions =
         [
             {X, Y}
@@ -92,7 +92,7 @@ make_moster() ->
     MonsterImage = "..................#.\n#....##....##....###\n.#..#..#..#..#..#...",
     maps:filter(fun(_K, V) -> V /= $. end, tools:parse_grid(MonsterImage)).
 
-commbind(Grid = #{{0, 0} := #{max := {Xmax, Ymax}}}) ->
+commbind(#{{0, 0} := #{max := {Xmax, Ymax}}} = Grid) ->
     List =
         [
             {{Gx * (Xmax - 1) + X - 1, Gy * (Ymax - 1) + Y - 1}, Value}
@@ -116,7 +116,7 @@ orient({_X, Ymax}, _Grid, _Images, _Sides, _Count, Acc, {_Xmax, Ymax}) ->
     Acc;
 orient({Xmax, Y}, Grid, Images, Sides, Count, Acc, {Xmax, Ymax}) ->
     orient({0, Y + 1}, Grid, Images, Sides, Count, Acc, {Xmax, Ymax});
-orient(Pos = {X, Y}, Grid, Images, Sides, Count, Acc, Max) ->
+orient({X, Y} = Pos, Grid, Images, Sides, Count, Acc, Max) ->
     Id = maps:get(Pos, Grid),
 
     {_Edges, Map} = proplists:get_value(Id, Images),
@@ -257,7 +257,7 @@ is_corner(Edges, Map) ->
     % two edges flipped an not with no pairing
     4 == length([V || V <- Edges, maps:get(V, Map) == 1]).
 
-get_edges(ImageMap = #{max := {Xmax, Ymax}}) ->
+get_edges(#{max := {Xmax, Ymax}} = ImageMap) ->
     #{
         top => list_to_integer([maps:get({X, 0}, ImageMap) || X <- lists:seq(0, Xmax)], 2),
         top_rev =>
@@ -273,14 +273,14 @@ get_edges(ImageMap = #{max := {Xmax, Ymax}}) ->
             list_to_integer([maps:get({Xmax, Y}, ImageMap) || Y <- lists:seq(Ymax, 0, -1)], 2)
     }.
 
-top(ImageMap = #{max := {Xmax, _Ymax}}) ->
+top(#{max := {Xmax, _Ymax}} = ImageMap) ->
     list_to_integer([maps:get({X, 0}, ImageMap) || X <- lists:seq(0, Xmax)], 2).
 
-bot(ImageMap = #{max := {Xmax, Ymax}}) ->
+bot(#{max := {Xmax, Ymax}} = ImageMap) ->
     list_to_integer([maps:get({X, Ymax}, ImageMap) || X <- lists:seq(0, Xmax)], 2).
 
-left(ImageMap = #{max := {_Xmax, Ymax}}) ->
+left(#{max := {_Xmax, Ymax}} = ImageMap) ->
     list_to_integer([maps:get({0, Y}, ImageMap) || Y <- lists:seq(0, Ymax)], 2).
 
-right(ImageMap = #{max := {Xmax, Ymax}}) ->
+right(#{max := {Xmax, Ymax}} = ImageMap) ->
     list_to_integer([maps:get({Xmax, Y}, ImageMap) || Y <- lists:seq(0, Ymax)], 2).

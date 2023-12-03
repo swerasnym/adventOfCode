@@ -74,7 +74,7 @@ run(["$ ls" | Rest], Path, Files) ->
 
 ls([], Path, Files, Size) ->
     {[], Files#{{dir, lists:reverse(Path)} => Size}};
-ls(Commands = ["$" ++ _ | _], Path, Files, Size) ->
+ls(["$" ++ _ | _] = Commands, Path, Files, Size) ->
     {Commands, Files#{{dir, lists:reverse(Path)} => Size}};
 ls(["dir" ++ _ | Rest], Path, Files, Size) ->
     ls(Rest, Path, Files, Size);

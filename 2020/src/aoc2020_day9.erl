@@ -28,7 +28,7 @@ star2(Data) ->
 read(File) ->
     tools:read_integers(File).
 
-find_error(Preamble = [_First | Rest], [Value | Values]) ->
+find_error([_ | Rest] = Preamble, [Value | Values]) ->
     case length([A + B || A <- Preamble, B <- Preamble, A < B, A + B == Value]) of
         0 ->
             Value;

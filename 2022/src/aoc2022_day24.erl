@@ -38,7 +38,7 @@ star1(Map) ->
     print(End),
     N.
 
-star2(Map = #{max := {Xmax, Ymax}}) ->
+star2(#{max := {Xmax, Ymax}} = Map) ->
     {T1, Map1} = bfs(0, [{1, 0}], update_map(Map), fun reached_goal/2),
     {T2, Map2} = bfs(1, [{Xmax - 1, Ymax}], update_map(Map1), fun reached_start/2),
     {T3, End} = bfs(1, [{1, 0}], update_map(Map2), fun reached_goal/2),
@@ -56,7 +56,7 @@ bfs(N, Ps, Map, Goal) when length(Ps) > 0 ->
             bfs(N + 1, Next, update_map(Map), Goal)
     end.
 
-moves(P, Map = #{max := {Xmax, Ymax}}) ->
+moves(P, #{max := {Xmax, Ymax}} = Map) ->
     %% io:format("~p", [P]),
     [
         {X, Y}

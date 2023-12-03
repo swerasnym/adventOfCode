@@ -1,7 +1,10 @@
 -module(aoc2021_day23).
 
--export([run/2, profile/3, eprof/2]).
-
+-export([run/0, run/2, profile/3, eprof/2]).
+run() ->
+    {S1, S2} = Res = run(all, "../data/day23.txt"),
+    io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
+    Res.
 run(Star, File) ->
     Data = read(File),
     case Star of
@@ -173,12 +176,12 @@ type({_, _}) ->
 
 enter_room({_X, 1}, _Type, _Map, _Goal) ->
     true;
-enter_room(Pos = {X, Y}, Type, Map, Goal) ->
+enter_room({X, Y} = Pos, Type, Map, Goal) ->
     maps:get(Pos, Goal) == Type andalso check_room(Type, {X, Y + 1}, Map).
 
 leave_room({_X, 1}, _Type, _Map, _Goal) ->
     true;
-leave_room(Pos = {X, Y}, Type, Map, Goal) ->
+leave_room({X, Y} = Pos, Type, Map, Goal) ->
     maps:get(Pos, Goal) /= Type orelse not check_room(Type, {X, Y + 1}, Map).
 
 check_room(Type, {X, Y}, Map) ->

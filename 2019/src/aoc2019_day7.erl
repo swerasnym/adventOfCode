@@ -44,10 +44,8 @@ loop(Program, [P0, P1, P2, P3, P4]) ->
 
     intcode:run(Program, Options),
 
-    case intcode:recvn(Pid4, all, 1000) of
-        {halt, [Result]} ->
-            Result
-    end.
+    {halt, [Result]} = intcode:recvn(Pid4, all, 1000),
+    Result.
 
 perms([]) ->
     [[]];

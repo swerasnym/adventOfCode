@@ -53,7 +53,7 @@ avoid_colitions([{P, _} | Rest], Acc) ->
 avoid_colitions([], Acc) ->
     Acc.
 
-decide(Step, P = {X, Y}, Map) ->
+decide(Step, {X, Y} = P, Map) ->
     case [maps:get(N, Map, $.) || N <- neigbours(P)] of
         "........" ->
             P;

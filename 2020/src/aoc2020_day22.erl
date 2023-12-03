@@ -55,7 +55,7 @@ play_recursive_round(P1, [], _Set) ->
     {p1, score(P1)};
 play_recursive_round([], P2, _Set) ->
     {p2, score(P2)};
-play_recursive_round(P1 = [C1 | C1s], P2 = [C2 | C2s], Set) ->
+play_recursive_round([C1 | C1s] = P1, [C2 | C2s] = P2, Set) ->
     case sets:is_element({P1, P2}, Set) of
         true ->
             {p1, score(P1)};

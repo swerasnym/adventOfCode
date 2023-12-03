@@ -84,11 +84,11 @@ read(File) ->
     ].
 
 is_init(#cube{
-    x = {Xmin, XMax},
-    y = {Ymin, YMax},
-    z = {Zmin, ZMax}
+    x = {Xmin, Xmax},
+    y = {Ymin, Ymax},
+    z = {Zmin, Zmax}
 }) when
-    Xmin >= -50, XMax =< 50, Ymin >= -50, YMax =< 50, Zmin >= -50, ZMax =< 50
+    Xmin >= -50, Xmax =< 50, Ymin >= -50, Ymax =< 50, Zmin >= -50, Zmax =< 50
 ->
     true;
 is_init(#cube{}) ->

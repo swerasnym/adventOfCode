@@ -41,7 +41,7 @@ star2(Data) ->
     {Path9, _} = lists:mapfoldl(fun move_tail/2, {0, 0}, Path8),
     length(lists:uniq(Path9)).
 
-move_tail(H = {Hx, Hy}, T = {Tx, Ty}) ->
+move_tail({Hx, Hy} = H, {Tx, Ty} = T) ->
     Dx = Hx - Tx,
     Dy = Hy - Ty,
     Res =

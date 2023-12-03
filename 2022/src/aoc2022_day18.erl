@@ -64,7 +64,7 @@ bounds(Map) ->
 
 mark_outside([], Map, _, _) ->
     Map;
-mark_outside([P | Rest], Map, Bounds = {{Xmin, Xmax}, {Ymin, Ymax}, {Zmin, Zmax}}, V) ->
+mark_outside([P | Rest], Map, {{Xmin, Xmax}, {Ymin, Ymax}, {Zmin, Zmax}} = Bounds, V) ->
     case maps:get(P, Map, unmarked) of
         unmarked ->
             NewNeigbours =

@@ -331,7 +331,7 @@ lists_to_grid(_, [], Grid) ->
 grid_to_lists(Grid) ->
     grid_to_lists(Grid, missing).
 
-grid_to_lists(Grid = #{max := {Xmax, Ymax}}, Missing) ->
+grid_to_lists(#{max := {Xmax, Ymax}} = Grid, Missing) ->
     [[maps:get({X, Y}, Grid, Missing) || X <- lists:seq(0, Xmax)] || Y <- lists:seq(0, Ymax)];
 grid_to_lists(Map, Missing) ->
     grid_to_lists(grid_from_2d(Map), Missing).
@@ -339,11 +339,11 @@ grid_to_lists(Map, Missing) ->
 rotate_grid(Grid) ->
     rotate_grid(Grid, ccw).
 
-rotate_grid(Grid = #{max := {Xmax, Ymax}}, ccw) ->
+rotate_grid(#{max := {Xmax, Ymax}} = Grid, ccw) ->
     NewGrid =
         maps:from_list([{{Y, Xmax - X}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]),
     NewGrid#{max => {Ymax, Xmax}};
-rotate_grid(Grid = #{max := {Xmax, Ymax}}, cw) ->
+rotate_grid(#{max := {Xmax, Ymax}} = Grid, cw) ->
     NewGrid =
         maps:from_list([{{Ymax - Y, X}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]),
     NewGrid#{max => {Ymax, Xmax}}.
@@ -351,11 +351,11 @@ rotate_grid(Grid = #{max := {Xmax, Ymax}}, cw) ->
 flip_grid(Grid) ->
     flip_grid(Grid, x).
 
-flip_grid(Grid = #{max := {Xmax, Ymax}}, x) ->
+flip_grid(#{max := {Xmax, Ymax}} = Grid, x) ->
     NewGrid =
         maps:from_list([{{Xmax - X, Y}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]),
     NewGrid#{max => {Xmax, Ymax}};
-flip_grid(Grid = #{max := {Xmax, Ymax}}, y) ->
+flip_grid(#{max := {Xmax, Ymax}} = Grid, y) ->
     NewGrid =
         maps:from_list([{{X, Ymax - Y}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]),
     NewGrid#{max => {Xmax, Ymax}}.
@@ -363,7 +363,7 @@ flip_grid(Grid = #{max := {Xmax, Ymax}}, y) ->
 print_grid(Grid) ->
     io:format("~ts~n", [grid_to_string(Grid)]).
 
-grid_to_string(Grid = #{max := {Xmax, Ymax}}) ->
+grid_to_string(#{max := {Xmax, Ymax}} = Grid) ->
     string:join(
         [
             [maps:get({X, Y}, Grid, $\s) || X <- lists:seq(0, Xmax)]

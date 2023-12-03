@@ -25,7 +25,7 @@ star2(Grid) ->
 read(File) ->
     tools:read_grid(File, #{$# => tree, $. => open}).
 
-toboggan(Grid = #{max := {_Xmax, Ymax}}, {Dx, Dy}) ->
+toboggan(#{max := {_Xmax, Ymax}}, {Dx, Dy} = Grid) ->
     tools:count(tree, [get_pos(N * Dx, N * Dy, Grid) || N <- lists:seq(0, Ymax div Dy)]).
 
 get_pos(X, Y, #{max := {Xmax, _Ymax}} = Grid) ->

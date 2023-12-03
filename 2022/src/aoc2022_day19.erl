@@ -110,20 +110,18 @@ star2(Data) ->
 heuristic(
     Time,
     {
-        _Res =
-            #{
-                ore := Ore,
-                clay := Clay,
-                obsidian := Obsidian,
-                geode := Geode
-            },
-        _Rob =
-            #{
-                ore := ROre,
-                clay := RClay,
-                obsidian := RObsidian,
-                geode := RGeode
-            }
+        #{
+            ore := Ore,
+            clay := Clay,
+            obsidian := Obsidian,
+            geode := Geode
+        },
+        #{
+            ore := ROre,
+            clay := RClay,
+            obsidian := RObsidian,
+            geode := RGeode
+        }
     }
 ) ->
     Ore +
@@ -135,12 +133,11 @@ heuristic(
 buy(
     Type,
     Costs,
-    Resourses =
-        #{
-            ore := Ore,
-            clay := Clay,
-            obsidian := Obsidian
-        },
+    #{
+        ore := Ore,
+        clay := Clay,
+        obsidian := Obsidian
+    } = Resourses,
     Robots
 ) ->
     case {Type, maps:get(Type, Costs)} of
@@ -185,7 +182,7 @@ collect(
 
 bfs(0, {_, _Costs}, L) ->
     lists:max([maps:get(geode, Resourses) || {Resourses, _} <- L]);
-bfs(Time, Bp = {_, Costs}, L) ->
+bfs(Time, {_, Costs} = Bp, L) ->
     H = lists:usort([{heuristic(Time + 10, State), State} || State <- L]),
     New = [
         begin
