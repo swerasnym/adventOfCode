@@ -4,6 +4,7 @@
 
 -record(moon, {pos = {0, 0, 0}, vel = {0, 0, 0}}).
 
+-hank([{unnecessary_function_arguments, [run, {step, 2}]}]).
 run(Star, _) ->
     Data =
         #{

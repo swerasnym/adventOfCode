@@ -1,6 +1,8 @@
 -module(aoc2021_day23).
 
 -export([run/0, run/2, profile/3, eprof/2]).
+
+-hank([{unnecessary_function_arguments, [{amphipod, 2}]}]).
 run() ->
     {S1, S2} = Res = run(all, "../data/day23.txt"),
     io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),

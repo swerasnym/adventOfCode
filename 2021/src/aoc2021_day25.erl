@@ -1,7 +1,7 @@
 -module(aoc2021_day25).
 
 -export([run/2, profile/3, eprof/2]).
-
+-hank([{unnecessary_function_arguments, [star2]}]).
 run(Star, File) ->
     Data = read(File),
     case Star of

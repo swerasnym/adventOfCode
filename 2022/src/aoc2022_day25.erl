@@ -2,6 +2,7 @@
 
 -export([run/0, run/2, integer_to_snafu/1, snafu_to_integer/1]).
 
+-hank([{unnecessary_function_arguments, [star2]}]).
 run() ->
     {S1, S2} = Res = run(all, "../data/day25.txt"),
     io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),

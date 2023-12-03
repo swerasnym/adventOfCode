@@ -2,6 +2,7 @@
 
 -export([run/2]).
 
+-hank([{unnecessary_function_arguments, [star2]}]).
 run(Star, File) ->
     Program = intcode:from_file(File),
     case Star of

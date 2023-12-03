@@ -2,6 +2,7 @@
 
 -export([run/2]).
 
+-hank([{unnecessary_function_arguments, [run]}]).
 run(Star, _) ->
     Data = {183564, 657474},
 

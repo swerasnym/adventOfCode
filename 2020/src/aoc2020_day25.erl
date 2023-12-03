@@ -1,6 +1,7 @@
 -module(aoc2020_day25).
 
 -export([run/2]).
+-hank([{unnecessary_function_arguments, [star2]}]).
 
 run(Star, File) ->
     Data = read(File),

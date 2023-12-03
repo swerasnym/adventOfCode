@@ -58,7 +58,7 @@ find(X, Y, x, Program) ->
             find(X - 1, Y, x, Program);
         3 ->
             io:format("x ~p~n", [{X + 1, Y}]),
-            find(X + 1, Y, y, x, Program);
+            find3(X + 1, Y, y, Program);
         2 ->
             ok
     end;
@@ -68,12 +68,12 @@ find(X, Y, y, Program) ->
             find(X, Y - 1, y, Program);
         3 ->
             io:format("y ~p~n", [{X, Y + 1}]),
-            find(X, Y + 1, x, y, Program);
+            find3(X, Y + 1, x, Program);
         2 ->
             ok
     end.
 
-find(Xi, Yi, Next, _From, Program) ->
+find3(Xi, Yi, Next, Program) ->
     case
         lists:min([
             {X, Y}
