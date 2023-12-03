@@ -15,6 +15,7 @@
          interactive/2]).
 -export([analyze/1]).
 
+%% erlfmt-ignore-begin
 -record(state,
         {ip = 0,              % Current Instruction pointer
          next_ip = 0,         % Next instruction pointer
@@ -43,6 +44,7 @@
           8 => {equals, 3, fun equals/1},
           9 => {relative_base_offset, 1, fun relative_base_offset/1},
           99 => {halt, 0, fun halt/1}}).
+%% erlfmt-ignore-end
 
 %%------------------------------------------------------------------------------
 %% Intcode function calls
