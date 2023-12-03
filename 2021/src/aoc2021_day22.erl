@@ -35,11 +35,13 @@ profile(Star, File, Times) ->
 profile(F, Times) ->
     Expected = F(),
     Results =
-        [begin
-             {Time, Expected} = timer:tc(F),
-             Time
-         end
-         || _ <- lists:seq(1, Times)],
+        [
+            begin
+                {Time, Expected} = timer:tc(F),
+                Time
+            end
+         || _ <- lists:seq(1, Times)
+        ],
     {Expected, lists:sum(Results) / Times / 1000}.
 
 eprof(Star, File) ->
@@ -70,41 +72,55 @@ star2(Data) ->
     lists:sum(lists:map(fun volume/1, On)).
 
 read(File) ->
-    [#cube{state = S,
-           x = {Xmin, Xmax + 1},
-           y = {Ymin, Ymax + 1},
-           z = {Zmin, Zmax + 1}}
-     || [S, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax]
-            <- tools:read_format(File, "~a x=~d..~d,y=~d..~d,z=~d..~d")].
+    [
+        #cube{
+            state = S,
+            x = {Xmin, Xmax + 1},
+            y = {Ymin, Ymax + 1},
+            z = {Zmin, Zmax + 1}
+        }
+     || [S, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax] <-
+            tools:read_format(File, "~a x=~d..~d,y=~d..~d,z=~d..~d")
+    ].
 
-is_init(#cube{x = {Xmin, XMax},
-              y = {Ymin, YMax},
-              z = {Zmin, ZMax}})
-    when Xmin >= -50, XMax =< 50, Ymin >= -50, YMax =< 50, Zmin >= -50, ZMax =< 50 ->
+is_init(#cube{
+    x = {Xmin, XMax},
+    y = {Ymin, YMax},
+    z = {Zmin, ZMax}
+}) when
+    Xmin >= -50, XMax =< 50, Ymin >= -50, YMax =< 50, Zmin >= -50, ZMax =< 50
+->
     true;
 is_init(#cube{}) ->
     false.
 
-discretre(#cube{state = S,
-                x = {Xmin, Xmax},
-                y = {Ymin, Ymax},
-                z = {Zmin, Zmax}}) ->
-    [{{X, Y, Z}, S}
+discretre(#cube{
+    state = S,
+    x = {Xmin, Xmax},
+    y = {Ymin, Ymax},
+    z = {Zmin, Zmax}
+}) ->
+    [
+        {{X, Y, Z}, S}
      || X <- lists:seq(Xmin, Xmax - 1),
         Y <- lists:seq(Ymin, Ymax - 1),
-        Z <- lists:seq(Zmin, Zmax - 1)].
+        Z <- lists:seq(Zmin, Zmax - 1)
+    ].
 
 on(List) ->
     lists:filter(fun(#cube{state = S}) -> S == on end, List).
 
-overlaps(#cube{x = {Min1, Max1}}, #cube{x = {Min2, Max2}})
-    when Min2 >= Max1; Min1 >= Max2 ->
+overlaps(#cube{x = {Min1, Max1}}, #cube{x = {Min2, Max2}}) when
+    Min2 >= Max1; Min1 >= Max2
+->
     false;
-overlaps(#cube{y = {Min1, Max1}}, #cube{y = {Min2, Max2}})
-    when Min2 >= Max1; Min1 >= Max2 ->
+overlaps(#cube{y = {Min1, Max1}}, #cube{y = {Min2, Max2}}) when
+    Min2 >= Max1; Min1 >= Max2
+->
     false;
-overlaps(#cube{z = {Min1, Max1}}, #cube{z = {Min2, Max2}})
-    when Min2 >= Max1; Min1 >= Max2 ->
+overlaps(#cube{z = {Min1, Max1}}, #cube{z = {Min2, Max2}}) when
+    Min2 >= Max1; Min1 >= Max2
+->
     false;
 overlaps(_, _) ->
     true.
@@ -117,17 +133,21 @@ split(Dir, C1, C2) ->
         {L, L} ->
             {[C1, C2], []};
         _ when Min1 =< Min2, Min2 < Max1, Max1 =< Max2 ->
-            {[setelement(Dir, C1, {Min2, Max1}), setelement(Dir, C2, {Min2, Max1})],
-             [setelement(Dir, C1, {Min1, Min2}), setelement(Dir, C2, {Max1, Max2})]};
+            {[setelement(Dir, C1, {Min2, Max1}), setelement(Dir, C2, {Min2, Max1})], [
+                setelement(Dir, C1, {Min1, Min2}), setelement(Dir, C2, {Max1, Max2})
+            ]};
         _ when Min1 =< Min2, Max1 >= Max2 ->
-            {[setelement(Dir, C1, L2), C2],
-             [setelement(Dir, C1, {Min1, Min2}), setelement(Dir, C1, {Max2, Max1})]};
+            {[setelement(Dir, C1, L2), C2], [
+                setelement(Dir, C1, {Min1, Min2}), setelement(Dir, C1, {Max2, Max1})
+            ]};
         _ when Min2 =< Min1, Min1 < Max2, Max2 =< Max1 ->
-            {[setelement(Dir, C1, {Min1, Max2}), setelement(Dir, C2, {Min1, Max2})],
-             [setelement(Dir, C1, {Max2, Max1}), setelement(Dir, C2, {Min2, Min1})]};
+            {[setelement(Dir, C1, {Min1, Max2}), setelement(Dir, C2, {Min1, Max2})], [
+                setelement(Dir, C1, {Max2, Max1}), setelement(Dir, C2, {Min2, Min1})
+            ]};
         _ when Min2 =< Min1, Max2 >= Max1 ->
-            {[C1, setelement(Dir, C2, L1)],
-             [setelement(Dir, C2, {Min2, Min1}), setelement(Dir, C2, {Max1, Max2})]}
+            {[C1, setelement(Dir, C2, L1)], [
+                setelement(Dir, C2, {Min2, Min1}), setelement(Dir, C2, {Max1, Max2})
+            ]}
     end.
 
 split(C1, C2) ->
@@ -138,9 +158,11 @@ split(C1, C2) ->
     % Z1 discarded since that contains the overlappng part in C1 that we are replaceing.
     lists:filter(fun(V) -> volume(V) /= 0 end, Xn ++ Yn ++ Zn ++ [Z2]).
 
-volume(#cube{x = {Xmin, Xmax},
-             y = {Ymin, Ymax},
-             z = {Zmin, Zmax}}) ->
+volume(#cube{
+    x = {Xmin, Xmax},
+    y = {Ymin, Ymax},
+    z = {Zmin, Zmax}
+}) ->
     (Xmax - Xmin) * (Ymax - Ymin) * (Zmax - Zmin).
 
 remove_overlaps([C1 | Rest]) ->

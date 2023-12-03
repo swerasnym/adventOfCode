@@ -20,16 +20,20 @@ star1(Data) ->
     Turns = 2020,
     Start = length(Data) + 1,
     Ref = atomics:new(Turns + 1, []),
-    [atomics:put(Ref, Value + 1, Turn)
-     || {Value, Turn} <- lists:zip(Data, lists:seq(1, length(Data)))],
+    [
+        atomics:put(Ref, Value + 1, Turn)
+     || {Value, Turn} <- lists:zip(Data, lists:seq(1, length(Data)))
+    ],
     speek(Turns, 0, Start, Ref).
 
 star2(Data) ->
     Turns = 30000000,
     Start = length(Data) + 1,
     Ref = atomics:new(Turns + 1, []),
-    [atomics:put(Ref, Value + 1, Turn)
-     || {Value, Turn} <- lists:zip(Data, lists:seq(1, length(Data)))],
+    [
+        atomics:put(Ref, Value + 1, Turn)
+     || {Value, Turn} <- lists:zip(Data, lists:seq(1, length(Data)))
+    ],
     speek(Turns, 0, Start, Ref).
 
 read(File) ->

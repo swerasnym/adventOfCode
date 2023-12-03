@@ -34,11 +34,13 @@ profile(Star, File, Times) ->
 profile(F, Times) ->
     Expected = F(),
     Results =
-        [begin
-             {Time, Expected} = timer:tc(F),
-             Time
-         end
-         || _ <- lists:seq(1, Times)],
+        [
+            begin
+                {Time, Expected} = timer:tc(F),
+                Time
+            end
+         || _ <- lists:seq(1, Times)
+        ],
     {Expected, lists:sum(Results) / Times / 1000}.
 
 eprof(Star, File) ->
@@ -88,16 +90,21 @@ enhance(Grid, Outside, N) ->
 
 enhance(#{min := {Xmin, Ymin}, max := {Xmax, Ymax}} = Grid, Outside) ->
     Processed =
-        [index({X, Y}, Grid, Outside)
-         || X <- lists:seq(Xmin - 1, Xmax + 1), Y <- lists:seq(Ymin - 1, Ymax + 1)],
-    Out = maps:from_list(Processed
-                         ++ [{min, {Xmin - 1, Ymin - 1}}, {max, {Xmax + 1, Ymax + 1}}]),
-    Os = case Outside of
-             ?DARK ->
-                 nth(0);
-             ?LIGHT ->
-                 nth(511)
-         end,
+        [
+            index({X, Y}, Grid, Outside)
+         || X <- lists:seq(Xmin - 1, Xmax + 1), Y <- lists:seq(Ymin - 1, Ymax + 1)
+        ],
+    Out = maps:from_list(
+        Processed ++
+            [{min, {Xmin - 1, Ymin - 1}}, {max, {Xmax + 1, Ymax + 1}}]
+    ),
+    Os =
+        case Outside of
+            ?DARK ->
+                nth(0);
+            ?LIGHT ->
+                nth(511)
+        end,
     {Out, Os}.
 
 build_nth([], _) ->

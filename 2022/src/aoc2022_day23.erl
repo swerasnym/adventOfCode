@@ -58,12 +58,18 @@ decide(Step, P = {X, Y}, Map) ->
         "........" ->
             P;
         [NW, N, NE, W, E, SW, S, SE] ->
-            move(P,
-                 tools:rotate(Step,
-                              [{[E, NE, SE], {X + 1, Y}},
-                               {[N, NW, NE], {X, Y - 1}},
-                               {[S, SW, SE], {X, Y + 1}},
-                               {[W, NW, SW], {X - 1, Y}}]))
+            move(
+                P,
+                tools:rotate(
+                    Step,
+                    [
+                        {[E, NE, SE], {X + 1, Y}},
+                        {[N, NW, NE], {X, Y - 1}},
+                        {[S, SW, SE], {X, Y + 1}},
+                        {[W, NW, SW], {X - 1, Y}}
+                    ]
+                )
+            )
     end.
 
 move(P, []) ->
@@ -74,11 +80,13 @@ move(P, L) ->
     move(P, tl(L)).
 
 neigbours({X, Y}) ->
-    [{X - 1, Y - 1},
-     {X, Y - 1},
-     {X + 1, Y - 1},
-     {X - 1, Y},
-     {X + 1, Y},
-     {X - 1, Y + 1},
-     {X, Y + 1},
-     {X + 1, Y + 1}].
+    [
+        {X - 1, Y - 1},
+        {X, Y - 1},
+        {X + 1, Y - 1},
+        {X - 1, Y},
+        {X + 1, Y},
+        {X - 1, Y + 1},
+        {X, Y + 1},
+        {X + 1, Y + 1}
+    ].

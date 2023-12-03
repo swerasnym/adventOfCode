@@ -27,10 +27,14 @@ star2(Data) ->
     {Cx, Cy} =
         lists:max(maps:keys(maps:filter(fun(_Key, Value) -> Value == wall end, Links))),
 
-    bfs2([{Start, 0, 0, [{"AA", 0, 0}]}],
-         #{0 => Links,
-           original => Links,
-           corner => {Cx + 1, Cy + 1}}).
+    bfs2(
+        [{Start, 0, 0, [{"AA", 0, 0}]}],
+        #{
+            0 => Links,
+            original => Links,
+            corner => {Cx + 1, Cy + 1}
+        }
+    ).
 
 read(File) ->
     {ok, Bin} = file:read_file(File),
@@ -77,15 +81,17 @@ link(Pos, {portal, "ZZ"}, {Acc, Start}) ->
     {Acc#{Pos => wall, Neigbour => goal}, Start};
 link(_Pos, {portal, P2}, {Acc, Start}) ->
     Links =
-        maps:filter(fun(_Key, Value) ->
-                       case Value of
-                           {portal, P2} ->
-                               true;
-                           _ ->
-                               false
-                       end
-                    end,
-                    Acc),
+        maps:filter(
+            fun(_Key, Value) ->
+                case Value of
+                    {portal, P2} ->
+                        true;
+                    _ ->
+                        false
+                end
+            end,
+            Acc
+        ),
 
     case maps:keys(Links) of
         [Pos1, Pos2] ->
@@ -112,15 +118,19 @@ bfs([{Pos, Dist, Path} | Rest], Maze) ->
         {Pos2, Label} ->
             case [NPos || NPos <- neigbours(Pos2), maps:get(NPos, Maze, wall) /= wall] of
                 [Neigbour] ->
-                    bfs([{Neigbour, Dist, [{Label, Dist} | Path]} | Rest],
-                        Maze#{Pos => wall, Pos2 => wall});
+                    bfs(
+                        [{Neigbour, Dist, [{Label, Dist} | Path]} | Rest],
+                        Maze#{Pos => wall, Pos2 => wall}
+                    );
                 [] ->
                     bfs(Rest, Maze)
             end;
         _ ->
             Neigbours =
-                [{NPos, Dist + 1, Path}
-                 || NPos <- neigbours(Pos), maps:get(NPos, Maze, wall) /= wall],
+                [
+                    {NPos, Dist + 1, Path}
+                 || NPos <- neigbours(Pos), maps:get(NPos, Maze, wall) /= wall
+                ],
             bfs(Rest ++ Neigbours, Maze#{Pos => wall})
     end.
 
@@ -138,8 +148,10 @@ bfs2([{Pos, Dist, Level, Path} | Rest], Mazes) ->
                     Dist;
                 _ ->
                     Neigbours =
-                        [{NPos, Dist + 1, Level, Path}
-                         || NPos <- neigbours(Pos), maps:get(NPos, Maze, wall) /= wall],
+                        [
+                            {NPos, Dist + 1, Level, Path}
+                         || NPos <- neigbours(Pos), maps:get(NPos, Maze, wall) /= wall
+                        ],
                     bfs2(Rest ++ Neigbours, Mazes#{Level => Maze#{Pos => wall}})
             end;
         {Pos2, Name} ->
@@ -150,18 +162,26 @@ bfs2([{Pos, Dist, Level, Path} | Rest], Mazes) ->
                     Maze2 = get_level(Mazes, NextLevel),
                     case [NPos || NPos <- neigbours(Pos2), maps:get(NPos, Maze2, wall) /= wall] of
                         [Neigbour] ->
-                            bfs2([{Neigbour, Dist, NextLevel, [{Name, Dist, NextLevel} | Path]}
-                                  | Rest],
-                                 Mazes#{Level => Maze#{Pos => wall},
-                                        NextLevel => Maze2#{Pos2 => wall}});
+                            bfs2(
+                                [
+                                    {Neigbour, Dist, NextLevel, [{Name, Dist, NextLevel} | Path]}
+                                    | Rest
+                                ],
+                                Mazes#{
+                                    Level => Maze#{Pos => wall},
+                                    NextLevel => Maze2#{Pos2 => wall}
+                                }
+                            );
                         [] ->
                             bfs2(Rest, Mazes#{Level => Maze})
                     end
             end;
         _ ->
             Neigbours =
-                [{NPos, Dist + 1, Level, Path}
-                 || NPos <- neigbours(Pos), maps:get(NPos, Maze, wall) /= wall],
+                [
+                    {NPos, Dist + 1, Level, Path}
+                 || NPos <- neigbours(Pos), maps:get(NPos, Maze, wall) /= wall
+                ],
             bfs2(Rest ++ Neigbours, Mazes#{Level => Maze#{Pos => wall}})
     end.
 

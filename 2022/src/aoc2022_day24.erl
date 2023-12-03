@@ -21,13 +21,17 @@ run(Star, File) ->
     end.
 
 read(File) ->
-    tools:replace(tools:read_grid(File),
-                  #{$# => wall,
-                    $. => [],
-                    $> => [east],
-                    $< => [west],
-                    $^ => [north],
-                    $v => [south]}).
+    tools:replace(
+        tools:read_grid(File),
+        #{
+            $# => wall,
+            $. => [],
+            $> => [east],
+            $< => [west],
+            $^ => [north],
+            $v => [south]
+        }
+    ).
 
 star1(Map) ->
     {N, End} = bfs(0, [{1, 0}], update_map(Map), fun reached_goal/2),
@@ -54,13 +58,15 @@ bfs(N, Ps, Map, Goal) when length(Ps) > 0 ->
 
 moves(P, Map = #{max := {Xmax, Ymax}}) ->
     %% io:format("~p", [P]),
-    [{X, Y}
+    [
+        {X, Y}
      || {X, Y} <- [P, move(P, north), move(P, south), move(P, east), move(P, west)],
         Y >= 0,
         Y =< Ymax,
         X >= 0,
         X =< Xmax,
-        maps:get({X, Y}, Map, []) == []].
+        maps:get({X, Y}, Map, []) == []
+    ].
 
 reached_goal(Ps, #{max := {_, Ymax}}) ->
     length([P || P = {_, Y} <- Ps, Y == Ymax]) > 0.

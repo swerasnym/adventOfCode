@@ -20,17 +20,61 @@ run(Star, File) ->
 
 star1(Program) ->
     Instructions =
-        ["north", "north", "north", "take mutex", "south", "south", "east", "north", "take loom",
-         "south", "west", "south", "east", "take semiconductor", "east", "take ornament", "west",
-         "west", "west", "west", "take sand", "south", "east", "take asterisk", "north",
-         "take wreath", "south", "west", "north", "north", "take dark matter", "east", "inv",
-         "drop semiconductor", "drop loom", "drop mutex", "drop sand", "drop asterisk",
-         "drop wreath", "drop dark matter", "drop ornament", "inv", "east", ""],
+        [
+            "north",
+            "north",
+            "north",
+            "take mutex",
+            "south",
+            "south",
+            "east",
+            "north",
+            "take loom",
+            "south",
+            "west",
+            "south",
+            "east",
+            "take semiconductor",
+            "east",
+            "take ornament",
+            "west",
+            "west",
+            "west",
+            "west",
+            "take sand",
+            "south",
+            "east",
+            "take asterisk",
+            "north",
+            "take wreath",
+            "south",
+            "west",
+            "north",
+            "north",
+            "take dark matter",
+            "east",
+            "inv",
+            "drop semiconductor",
+            "drop loom",
+            "drop mutex",
+            "drop sand",
+            "drop asterisk",
+            "drop wreath",
+            "drop dark matter",
+            "drop ornament",
+            "inv",
+            "east",
+            ""
+        ],
 
-    Pid = intcode:spawn(Program,
-                        [{inputpid, self()},
-                         {outputpid, self()},
-                         {input, string:join(Instructions, "\n")}]),
+    Pid = intcode:spawn(
+        Program,
+        [
+            {inputpid, self()},
+            {outputpid, self()},
+            {input, string:join(Instructions, "\n")}
+        ]
+    ),
 
     {input, String} = intcode:recvn(Pid, all),
     io:format(String),
@@ -43,14 +87,16 @@ star2(_Program) ->
 
 find_weight(Pid) ->
     Items =
-        ["semiconductor",
-         "loom",
-         "mutex",
-         "sand",
-         "asterisk",
-         "wreath",
-         "dark matter",
-         "ornament"],
+        [
+            "semiconductor",
+            "loom",
+            "mutex",
+            "sand",
+            "asterisk",
+            "wreath",
+            "dark matter",
+            "ornament"
+        ],
     find_weight(Pid, generate(Items)).
 
 find_weight(Pid, [Items | Rest]) ->

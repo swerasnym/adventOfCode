@@ -32,23 +32,29 @@ profile(Star, File, Times) ->
 profile(F, Times) ->
     Expected = F(),
     Results =
-        [begin
-             {Time, Expected} = timer:tc(F),
-             Time
-         end
-         || _ <- lists:seq(1, Times)],
+        [
+            begin
+                {Time, Expected} = timer:tc(F),
+                Time
+            end
+         || _ <- lists:seq(1, Times)
+        ],
     {Expected, lists:sum(Results) / Times / 1000}.
 
 star1([Xmin, Xmax, _Ymin, _Ymax] = Target) ->
     Vxmin = find_inital_vx_range(Xmin, 0),
     Vxmax = find_inital_vx_range(Xmax, 0),
-    lists:max([step({0, 0}, {Vx, Vy}, Target, [])
-               || Vx <- lists:seq(Vxmin - 1, Vxmax + 1), Vy <- lists:seq(0, 10000)]).
+    lists:max([
+        step({0, 0}, {Vx, Vy}, Target, [])
+     || Vx <- lists:seq(Vxmin - 1, Vxmax + 1), Vy <- lists:seq(0, 10000)
+    ]).
 
 star2([_Xmin, Xmax, Ymin, _Ymax] = Target) ->
     Steps =
-        [{Vx, Vy, step({0, 0}, {Vx, Vy}, Target, [])}
-         || Vx <- lists:seq(0, Xmax), Vy <- lists:seq(Ymin, 100)],
+        [
+            {Vx, Vy, step({0, 0}, {Vx, Vy}, Target, [])}
+         || Vx <- lists:seq(0, Xmax), Vy <- lists:seq(Ymin, 100)
+        ],
 
     Hits = lists:filter(fun({_, _, Ym}) -> Ym >= 0 end, Steps),
     {length(Hits), Hits}.
@@ -57,8 +63,9 @@ read(File) ->
     [Tuple] = tools:read_format(File, "target area: x=~d..~d, y=~d..~d"),
     Tuple.
 
-step({X, Y}, {_Vx, _Vy}, [Xmin, Xmax, Ymin, Ymax], Ys)
-    when X >= Xmin, X =< Xmax, Y >= Ymin, Y =< Ymax ->
+step({X, Y}, {_Vx, _Vy}, [Xmin, Xmax, Ymin, Ymax], Ys) when
+    X >= Xmin, X =< Xmax, Y >= Ymin, Y =< Ymax
+->
     lists:max([Y | Ys]);
 step({_X, Y}, {_Vx, _Vy}, [_Xmin, _Xmax, Ymin, _Ymax], _Ys) when Y < Ymin ->
     -1;

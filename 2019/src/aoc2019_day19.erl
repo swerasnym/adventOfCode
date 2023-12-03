@@ -17,11 +17,13 @@ run(Star, File) ->
 
 star1(Program) ->
     Result =
-        [begin
-             Result = intcode:run(Program, [{input, [X, Y]}]),
-             intcode:get_output(Result)
-         end
-         || X <- lists:seq(0, 49), Y <- lists:seq(0, 49)],
+        [
+            begin
+                Result = intcode:run(Program, [{input, [X, Y]}]),
+                intcode:get_output(Result)
+            end
+         || X <- lists:seq(0, 49), Y <- lists:seq(0, 49)
+        ],
 
     lists:sum(lists:flatten(Result)).
 
@@ -31,11 +33,15 @@ star2(Program) ->
     X * 10000 + Y.
 
 square(Xi, Yi, Program) ->
-    lists:sum(lists:flatten([begin
-                                 Result = intcode:run(Program, [{input, [X, Y]}]),
-                                 intcode:get_output(Result)
-                             end
-                             || X <- [Xi, Xi + 99], Y <- [Yi, Yi + 99]])).
+    lists:sum(
+        lists:flatten([
+            begin
+                Result = intcode:run(Program, [{input, [X, Y]}]),
+                intcode:get_output(Result)
+            end
+         || X <- [Xi, Xi + 99], Y <- [Yi, Yi + 99]
+        ])
+    ).
 
 find(X, Y, Program) ->
     case square(X, Y, Program) of
@@ -68,10 +74,13 @@ find(X, Y, y, Program) ->
     end.
 
 find(Xi, Yi, Next, _From, Program) ->
-    case lists:min([{X, Y}
-                    || X <- lists:seq(Xi - 4, Xi),
-                       Y <- lists:seq(Yi - 4, Yi),
-                       square(X, Y, Program) == 4])
+    case
+        lists:min([
+            {X, Y}
+         || X <- lists:seq(Xi - 4, Xi),
+            Y <- lists:seq(Yi - 4, Yi),
+            square(X, Y, Program) == 4
+        ])
     of
         {Xi, Yi} ->
             {Xi, Yi};

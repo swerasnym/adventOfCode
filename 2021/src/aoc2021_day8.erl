@@ -42,20 +42,26 @@ find_values({List, _}) ->
 find_values(List) ->
     Values = [{possible_values(V), V} || V <- List],
     V069 =
-        lists:filter(fun ({Vs, _}) ->
-                             Vs == [0, 6, 9];
-                         (_) ->
-                             false
-                     end,
-                     Values),
+        lists:filter(
+            fun
+                ({Vs, _}) ->
+                    Vs == [0, 6, 9];
+                (_) ->
+                    false
+            end,
+            Values
+        ),
 
     V235 =
-        lists:filter(fun ({Vs, _}) ->
-                             Vs == [2, 3, 5];
-                         (_) ->
-                             false
-                     end,
-                     Values),
+        lists:filter(
+            fun
+                ({Vs, _}) ->
+                    Vs == [2, 3, 5];
+                (_) ->
+                    false
+            end,
+            Values
+        ),
 
     {1, C1} = lists:keyfind(1, 1, Values),
     {4, C4} = lists:keyfind(4, 1, Values),
@@ -63,23 +69,29 @@ find_values(List) ->
     {8, C8} = lists:keyfind(8, 1, Values),
 
     {[{_, C3}], V25} =
-        lists:partition(fun({_, C}) -> all_of(C, C1) end, V235), %% 3 only with all of 1
+        %% 3 only with all of 1
+        lists:partition(fun({_, C}) -> all_of(C, C1) end, V235),
     {[{_, C9}], V06} =
-        lists:partition(fun({_, C}) -> all_of(C, C4) end, V069), %% 9 only with all of 4
+        %% 9 only with all of 4
+        lists:partition(fun({_, C}) -> all_of(C, C4) end, V069),
     {[{_, C0}], [{_, C6}]} =
-        lists:partition(fun({_, C}) -> all_of(C, C7) end, V06), %% 0 only with all of 7
+        %% 0 only with all of 7
+        lists:partition(fun({_, C}) -> all_of(C, C7) end, V06),
     {[{_, C5}], [{_, C2}]} =
-        lists:partition(fun({_, C}) -> all_of(C6, C) end, V25), %% 6 only with all of 5
-    [{lists:sort(C1), 1},
-     {lists:sort(C2), 2},
-     {lists:sort(C3), 3},
-     {lists:sort(C4), 4},
-     {lists:sort(C5), 5},
-     {lists:sort(C6), 6},
-     {lists:sort(C7), 7},
-     {lists:sort(C8), 8},
-     {lists:sort(C9), 9},
-     {lists:sort(C0), 0}].
+        %% 6 only with all of 5
+        lists:partition(fun({_, C}) -> all_of(C6, C) end, V25),
+    [
+        {lists:sort(C1), 1},
+        {lists:sort(C2), 2},
+        {lists:sort(C3), 3},
+        {lists:sort(C4), 4},
+        {lists:sort(C5), 5},
+        {lists:sort(C6), 6},
+        {lists:sort(C7), 7},
+        {lists:sort(C8), 8},
+        {lists:sort(C9), 9},
+        {lists:sort(C0), 0}
+    ].
 
 possible_values(L) when is_list(L) ->
     possible_values(length(L));

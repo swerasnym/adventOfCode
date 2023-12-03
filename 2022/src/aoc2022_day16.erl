@@ -39,8 +39,10 @@ star2(Lines) ->
     ALL = lists:sum([N || {_, #{n := N}} <- PosN]),
     State = maps:from_list(PosN ++ Zero),
     Start = "AA",
-    lists:max([dfs(26, Start, State, ALL - Mask) + dfs(26, Start, State, Mask)
-               || Mask <- lists:seq(0, ALL)]).
+    lists:max([
+        dfs(26, Start, State, ALL - Mask) + dfs(26, Start, State, Mask)
+     || Mask <- lists:seq(0, ALL)
+    ]).
 
 parse_valves(L) ->
     {F, S} =
@@ -53,10 +55,11 @@ parse_valves(L) ->
 
     [[Tunnel, Rate]] = tools:parse_format(F, "Valve ~s has flow rate=~d"),
     To = string:split(S, ", ", all),
-    {Tunnel,
-     #{n => 0,
-       rate => Rate,
-       to => [T || T <- To]}}.
+    {Tunnel, #{
+        n => 0,
+        rate => Rate,
+        to => [T || T <- To]
+    }}.
 
 dfs(0, _, _, _) ->
     0;
@@ -65,13 +68,18 @@ dfs(TimeLeft, Position, State, Open) ->
         undefined ->
             Value =
                 case maps:get(Position, State) of
-                    #{rate := Rate,
-                      to := To,
-                      n := N}
-                        when Rate > 0, N band Open == 0 ->
-                        lists:max([Rate * (TimeLeft - 1)
-                                   + dfs(TimeLeft - 1, Position, State, Open + N)
-                                   | [dfs(TimeLeft - 1, T, State, Open) || T <- To]]);
+                    #{
+                        rate := Rate,
+                        to := To,
+                        n := N
+                    } when
+                        Rate > 0, N band Open == 0
+                    ->
+                        lists:max([
+                            Rate * (TimeLeft - 1) +
+                                dfs(TimeLeft - 1, Position, State, Open + N)
+                            | [dfs(TimeLeft - 1, T, State, Open) || T <- To]
+                        ]);
                     #{to := To} ->
                         lists:max([dfs(TimeLeft - 1, T, State, Open) || T <- To])
                 end,

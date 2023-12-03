@@ -23,13 +23,16 @@ star2(Data) ->
     Iterations = 200,
     Map = map2(Data, Iterations),
     Map1 = iterate2(Map, Iterations),
-    maps:fold(fun (_, bug, Acc) ->
-                      Acc + 1;
-                  (_, empty, Acc) ->
-                      Acc
-              end,
-              0,
-              Map1).
+    maps:fold(
+        fun
+            (_, bug, Acc) ->
+                Acc + 1;
+            (_, empty, Acc) ->
+                Acc
+        end,
+        0,
+        Map1
+    ).
 
 read(File) ->
     {ok, Bin} = file:read_file(File),
@@ -83,17 +86,19 @@ cell(Pos, Value, Map) ->
     end.
 
 rating(Map) ->
-    maps:fold(fun(Pos, Value, Acc) ->
-                 case {Pos, Value} of
-                     {_, empty} ->
-                         0;
-                     {Pos, bug} ->
-                         value(Pos)
-                 end
-                 + Acc
-              end,
-              0,
-              Map).
+    maps:fold(
+        fun(Pos, Value, Acc) ->
+            case {Pos, Value} of
+                {_, empty} ->
+                    0;
+                {Pos, bug} ->
+                    value(Pos)
+            end +
+                Acc
+        end,
+        0,
+        Map
+    ).
 
 value({X, Y}) ->
     pow(2, X + 5 * Y).
@@ -104,27 +109,30 @@ pow(A, 1) ->
     A;
 pow(A, N) ->
     B = pow(A, N div 2),
-    B
-    * B
-    * case N rem 2 of
-          0 ->
-              1;
-          1 ->
-              A
-      end.
+    B *
+        B *
+        case N rem 2 of
+            0 ->
+                1;
+            1 ->
+                A
+        end.
 
 map2(Map, Iterations) ->
     Levels = (Iterations + 1) div 2,
     Map0 =
-        maps:from_list([{{Level, X, Y}, empty}
-                        || X <- lists:seq(0, 4),
-                           Y <- lists:seq(0, 4),
-                           Level <- lists:seq(-Levels, Levels)]),
+        maps:from_list([
+            {{Level, X, Y}, empty}
+         || X <- lists:seq(0, 4),
+            Y <- lists:seq(0, 4),
+            Level <- lists:seq(-Levels, Levels)
+        ]),
     maps:fold(fun({X, Y}, Value, Acc) -> Acc#{{0, X, Y} => Value} end, Map0, Map).
 
 neigbours({X, Y}) ->
     [{X, Y - 1}, {X, Y + 1}, {X - 1, Y}, {X + 1, Y}];
-neigbours({_, 2, 2}) -> %? (middle)
+%? (middle)
+neigbours({_, 2, 2}) ->
     [];
 neigbours({Level, X, Y}) ->
     Base = [{Level, X, Y - 1}, {Level, X, Y + 1}, {Level, X - 1, Y}, {Level, X + 1, Y}],
@@ -132,31 +140,44 @@ neigbours({Level, X, Y}) ->
     Extra =
         case {X, Y} of
             {0, 0} ->
-                [8, 12]; %a
+                %a
+                [8, 12];
             {0, 4} ->
-                [12, 18]; %u
+                %u
+                [12, 18];
             {4, 0} ->
-                [8, 14]; %e
+                %e
+                [8, 14];
             {4, 4} ->
-                [14, 18]; %y
+                %y
+                [14, 18];
             {0, _} ->
-                [12]; % f,k,p
+                % f,k,p
+                [12];
             {4, _} ->
-                [14]; % j,o,t
+                % j,o,t
+                [14];
             {_, 0} ->
-                [8]; % b,c,d
+                % b,c,d
+                [8];
             {_, 4} ->
-                [18];% v,w,x
+                % v,w,x
+                [18];
             {2, 1} ->
-                [a, b, c, d, e]; %h
+                %h
+                [a, b, c, d, e];
             {1, 2} ->
-                [a, f, k, p, u]; %l
+                %l
+                [a, f, k, p, u];
             {3, 2} ->
-                [e, j, o, t, y]; %n
+                %n
+                [e, j, o, t, y];
             {2, 3} ->
-                [u, v, w, x, y]; %r
+                %r
+                [u, v, w, x, y];
             {_, _} ->
-                []% g,i,s,q
+                % g,i,s,q
+                []
         end,
     Base ++ lists:map(fun(Label) -> un_label(Label, Level) end, Extra).
 

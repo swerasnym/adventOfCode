@@ -59,9 +59,12 @@ fall(Grid, B) ->
 fall({X, B}, Grid, B) ->
     fall(Grid#{{X, B} => $O}, B);
 fall({X, Y}, Grid, B) ->
-    case {maps:get({X - 1, Y + 1}, Grid, empty),
-          maps:get({X, Y + 1}, Grid, empty),
-          maps:get({X + 1, Y + 1}, Grid, empty)}
+    case
+        {
+            maps:get({X - 1, Y + 1}, Grid, empty),
+            maps:get({X, Y + 1}, Grid, empty),
+            maps:get({X + 1, Y + 1}, Grid, empty)
+        }
     of
         {_, empty, _} ->
             fall({X, Y + 1}, Grid, B);

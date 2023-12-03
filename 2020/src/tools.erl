@@ -1,18 +1,55 @@
--module(tools).%% @doc tools used for solving AdventOfCode
+%% @doc tools used for solving AdventOfCode
+-module(tools).
 
--export([ws/0, count/1, count/2, product/1, dsort/1, rotate/2, rotatewhile/2, repeat/3,
-         group/2, replace/2, replace/3, replace/4]).
+-export([
+    ws/0,
+    count/1, count/2,
+    product/1,
+    dsort/1,
+    rotate/2,
+    rotatewhile/2,
+    repeat/3,
+    group/2,
+    replace/2, replace/3, replace/4
+]).
 -export([read_string/1, read_tokens/2]).
--export([read_format/2, read_integers/1, read_integers/2, read_integers/3, read_lines/1,
-         read_lines/2, read_blocks/1, read_blocks/2]).
--export([parse_format/2, parse_lines/1, parse_lines/2, parse_integers/1, parse_integers/2,
-         parse_integers/3, parse_blocks/1, parse_blocks/2]).
+-export([
+    read_format/2,
+    read_integers/1, read_integers/2, read_integers/3,
+    read_lines/1,
+    read_lines/2,
+    read_blocks/1, read_blocks/2
+]).
+-export([
+    parse_format/2,
+    parse_lines/1, parse_lines/2,
+    parse_integers/1, parse_integers/2, parse_integers/3,
+    parse_blocks/1, parse_blocks/2
+]).
 -export([as_term/1, eval/1]).
--export([read_grid/1, read_grid/2, parse_grid/1, parse_grid/2, rotate_grid/1,
-         rotate_grid/2, flip_grid/1, flip_grid/2, print_grid/1, sub_grid/3, drop_max/1,
-         lists_to_grid/1, grid_to_lists/1, grid_to_lists/2, translate_grid/2, minmax_grid/1]).
--export([sign/1, gcd/1, gcd/2, lcm/1, lcm/2, egcd/2, mod_inv/2, mod/2,
-         chinese_remainder/1]).
+-export([
+    read_grid/1, read_grid/2,
+    parse_grid/1, parse_grid/2,
+    rotate_grid/1,
+    rotate_grid/2,
+    flip_grid/1, flip_grid/2,
+    print_grid/1,
+    sub_grid/3,
+    drop_max/1,
+    lists_to_grid/1,
+    grid_to_lists/1, grid_to_lists/2,
+    translate_grid/2,
+    minmax_grid/1
+]).
+-export([
+    sign/1,
+    gcd/1, gcd/2,
+    lcm/1, lcm/2,
+    egcd/2,
+    mod_inv/2,
+    mod/2,
+    chinese_remainder/1
+]).
 
 -spec ws() -> string().
 ws() ->
@@ -20,8 +57,9 @@ ws() ->
 
 %% @doc Generates a map of counnts of the terims in the collection.
 
--spec count(Map) -> #{Value => integer()} when Map :: #{_ => Value};
-           (List) -> #{Value => integer()} when List :: [Value].
+-spec count
+    (Map) -> #{Value => integer()} when Map :: #{_ => Value};
+    (List) -> #{Value => integer()} when List :: [Value].
 count(Map) when is_map(Map) ->
     count(maps:values(Map));
 count(List) when is_list(List) ->
@@ -326,20 +364,26 @@ print_grid(Grid) ->
     io:format("~ts~n", [grid_to_string(Grid)]).
 
 grid_to_string(Grid = #{max := {Xmax, Ymax}}) ->
-    string:join([[maps:get({X, Y}, Grid, $\s) || X <- lists:seq(0, Xmax)]
-                 || Y <- lists:seq(0, Ymax)],
-                "\n");
+    string:join(
+        [
+            [maps:get({X, Y}, Grid, $\s) || X <- lists:seq(0, Xmax)]
+         || Y <- lists:seq(0, Ymax)
+        ],
+        "\n"
+    );
 grid_to_string(Map) ->
     grid_to_string(grid_from_2d(Map)).
 
 sub_grid(Grid, {Xmin, Ymin}, {Xmax, Ymax}) ->
     SubGrid =
-        maps:from_list([{{X - Xmin, Y - Ymin}, Value}
-                        || {{X, Y}, Value} <- maps:to_list(Grid),
-                           X >= Xmin,
-                           X =< Xmax,
-                           Y >= Ymin,
-                           Y =< Ymax]),
+        maps:from_list([
+            {{X - Xmin, Y - Ymin}, Value}
+         || {{X, Y}, Value} <- maps:to_list(Grid),
+            X >= Xmin,
+            X =< Xmax,
+            Y >= Ymin,
+            Y =< Ymax
+        ]),
     SubGrid#{max => {Xmax - Xmin, Ymax - Ymin}}.
 
 grid_from_2d(Map) ->
@@ -437,10 +481,16 @@ chinese_remainder(Congruences) ->
             undefined;
         Inverses ->
             Solution =
-                lists:sum([A * B
-                           || {A, B}
-                                  <- lists:zip(CRTModulii,
-                                               [A * B
-                                                || {A, B} <- lists:zip(Residues, Inverses)])]),
+                lists:sum([
+                    A * B
+                 || {A, B} <-
+                        lists:zip(
+                            CRTModulii,
+                            [
+                                A * B
+                             || {A, B} <- lists:zip(Residues, Inverses)
+                            ]
+                        )
+                ]),
             mod(Solution, ModPI)
     end.

@@ -60,7 +60,8 @@ phase2(List) ->
     [phase2(List, Position) || Position <- lists:seq(1, length(List))].
 
 phase2(List, Position) ->
-    {_First1, Rest1} = split(Position - 1, List), % drop first
+    % drop first
+    {_First1, Rest1} = split(Position - 1, List),
     {First2, Rest2} = split(Position, Rest1),
     {_First3, Rest3} = split(Position, Rest2),
     {First4, Rest4} = split(Position, Rest3),

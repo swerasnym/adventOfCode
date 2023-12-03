@@ -42,15 +42,17 @@ fill(Maze, [Head | Rest], _) ->
 
     Directions = directions(),
     Dirs =
-        lists:filter(fun(Dir) ->
-                        case maps:get(move(Head, Dir), Maze) of
-                            {open, _} ->
-                                true;
-                            _ ->
-                                false
-                        end
-                     end,
-                     Directions),
+        lists:filter(
+            fun(Dir) ->
+                case maps:get(move(Head, Dir), Maze) of
+                    {open, _} ->
+                        true;
+                    _ ->
+                        false
+                end
+            end,
+            Directions
+        ),
 
     New = [move(Head, Dir) || Dir <- Dirs],
 
@@ -62,8 +64,10 @@ solve(Pid, Pos, Maze, Steps) ->
     {_, Back} = maps:get(Pos, Maze),
     Directions = directions(),
 
-    New = lists:filter(fun(Dir) -> maps:get(move(Pos, Dir), Maze, new) == new end,
-                       Directions),
+    New = lists:filter(
+        fun(Dir) -> maps:get(move(Pos, Dir), Maze, new) == new end,
+        Directions
+    ),
 
     case New of
         [] ->
@@ -98,9 +102,11 @@ paint(Hull) ->
     Xs = [X || {X, _} <- maps:keys(Hull)],
     Ys = [Y || {_, Y} <- maps:keys(Hull)],
 
-    [paint({X, Y}, Hull, lists:max(Xs))
+    [
+        paint({X, Y}, Hull, lists:max(Xs))
      || Y <- lists:seq(lists:min(Ys), lists:max(Ys)),
-        X <- lists:seq(lists:min(Xs), lists:max(Xs))],
+        X <- lists:seq(lists:min(Xs), lists:max(Xs))
+    ],
 
     io:format("~n~n", []).
 

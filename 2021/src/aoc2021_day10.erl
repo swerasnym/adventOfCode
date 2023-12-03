@@ -23,8 +23,10 @@ star2(Data) ->
     Results = [check(D, []) || D <- Data],
     Incoplete = [I || I <- Results, is_list(I)],
     Scores =
-        lists:sort([lists:foldl(fun(V, Score) -> Score * 5 + score_i(V) end, 0, Line)
-                    || Line <- Incoplete]),
+        lists:sort([
+            lists:foldl(fun(V, Score) -> Score * 5 + score_i(V) end, 0, Line)
+         || Line <- Incoplete
+        ]),
 
     lists:nth(length(Scores) div 2 + 1, Scores).
 

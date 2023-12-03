@@ -32,11 +32,13 @@ profile(Star, File, Times) ->
 profile(F, Times) ->
     Expected = F(),
     Results =
-        [begin
-             {Time, Expected} = timer:tc(F),
-             Time
-         end
-         || _ <- lists:seq(1, Times)],
+        [
+            begin
+                {Time, Expected} = timer:tc(F),
+                Time
+            end
+         || _ <- lists:seq(1, Times)
+        ],
     {Expected, lists:sum(Results) / Times / 1000}.
 
 star1(Data) ->
@@ -48,8 +50,10 @@ star2(Data) ->
     Corrected = find_overlaps([{hd(Data), {0, 0, 0}}], tl(Data), []),
     Points = [Off || {{_H, _Ps}, Off} <- Corrected],
 
-    lists:max([abs(X1 - X2) + abs(Y1 - Y2) + abs(Z1 - Z2)
-               || {X1, Y1, Z1} <- Points, {X2, Y2, Z2} <- Points]).
+    lists:max([
+        abs(X1 - X2) + abs(Y1 - Y2) + abs(Z1 - Z2)
+     || {X1, Y1, Z1} <- Points, {X2, Y2, Z2} <- Points
+    ]).
 
 read(File) ->
     tools:read_blocks(File, fun parse_block/1).
@@ -79,30 +83,32 @@ get_dir(nz, {_, _, Z}) ->
     -Z.
 
 orientations() ->
-    [[x, y, z],
-     [x, z, ny],
-     [x, ny, nz],
-     [x, nz, y],
-     [y, z, x],
-     [y, x, nz],
-     [y, nz, nx],
-     [y, nx, z],
-     [nx, ny, z],
-     [nx, z, y],
-     [nx, y, nz],
-     [nx, nz, ny],
-     [ny, nz, x],
-     [ny, x, z],
-     [ny, z, nx],
-     [ny, nx, nz],
-     [nz, x, ny],
-     [nz, ny, nx],
-     [nz, nx, y],
-     [nz, y, x],
-     [z, x, y],
-     [z, y, nx],
-     [z, nx, ny],
-     [z, ny, x]].
+    [
+        [x, y, z],
+        [x, z, ny],
+        [x, ny, nz],
+        [x, nz, y],
+        [y, z, x],
+        [y, x, nz],
+        [y, nz, nx],
+        [y, nx, z],
+        [nx, ny, z],
+        [nx, z, y],
+        [nx, y, nz],
+        [nx, nz, ny],
+        [ny, nz, x],
+        [ny, x, z],
+        [ny, z, nx],
+        [ny, nx, nz],
+        [nz, x, ny],
+        [nz, ny, nx],
+        [nz, nx, y],
+        [nz, y, x],
+        [z, x, y],
+        [z, y, nx],
+        [z, nx, ny],
+        [z, ny, x]
+    ].
 
 translate(List, Translation) when is_list(List) ->
     [translate(L, Translation) || L <- List];
@@ -121,12 +127,14 @@ find_overlaps([{{_Head, P1s}, _Offset} = First | Rest], Missing, Used) ->
     {StillMissing, Found} = lists:partition(fun({_, OO}) -> OO == none end, Oao),
 
     Correct =
-        [begin
-             Oriented = orient(Ps, Orientation),
-             Translated = translate(Oriented, Offset),
-             {{Head, Translated}, Offset}
-         end
-         || {{Head, Ps}, {Orientation, Offset}} <- Found],
+        [
+            begin
+                Oriented = orient(Ps, Orientation),
+                Translated = translate(Oriented, Offset),
+                {{Head, Translated}, Offset}
+            end
+         || {{Head, Ps}, {Orientation, Offset}} <- Found
+        ],
     %% io:format("StillMissing ~p  Found ~n ~p ~n  Correct ~p~n~n", [StillMissing, Found, Correct]),
     %% io:format("Found ~p~n Corr ~p~n", [Found , Correct]),
     find_overlaps(Rest ++ Correct, [V || {V, none} <- StillMissing], [First | Used]).
@@ -143,5 +151,9 @@ oo(P1s, P2s) ->
     [{O, offsets(P1s, orient(P2s, O))} || O <- orientations()].
 
 offsets(P1s, P2s) ->
-    maps:keys(maps:filter(fun(_K, V) -> V >= 12 end,
-                          tools:count([diff(P1, P2) || P1 <- P1s, P2 <- P2s]))).
+    maps:keys(
+        maps:filter(
+            fun(_K, V) -> V >= 12 end,
+            tools:count([diff(P1, P2) || P1 <- P1s, P2 <- P2s])
+        )
+    ).

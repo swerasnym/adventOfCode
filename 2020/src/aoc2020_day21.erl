@@ -22,8 +22,10 @@ star1(Data) ->
     Alergens = sets:union(AllergensSets),
 
     IngridientsWAllergen =
-        [{Allergen, [Is || {Is, As} <- Data, sets:is_element(Allergen, As)]}
-         || Allergen <- sets:to_list(Alergens)],
+        [
+            {Allergen, [Is || {Is, As} <- Data, sets:is_element(Allergen, As)]}
+         || Allergen <- sets:to_list(Alergens)
+        ],
 
     PossibleAllergens =
         [{Allergen, sets:intersection(Isets)} || {Allergen, Isets} <- IngridientsWAllergen],
@@ -40,15 +42,19 @@ star2(Data) ->
     Alergens = sets:union(AllergensSets),
 
     IngridientsWAllergen =
-        [{Allergen, [Is || {Is, As} <- Data, sets:is_element(Allergen, As)]}
-         || Allergen <- sets:to_list(Alergens)],
+        [
+            {Allergen, [Is || {Is, As} <- Data, sets:is_element(Allergen, As)]}
+         || Allergen <- sets:to_list(Alergens)
+        ],
 
     PossibleAllergens =
         [{Allergen, sets:intersection(Isets)} || {Allergen, Isets} <- IngridientsWAllergen],
 
     ProcessResult =
-        process_counts([{sets:size(Set), Ingridient, Set}
-                        || {Ingridient, Set} <- PossibleAllergens]),
+        process_counts([
+            {sets:size(Set), Ingridient, Set}
+         || {Ingridient, Set} <- PossibleAllergens
+        ]),
     {_, ResultList} = lists:unzip(lists:sort(ProcessResult)),
     string:join(ResultList, ",").
 
@@ -77,8 +83,10 @@ process_counts([First | Rest], Result, Left) ->
     process_counts(Rest, Result, [First | Left]).
 
 remove_ingridient(Lists, Ingridient) ->
-    [begin
-         Set = sets:del_element(Ingridient, OldSet),
-         {sets:size(Set), Alergen, Set}
-     end
-     || {_, Alergen, OldSet} <- Lists].
+    [
+        begin
+            Set = sets:del_element(Ingridient, OldSet),
+            {sets:size(Set), Alergen, Set}
+        end
+     || {_, Alergen, OldSet} <- Lists
+    ].

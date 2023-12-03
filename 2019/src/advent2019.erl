@@ -1,7 +1,6 @@
 -module(advent2019).
 
--export([run/0, run/1, run/2, run/3, average/0, average/1, average/2, average/3,
-         average/4]).
+-export([run/0, run/1, run/2, run/3, average/0, average/1, average/2, average/3, average/4]).
 
 file(Name) when is_atom(Name) ->
     file(atom_to_list(Name) ++ ".data");
@@ -18,22 +17,25 @@ file(Name) ->
     filename:join([Src, "../data/", Name]).
 
 days() ->
-    To = case calendar:universal_time() of
-             {Date, _} when Date > {2019, 12, 25} ->
-                 25;
-             {{2019, 12, Day}, Time} when Time >= {5, 0, 0} ->
-                 Day;
-             {{2019, 12, Day}, _} ->
-                 Day - 1
-         end,
+    To =
+        case calendar:universal_time() of
+            {Date, _} when Date > {2019, 12, 25} ->
+                25;
+            {{2019, 12, Day}, Time} when Time >= {5, 0, 0} ->
+                Day;
+            {{2019, 12, Day}, _} ->
+                Day - 1
+        end,
     days(To).
 
 days(To) ->
-    [begin
-         String = lists:flatten(["aoc2019_day", integer_to_list(Day)]),
-         list_to_atom(String)
-     end
-     || Day <- lists:seq(1, To)].
+    [
+        begin
+            String = lists:flatten(["aoc2019_day", integer_to_list(Day)]),
+            list_to_atom(String)
+        end
+     || Day <- lists:seq(1, To)
+    ].
 
 run() ->
     Results = [execute(Day) || Day <- days()],
@@ -105,11 +107,13 @@ parallel_average(Times, Day, Star, File) ->
     Pids = [spawn_link(Run) || _ <- lists:seq(1, Times)],
 
     Runs =
-        [receive
-             {Pid, Master, Result} ->
-                 Result
-         end
-         || Pid <- Pids],
+        [
+            receive
+                {Pid, Master, Result} ->
+                    Result
+            end
+         || Pid <- Pids
+        ],
 
     {Day, Star, _Time, Result} = hd(Runs),
     RunTimes = [Time || {_Day, _Star, Time, _Result} <- Runs],

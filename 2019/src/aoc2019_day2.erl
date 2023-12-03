@@ -22,16 +22,16 @@ star1(Program) ->
 
 star2(Program) ->
     F = fun(Noun, Verb) ->
-           Options = [{set, Noun, 1}, {set, Verb, 2}],
-           Result = intcode:run(Program, Options),
+        Options = [{set, Noun, 1}, {set, Verb, 2}],
+        Result = intcode:run(Program, Options),
 
-           case intcode:get(0, Result) of
-               19690720 ->
-                   done;
-               _ ->
-                   continue
-           end
-        end,
+        case intcode:get(0, Result) of
+            19690720 ->
+                done;
+            _ ->
+                continue
+        end
+    end,
 
     seek(F, 0, 0).
 

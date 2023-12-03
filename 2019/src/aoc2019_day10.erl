@@ -38,9 +38,11 @@ read(Device, Row, Acc) ->
         {ok, Line0} ->
             Fold = fun({Elem, Column}, AccIn) -> AccIn#{{Column, Row} => Elem} end,
             Line = string:trim(Line0),
-            read(Device,
-                 Row + 1,
-                 lists:foldl(Fold, Acc, lists:zip(Line, lists:seq(0, length(Line) - 1))))
+            read(
+                Device,
+                Row + 1,
+                lists:foldl(Fold, Acc, lists:zip(Line, lists:seq(0, length(Line) - 1)))
+            )
     end.
 
 dim(Data) ->
@@ -60,11 +62,13 @@ hits(Base, Data) ->
         $# ->
             Dirs = directions(Data),
             Hits =
-                lists:sum([hits(Base, {DC, DR}, Data)
-                           + hits(Base, {-DC, DR}, Data)
-                           + hits(Base, {DC, -DR}, Data)
-                           + hits(Base, {-DC, -DR}, Data)
-                           || {DC, DR} <- Dirs]),
+                lists:sum([
+                    hits(Base, {DC, DR}, Data) +
+                        hits(Base, {-DC, DR}, Data) +
+                        hits(Base, {DC, -DR}, Data) +
+                        hits(Base, {-DC, -DR}, Data)
+                 || {DC, DR} <- Dirs
+                ]),
 
             Hits2 = lists:sum([hits(Base, Dir, Data) || Dir <- [{0, 1}, {1, 0}, {-1, 0}, {0, -1}]]),
             {Hits + Hits2, Base}

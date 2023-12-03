@@ -22,11 +22,13 @@ run(Star, File) ->
 
 %% Note started 15 min late
 read(File) ->
-    tools:read_lines(File,
-                     fun(L) ->
-                        [[A, B, C, D]] = tools:parse_format(L, "~d-~d,~d-~d"),
-                        {{A, B}, {C, D}}
-                     end).
+    tools:read_lines(
+        File,
+        fun(L) ->
+            [[A, B, C, D]] = tools:parse_format(L, "~d-~d,~d-~d"),
+            {{A, B}, {C, D}}
+        end
+    ).
 
 star1(Data) ->
     length(lists:filter(fun contained/1, Data)).

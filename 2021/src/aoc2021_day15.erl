@@ -32,11 +32,13 @@ profile(Star, File, Times) ->
 profile(F, Times) ->
     Expected = F(),
     Results =
-        [begin
-             {Time, Expected} = timer:tc(F),
-             Time
-         end
-         || _ <- lists:seq(1, Times)],
+        [
+            begin
+                {Time, Expected} = timer:tc(F),
+                Time
+            end
+         || _ <- lists:seq(1, Times)
+        ],
     {Expected, lists:sum(Results) / Times / 1000}.
 
 star1(#{max := Max} = Map) ->
@@ -63,25 +65,30 @@ bfs(End, [{Risk, Pos} | Rest], Map) ->
         visited ->
             bfs(End, Rest, Map);
         _ ->
-            New = [{Risk + NRisk, N}
-                   || N <- neigbours(Pos), visited /= (NRisk = maps:get(N, Map, visited))],
+            New = [
+                {Risk + NRisk, N}
+             || N <- neigbours(Pos), visited /= (NRisk = maps:get(N, Map, visited))
+            ],
             bfs(End, lists:umerge(Rest, lists:sort(New)), Map#{Pos => visited})
     end.
 
 build_map(#{max := {Mx, My}} = Map) ->
     Translated =
-        [{tools:translate_grid(Map, {(Mx + 1) * X, (My + 1) * Y}), X + Y}
-         || X <- lists:seq(0, 4), Y <- lists:seq(0, 4)],
+        [
+            {tools:translate_grid(Map, {(Mx + 1) * X, (My + 1) * Y}), X + Y}
+         || X <- lists:seq(0, 4), Y <- lists:seq(0, 4)
+        ],
     NewMaps = lists:map(fun update/1, Translated),
     F = fun(V, Acc) -> maps:merge_with(fun merge/3, V, Acc) end,
     lists:foldl(F, #{}, NewMaps).
 
 update({Map, Mod}) ->
-    F = fun (max, V) ->
-                V;
-            (_K, V) ->
-                (V + Mod - 1) rem 9 + 1
-        end,
+    F = fun
+        (max, V) ->
+            V;
+        (_K, V) ->
+            (V + Mod - 1) rem 9 + 1
+    end,
     maps:map(F, Map).
 
 merge(max, V1, V2) when V1 > V2 ->

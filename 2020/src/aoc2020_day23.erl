@@ -66,8 +66,9 @@ insert(Ref, Pos, New) ->
 
 destination(0, Pickup, Max) ->
     destination(Max, Pickup, Max);
-destination(Dest, [Cup1, Cup2, Cup3], _Max)
-    when Dest /= Cup1, Dest /= Cup2, Dest /= Cup3 ->
+destination(Dest, [Cup1, Cup2, Cup3], _Max) when
+    Dest /= Cup1, Dest /= Cup2, Dest /= Cup3
+->
     Dest;
 destination(Dest, Pickup, Max) ->
     destination(Dest - 1, Pickup, Max).

@@ -31,11 +31,13 @@ profile(Star, File, Times) ->
 profile(F, Times) ->
     Expected = F(),
     Results =
-        [begin
-             {Time, Expected} = timer:tc(F),
-             Time
-         end
-         || _ <- lists:seq(1, Times)],
+        [
+            begin
+                {Time, Expected} = timer:tc(F),
+                Time
+            end
+         || _ <- lists:seq(1, Times)
+        ],
     {Expected, lists:sum(Results) / Times / 1000}.
 
 eprof(Star, File) ->
@@ -54,10 +56,14 @@ star2(_Data) ->
     "Got 50 stars: Remotly start slead".
 
 read(File) ->
-    tools:read_grid(File,
-                    #{$> => east,
-                      $v => south,
-                      $. => empty}).
+    tools:read_grid(
+        File,
+        #{
+            $> => east,
+            $v => south,
+            $. => empty
+        }
+    ).
 
 step(Map, Step) ->
     East = maps:fold(east(Map), #{}, Map),
@@ -75,7 +81,8 @@ step(Map, Step) ->
     end.
 
 east(#{max := {MaxX, _}} = Grid) ->
-    fun ({X, Y} = Pos, east, Acc) when X == MaxX ->
+    fun
+        ({X, Y} = Pos, east, Acc) when X == MaxX ->
             case maps:get({0, Y}, Grid) of
                 empty ->
                     Acc1 = maps:put(Pos, empty, Acc),
@@ -96,7 +103,8 @@ east(#{max := {MaxX, _}} = Grid) ->
     end.
 
 south(#{max := {_, MaxY}} = Grid) ->
-    fun ({X, Y} = Pos, south, Acc) when Y == MaxY ->
+    fun
+        ({X, Y} = Pos, south, Acc) when Y == MaxY ->
             case maps:get({X, 0}, Grid) of
                 empty ->
                     Acc1 = maps:put(Pos, empty, Acc),

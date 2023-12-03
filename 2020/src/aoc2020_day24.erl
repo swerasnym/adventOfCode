@@ -78,18 +78,18 @@ iterate(N, Floor) ->
 
     Update =
         fun(Pos, Acc) ->
-           Neigbours = [Neigbour || Neigbour <- neigbours(Pos), maps:is_key(Neigbour, Floor)],
+            Neigbours = [Neigbour || Neigbour <- neigbours(Pos), maps:is_key(Neigbour, Floor)],
 
-           case {maps:get(Pos, Floor, white), length(Neigbours)} of
-               {black, 1} ->
-                   Acc#{Pos => black};
-               {black, 2} ->
-                   Acc#{Pos => black};
-               {white, 2} ->
-                   Acc#{Pos => black};
-               _ ->
-                   Acc
-           end
+            case {maps:get(Pos, Floor, white), length(Neigbours)} of
+                {black, 1} ->
+                    Acc#{Pos => black};
+                {black, 2} ->
+                    Acc#{Pos => black};
+                {white, 2} ->
+                    Acc#{Pos => black};
+                _ ->
+                    Acc
+            end
         end,
     iterate(N - 1, lists:foldl(Update, #{}, NewPos)).
 

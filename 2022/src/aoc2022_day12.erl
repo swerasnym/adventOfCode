@@ -9,16 +9,17 @@ run() ->
 
 run(Star, File) ->
     Data = read(File),
-    Res = case Star of
-              star1 ->
-                  star1(Data);
-              star2 ->
-                  star2(Data);
-              _ ->
-                  Star1 = star1(Data),
-                  Star2 = star2(Data),
-                  {Star1, Star2}
-          end,
+    Res =
+        case Star of
+            star1 ->
+                star1(Data);
+            star2 ->
+                star2(Data);
+            _ ->
+                Star1 = star1(Data),
+                Star2 = star2(Data),
+                {Star1, Star2}
+        end,
     erlang:erase(),
     Res.
 
@@ -38,23 +39,29 @@ star2(Map) ->
     search_down([{End, $z, 0}], Map#{Start => $a, End => $z}).
 
 neigbours({X, Y}) ->
-    [{X + Dx, Y + Dy}
-     || Dx <- [-1, 0, 1], Dy <- [-1, 0, 1], {Dx, Dy} /= {0, 0}, Dx * Dy == 0].
+    [
+        {X + Dx, Y + Dy}
+     || Dx <- [-1, 0, 1], Dy <- [-1, 0, 1], {Dx, Dy} /= {0, 0}, Dx * Dy == 0
+    ].
 
 search_up([{End, _Height, Steps} | _Rest], End, _Map) ->
     Steps;
 search_up([{Pos, Height, Steps} | Rest], End, Map) ->
-    N = [{P, H, Steps + 1}
-         || P <- neigbours(Pos),
-            (H = maps:get(P, Map, $a + 100)) =< Height + 1,
-            put(P, visited) /= visited],
+    N = [
+        {P, H, Steps + 1}
+     || P <- neigbours(Pos),
+        (H = maps:get(P, Map, $a + 100)) =< Height + 1,
+        put(P, visited) /= visited
+    ],
     search_up(Rest ++ N, End, Map).
 
 search_down([{_End, $a, Steps} | _Rest], _Map) ->
     Steps;
 search_down([{Pos, Height, Steps} | Rest], Map) ->
-    N = [{P, H, Steps + 1}
-         || P <- neigbours(Pos),
-            (H = maps:get(P, Map, -100)) + 1 >= Height,
-            put(P, visited) /= visited],
+    N = [
+        {P, H, Steps + 1}
+     || P <- neigbours(Pos),
+        (H = maps:get(P, Map, -100)) + 1 >= Height,
+        put(P, visited) /= visited
+    ],
     search_down(Rest ++ N, Map).

@@ -44,27 +44,32 @@ star2({Maze0, {X, Y}, Keys}) ->
     %% robots can get all keys in their areas in any order no longer
     %% holds (assumong the required keys age given from the other robots in time.)
     Maze =
-        Maze0#{{X - 1, Y - 1} => start,
-               {X, Y - 1} => wall,
-               {X + 1, Y - 1} => start,
-               {X - 1, Y} => wall,
-               {X, Y} => wall,
-               {X + 1, Y} => wall,
-               {X - 1, Y + 1} => start,
-               {X, Y + 1} => wall,
-               {X + 1, Y + 1} => start},
+        Maze0#{
+            {X - 1, Y - 1} => start,
+            {X, Y - 1} => wall,
+            {X + 1, Y - 1} => start,
+            {X - 1, Y} => wall,
+            {X, Y} => wall,
+            {X + 1, Y} => wall,
+            {X - 1, Y + 1} => start,
+            {X, Y + 1} => wall,
+            {X + 1, Y + 1} => start
+        },
 
     Paths = lists:flatten([reduce(lists:sort(search(Pos, Maze))) || Pos <- Keys]),
 
     AllKeys = lists:sort([K || {key, K} <- [maps:get(Pos, Maze) || Pos <- Keys]]),
 
     Starts =
-        lists:filter(fun ({{{start, _}, _}, _}) ->
-                             true;
-                         (_) ->
-                             false
-                     end,
-                     Paths),
+        lists:filter(
+            fun
+                ({{{start, _}, _}, _}) ->
+                    true;
+                (_) ->
+                    false
+            end,
+            Paths
+        ),
 
     StartList = [{Pos, To} || {{{start, Pos}, To}, _} <- lists:sort(Starts)],
 
@@ -74,8 +79,10 @@ star2({Maze0, {X, Y}, Keys}) ->
     Memmory = spawn_link(?MODULE, memmory, [#{}]),
 
     Results =
-        [bfs2(Memmory, Start, Connections, AllKeys, StartList)
-         || Start <- [{X - 1, Y - 1}, {X + 1, Y - 1}, {X - 1, Y + 1}, {X + 1, Y + 1}]],
+        [
+            bfs2(Memmory, Start, Connections, AllKeys, StartList)
+         || Start <- [{X - 1, Y - 1}, {X + 1, Y - 1}, {X - 1, Y + 1}, {X + 1, Y + 1}]
+        ],
 
     Result = [Dist || {Dist, _} <- Results],
 
@@ -114,11 +121,13 @@ store(Memmory, Key, Value) ->
 
 bfs2(Memmory, Pos, Connections, KeysINeed, StartList) ->
     Available = proplists:get_all_values(Pos, StartList),
-    bfs(Memmory,
+    bfs(
+        Memmory,
         {start, Pos},
         sets:from_list(KeysINeed -- Available),
         Available,
-        Connections).
+        Connections
+    ).
 
 bfs(Memmory, Pos, Connections, KeysINeed) ->
     bfs(Memmory, {start, Pos}, sets:new(), KeysINeed, Connections).
@@ -131,13 +140,19 @@ bfs(Memmory, From, KeysIHave, KeysINeed, Connections) ->
             Nexts = [To || To <- KeysINeed, have_keys(From, To, KeysIHave, Connections)],
 
             {Distance, Path} =
-                lists:min([add(distance(From, Next, Connections),
-                               bfs(Memmory,
-                                   Next,
-                                   sets:add_element(Next, KeysIHave),
-                                   KeysINeed -- [Next],
-                                   Connections))
-                           || Next <- Nexts]),
+                lists:min([
+                    add(
+                        distance(From, Next, Connections),
+                        bfs(
+                            Memmory,
+                            Next,
+                            sets:add_element(Next, KeysIHave),
+                            KeysINeed -- [Next],
+                            Connections
+                        )
+                    )
+                 || Next <- Nexts
+                ]),
 
             Result = {Distance, [From | Path]},
             store(Memmory, {From, KeysIHave}, Result),
@@ -185,60 +200,86 @@ read([Char | Rest], X, Y, Acc, Start, Keys) ->
 
 search(Pos, Maze) ->
     {key, To} = maps:get(Pos, Maze),
-    search([#state{pos = Pos,
-                   maze = Maze,
-                   path = [to]}],
-           To,
-           Maze,
-           []).
+    search(
+        [
+            #state{
+                pos = Pos,
+                maze = Maze,
+                path = [to]
+            }
+        ],
+        To,
+        Maze,
+        []
+    ).
 
 search([], _To, _Original, Result) ->
     Result;
-search([#state{pos = Pos,
-               doors = Doors,
-               path = Path} =
+search(
+    [
+        #state{
+            pos = Pos,
+            doors = Doors,
+            path = Path
+        } =
             State
-        | Rest],
-       To,
-       Original,
-       Result) ->
+        | Rest
+    ],
+    To,
+    Original,
+    Result
+) ->
     case maps:get(Pos, Original) of
         {door, Door} ->
             State1 = State#state{doors = sets:add_element(Door, Doors)},
             search(Rest ++ next(State1), To, Original, Result);
         {key, Key} ->
-            search(Rest ++ next(State),
-                   To,
-                   Original,
-                   [{{Key, To}, {Doors, length(Path) - 1, Path}} | Result]);
+            search(
+                Rest ++ next(State),
+                To,
+                Original,
+                [{{Key, To}, {Doors, length(Path) - 1, Path}} | Result]
+            );
         start ->
-            search(Rest ++ next(State),
-                   To,
-                   Original,
-                   [{{{start, Pos}, To}, {Doors, length(Path) - 1, Path}} | Result]);
+            search(
+                Rest ++ next(State),
+                To,
+                Original,
+                [{{{start, Pos}, To}, {Doors, length(Path) - 1, Path}} | Result]
+            );
         open ->
             search(Rest ++ next(State), To, Original, Result)
     end.
 
-next(#state{pos = Pos,
-            path = Path,
-            maze = Maze} =
-         State) ->
+next(
+    #state{
+        pos = Pos,
+        path = Path,
+        maze = Maze
+    } =
+        State
+) ->
     Npos =
-        lists:filter(fun(Neigbour) ->
-                        case maps:get(Neigbour, Maze) of
-                            wall ->
-                                false;
-                            _ ->
-                                true
-                        end
-                     end,
-                     neigbours(Pos)),
+        lists:filter(
+            fun(Neigbour) ->
+                case maps:get(Neigbour, Maze) of
+                    wall ->
+                        false;
+                    _ ->
+                        true
+                end
+            end,
+            neigbours(Pos)
+        ),
 
-    [State#state{pos = N,
-                 path = [N | Path],
-                 maze = Maze#{Pos => wall}}
-     || N <- Npos].
+    [
+        State#state{
+            pos = N,
+            path = [N | Path],
+            maze = Maze#{Pos => wall}
+        }
+     || N <- Npos
+    ].
 
 reduce([{{From, From}, _} | As]) ->
     reduce(As);
@@ -249,12 +290,17 @@ reduce([], Result) ->
     Result;
 reduce([{{From, From}, {_, _, _}} | Rest], Result) ->
     reduce(Rest, Result);
-reduce([{{From, To}, {Doors, Length1, _}} = A | Rest],
-       [{{From, To}, {Doors, Length2, _}} | Result])
-    when Length1 < Length2 ->
+reduce(
+    [{{From, To}, {Doors, Length1, _}} = A | Rest],
+    [{{From, To}, {Doors, Length2, _}} | Result]
+) when
+    Length1 < Length2
+->
     reduce(Rest, [A | Result]);
-reduce([{{From, To}, {Doors, _Length1, _}} | Rest],
-       [{{From, To}, {Doors, _Length2, _}} | _] = Result) ->
+reduce(
+    [{{From, To}, {Doors, _Length1, _}} | Rest],
+    [{{From, To}, {Doors, _Length2, _}} | _] = Result
+) ->
     reduce(Rest, Result);
 reduce([A | Rest], Result) ->
     reduce(Rest, [A | Result]).

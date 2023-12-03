@@ -22,8 +22,10 @@ star1(Instructions) ->
 
 star2(Instructions) ->
     Results =
-        [run(Instructions#{Ic => {update(Code), Value}})
-         || {Ic, {Code, Value}} <- maps:to_list(Instructions), Code /= acc],
+        [
+            run(Instructions#{Ic => {update(Code), Value}})
+         || {Ic, {Code, Value}} <- maps:to_list(Instructions), Code /= acc
+        ],
     proplists:get_value(maps:size(Instructions) + 1, Results).
 
 read(File) ->

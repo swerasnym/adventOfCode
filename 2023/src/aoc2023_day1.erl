@@ -47,7 +47,9 @@ filter2([N | Rest], V) when N >= $0, N =< $9 ->
     filter2(Rest, [N | V]);
 filter2([_ | Rest] = L, V) ->
     Numbers =
-        lists:enumerate($1,
-                        ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]),
+        lists:enumerate(
+            $1,
+            ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+        ),
     Match = [D || {D, Text} <- Numbers, lists:prefix(Text, L)],
     filter2(Rest, Match ++ V).

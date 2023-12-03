@@ -33,9 +33,9 @@ pahses(Program, [Phase | Phases], Input) ->
 
 loop(Program, [P0, P1, P2, P3, P4]) ->
     F = fun(Input, Pid) ->
-           Options = [{outputpid, Pid}, {input, [Input]}],
-           intcode:spawn(Program, Options)
-        end,
+        Options = [{outputpid, Pid}, {input, [Input]}],
+        intcode:spawn(Program, Options)
+    end,
 
     Pid4 = F(P4, self()),
     Pid1 = lists:foldl(F, Pid4, [P3, P2, P1]),

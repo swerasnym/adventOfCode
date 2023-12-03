@@ -23,11 +23,17 @@ star2(Map) ->
     tools:count(occupied, iterate2(Map)).
 
 read(File) ->
-    maps:without([max],
-                 tools:read_grid(File,
-                                 #{$# => occupied,
-                                   $. => floor,
-                                   $L => free})).
+    maps:without(
+        [max],
+        tools:read_grid(
+            File,
+            #{
+                $# => occupied,
+                $. => floor,
+                $L => free
+            }
+        )
+    ).
 
 update_seat1(_Seat, floor, _OldMap, NewMap) ->
     NewMap;
@@ -42,8 +48,10 @@ update_seat1(Seat, Value, OldMap, NewMap) ->
     end.
 
 neigbours1({X, Y}, Map) ->
-    [maps:get({Xn, Yn}, Map, wall)
-     || Xn <- lists:seq(X - 1, X + 1), Yn <- lists:seq(Y - 1, Y + 1), {Xn, Yn} /= {X, Y}].
+    [
+        maps:get({Xn, Yn}, Map, wall)
+     || Xn <- lists:seq(X - 1, X + 1), Yn <- lists:seq(Y - 1, Y + 1), {Xn, Yn} /= {X, Y}
+    ].
 
 iterate1(Map) ->
     F = fun(Seat, Value, Acc) -> update_seat1(Seat, Value, Map, Acc) end,
@@ -67,8 +75,10 @@ update_seat2(Seat, Value, OldMap, NewMap) ->
     end.
 
 neigbours2(Seat, Map) ->
-    [find_seat(Seat, {Dx, Dy}, Map)
-     || Dx <- lists:seq(-1, 1), Dy <- lists:seq(-1, 1), {Dx, Dy} /= {0, 0}].
+    [
+        find_seat(Seat, {Dx, Dy}, Map)
+     || Dx <- lists:seq(-1, 1), Dy <- lists:seq(-1, 1), {Dx, Dy} /= {0, 0}
+    ].
 
 find_seat({X, Y}, {Dx, Dy} = Dir, Map) ->
     case maps:get({X + Dx, Y + Dy}, Map, wall) of

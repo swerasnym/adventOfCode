@@ -3,19 +3,40 @@
 %% Parse
 -export([from_list/1, from_string/1, from_file/1]).
 %% Initiate
--export([set/3, set_options/2, set_input/2, set_output_pid/2, set_input_pid/2,
-         set_exit_pid/2, set_timeout/2]).
+-export([
+    set/3,
+    set_options/2,
+    set_input/2,
+    set_output_pid/2,
+    set_input_pid/2,
+    set_exit_pid/2,
+    set_timeout/2
+]).
 %% Start
--export([run/1, run_file/1, run_list/1, run_string/1, run/2, run_file/2, run_list/2,
-         run_string/2]).
+-export([
+    run/1,
+    run_file/1,
+    run_list/1,
+    run_string/1,
+    run/2,
+    run_file/2,
+    run_list/2,
+    run_string/2
+]).
 %% Exit
 -export([get/2, get_output/1, print/1]).
 %% As a process
--export([spawn/1, spawn/2, send/2, recv/1, recv/2, recvn/2, recvn/3, interactive/1,
-         interactive/2]).
+-export([
+    spawn/1, spawn/2,
+    send/2,
+    recv/1, recv/2,
+    recvn/2, recvn/3,
+    interactive/1,
+    interactive/2
+]).
 -export([analyze/1]).
 
-%% erlfmt-ignore-begin
+%% erlfmt-ignore
 -record(state,
         {ip = 0,              % Current Instruction pointer
          next_ip = 0,         % Next instruction pointer
@@ -33,18 +54,18 @@
          relative_base = 0,   % Relative base used in mode 2
          timeout = 10000}).      % How long to wait for messages in input
 
--define(INSTRUCTIONS,
-        #{1 => {add, 3, fun add/1},
-          2 => {multiply, 3, fun multiply/1},
-          3 => {input, 1, fun input/1},
-          4 => {output, 1, fun output/1},
-          5 => {jump_if_true, 2, fun jump_if_true/1},
-          6 => {jump_if_false, 2, fun jump_if_false/1},
-          7 => {less_than, 3, fun less_than/1},
-          8 => {equals, 3, fun equals/1},
-          9 => {relative_base_offset, 1, fun relative_base_offset/1},
-          99 => {halt, 0, fun halt/1}}).
-%% erlfmt-ignore-end
+-define(INSTRUCTIONS, #{
+    1 => {add, 3, fun add/1},
+    2 => {multiply, 3, fun multiply/1},
+    3 => {input, 1, fun input/1},
+    4 => {output, 1, fun output/1},
+    5 => {jump_if_true, 2, fun jump_if_true/1},
+    6 => {jump_if_false, 2, fun jump_if_false/1},
+    7 => {less_than, 3, fun less_than/1},
+    8 => {equals, 3, fun equals/1},
+    9 => {relative_base_offset, 1, fun relative_base_offset/1},
+    99 => {halt, 0, fun halt/1}
+}).
 
 %%------------------------------------------------------------------------------
 %% Intcode function calls
@@ -58,11 +79,15 @@ add(#state{values = [Term1, Term2, _], addresses = [_, _, To]} = State) ->
 multiply(#state{values = [Factor1, Factor2, _], addresses = [_, _, To]} = State) ->
     set(Factor1 * Factor2, To, State).
 
-input(#state{addresses = [To],
-             input = [],
-             inputpid = Pid,
-             timeout = Timeout} =
-          State0) ->
+input(
+    #state{
+        addresses = [To],
+        input = [],
+        inputpid = Pid,
+        timeout = Timeout
+    } =
+        State0
+) ->
     send(Pid, input),
     case recv(Pid, Timeout) of
         [Value | Rest] ->
@@ -79,10 +104,14 @@ input(#state{addresses = [To], input = [Value | Rest]} = State0) ->
     State = set(Value, To, State0),
     State#state{input = Rest}.
 
-output(#state{values = [Value],
-              output = Output,
-              outputpid = Pid} =
-           State) ->
+output(
+    #state{
+        values = [Value],
+        output = Output,
+        outputpid = Pid
+    } =
+        State
+) ->
     send(Pid, [Value]),
     State#state{output = [Value | Output]}.
 
@@ -102,8 +131,9 @@ jump_if_false(#state{values = [Value, To]} = State) ->
             State
     end.
 
-less_than(#state{values = [Term1, Term2, _], addresses = [_, _, To]} = State)
-    when Term1 < Term2 ->
+less_than(#state{values = [Term1, Term2, _], addresses = [_, _, To]} = State) when
+    Term1 < Term2
+->
     set(1, To, State);
 less_than(#state{values = [_, _, _], addresses = [_, _, To]} = State) ->
     set(0, To, State).
@@ -128,15 +158,15 @@ from_list(List) ->
 from_string(String) ->
     List = string:split(String, ",", all),
     F = fun(S) ->
-           case string:to_integer(string:trim(S, both)) of
-               {Int, <<>>} ->
-                   Int;
-               {Int, []} ->
-                   Int;
-               _ ->
-                   error({invalid_format, S})
-           end
-        end,
+        case string:to_integer(string:trim(S, both)) of
+            {Int, <<>>} ->
+                Int;
+            {Int, []} ->
+                Int;
+            _ ->
+                error({invalid_format, S})
+        end
+    end,
     from_list(lists:map(F, List)).
 
 from_file(File) ->
@@ -230,17 +260,21 @@ get(Address, #state{memory = Memory}) ->
 get_output(#state{output = Output}) ->
     lists:reverse(Output).
 
-print(#state{ip = Ip,
-             next_ip = Next,
-             instruction = Instruction,
-             addresses = Address,
-             values = Values,
-             input = Input,
-             memory = Memory,
-             relative_base = Rel}) ->
-    io:format("ip = ~w~nnext_ip = ~w~ninstruction = ~w~naddresses = ~w~nvalues "
-              "= ~w~ninput = ~w~nrelative_base = ~w~n",
-              [Ip, Next, Instruction, Address, Values, Input, Rel]),
+print(#state{
+    ip = Ip,
+    next_ip = Next,
+    instruction = Instruction,
+    addresses = Address,
+    values = Values,
+    input = Input,
+    memory = Memory,
+    relative_base = Rel
+}) ->
+    io:format(
+        "ip = ~w~nnext_ip = ~w~ninstruction = ~w~naddresses = ~w~nvalues "
+        "= ~w~ninput = ~w~nrelative_base = ~w~n",
+        [Ip, Next, Instruction, Address, Values, Input, Rel]
+    ),
 
     io:format("memory= ~w~n~n", [array:to_list(Memory)]).
 
@@ -306,20 +340,28 @@ recvn(Pid, N, Acc, Timeout) ->
     end.
 
 interactive(Program) ->
-    Pid = intcode:spawn(Program,
-                        [{inputpid, self()},
-                         {outputpid, self()},
-                         {exitpid, self()},
-                         {timeout, 600000}]),
+    Pid = intcode:spawn(
+        Program,
+        [
+            {inputpid, self()},
+            {outputpid, self()},
+            {exitpid, self()},
+            {timeout, 600000}
+        ]
+    ),
     shell(Pid, nothing).
 
 interactive(Program, Options) ->
-    Pid = intcode:spawn(Program,
-                        [{inputpid, self()},
-                         {outputpid, self()},
-                         {exitpid, self()},
-                         {timeout, 600000}]
-                        ++ Options),
+    Pid = intcode:spawn(
+        Program,
+        [
+            {inputpid, self()},
+            {outputpid, self()},
+            {exitpid, self()},
+            {timeout, 600000}
+        ] ++
+            Options
+    ),
     shell(Pid, nothing).
 
 shell(Pid, Last) ->
@@ -391,13 +433,15 @@ step_ip(#state{next_ip = Ip} = State) ->
     Addresses = get_addresses(Ip, Modes, State),
     Values = get_values(Addresses, State),
 
-    State#state{ip = Ip,
-                next_ip = Ip + Parameters + 1,
-                instruction = Instruction,
-                addresses = Addresses,
-                values = Values,
-                modes = Modes,
-                function = Function}.
+    State#state{
+        ip = Ip,
+        next_ip = Ip + Parameters + 1,
+        instruction = Instruction,
+        addresses = Addresses,
+        values = Values,
+        modes = Modes,
+        function = Function
+    }.
 
 recvn_buffer(Pid, N) ->
     receive
@@ -420,15 +464,17 @@ get_addresses(_, [], _) ->
     [];
 get_addresses(Ip, Modes, #state{relative_base = Rel} = State) ->
     Positions = lists:seq(Ip + 1, Ip + length(Modes)),
-    [case Mode of
-         0 ->
-             get(Pos, State);
-         1 ->
-             Pos;
-         2 ->
-             get(Pos, State) + Rel
-     end
-     || {Pos, Mode} <- lists:zip(Positions, Modes)].
+    [
+        case Mode of
+            0 ->
+                get(Pos, State);
+            1 ->
+                Pos;
+            2 ->
+                get(Pos, State) + Rel
+        end
+     || {Pos, Mode} <- lists:zip(Positions, Modes)
+    ].
 
 get_values(Addresses, State) ->
     [get(Address, State) || Address <- Addresses].

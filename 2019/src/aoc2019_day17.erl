@@ -31,11 +31,15 @@ star2(Program) ->
     Path = path(Map),
 
     Result =
-        intcode:run(Program,
-                    [{set, 2, 0},
-                     {input,
-                      "A,A,B,C,B,C,B,C,B,A\nR,10,L,12,R,6\nR,6,R,10,R,12,R,6\nR,10,L,12,L,1"
-                      "2\nN\n"}]),
+        intcode:run(
+            Program,
+            [
+                {set, 2, 0},
+                {input,
+                    "A,A,B,C,B,C,B,C,B,A\nR,10,L,12,R,6\nR,6,R,10,R,12,R,6\nR,10,L,12,L,1"
+                    "2\nN\n"}
+            ]
+        ),
     Output = intcode:get_output(Result),
     lists:last(Output).
 
@@ -77,28 +81,37 @@ alignment({X, Y}) ->
     X * Y.
 
 neigbours({X, Y}, Map) ->
-    {maps:get({X, Y + 1}, Map, empty),
-     maps:get({X, Y - 1}, Map, empty),
-     maps:get({X + 1, Y}, Map, empty),
-     maps:get({X - 1, Y}, Map, empty)}.
+    {
+        maps:get({X, Y + 1}, Map, empty),
+        maps:get({X, Y - 1}, Map, empty),
+        maps:get({X + 1, Y}, Map, empty),
+        maps:get({X - 1, Y}, Map, empty)
+    }.
 
 path(Map) ->
     [{Pos, {robot, Direction}}] =
-        maps:to_list(maps:filter(fun(_, V) ->
-                                    case V of
-                                        {robot, _} ->
-                                            true;
-                                        _ ->
-                                            false
-                                    end
-                                 end,
-                                 Map)),
+        maps:to_list(
+            maps:filter(
+                fun(_, V) ->
+                    case V of
+                        {robot, _} ->
+                            true;
+                        _ ->
+                            false
+                    end
+                end,
+                Map
+            )
+        ),
 
     path(Pos, Direction, Map, []).
 
 path(Pos, Direction, Map, Acc) ->
-    case {maps:get(move(Pos, turn(Direction, $R)), Map, none),
-          maps:get(move(Pos, turn(Direction, $L)), Map, none)}
+    case
+        {
+            maps:get(move(Pos, turn(Direction, $R)), Map, none),
+            maps:get(move(Pos, turn(Direction, $L)), Map, none)
+        }
     of
         {scaffold, _} ->
             NewDir = turn(Direction, $R),

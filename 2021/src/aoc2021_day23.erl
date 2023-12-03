@@ -31,11 +31,13 @@ profile(Star, File, Times) ->
 profile(F, Times) ->
     Expected = F(),
     Results =
-        [begin
-             {Time, Expected} = timer:tc(F),
-             Time
-         end
-         || _ <- lists:seq(1, Times)],
+        [
+            begin
+                {Time, Expected} = timer:tc(F),
+                Time
+            end
+         || _ <- lists:seq(1, Times)
+        ],
     {Expected, lists:sum(Results) / Times / 1000}.
 
 eprof(Star, File) ->
@@ -56,20 +58,21 @@ star2({_, {Start, Goal}}) ->
     bfs(gb_sets:singleton({0, remove_fluff(Start)}), remove_fluff(Goal)).
 
 read(File) ->
-    Goal = "#############
-#...........#
-###A#B#C#D###
-  #A#B#C#D#
-  #########",
+    Goal =
+        "#############\n"
+        "#...........#\n"
+        "###A#B#C#D###\n"
+        "  #A#B#C#D#\n"
+        "  #########",
 
     Goal2 =
-        "#############
-#...........#
-###A#B#C#D###
-  #A#B#C#D#
-  #A#B#C#D#
-  #A#B#C#D#
-  #########",
+        "#############\n"
+        "#...........#\n"
+        "###A#B#C#D###\n"
+        "  #A#B#C#D#\n"
+        "  #A#B#C#D#\n"
+        "  #A#B#C#D#\n"
+        "  #########",
     L4 = "  #D#C#B#A#",
     L5 = "  #D#B#A#C#",
 
@@ -77,18 +80,22 @@ read(File) ->
 
     Start2 = string:join([L1, L2, L3, L4, L5, L6, L7], "\n"),
 
-    {{tools:read_grid(File), tools:parse_grid(Goal)},
-     {tools:parse_grid(Start2), tools:parse_grid(Goal2)}}.
+    {{tools:read_grid(File), tools:parse_grid(Goal)}, {
+        tools:parse_grid(Start2), tools:parse_grid(Goal2)
+    }}.
 
 remove_fluff(Map) ->
-    maps:filter(fun (_, $#) ->
-                        false;
-                    (_, $\s) ->
-                        false;
-                    (_, _) ->
-                        true
-                end,
-                Map).
+    maps:filter(
+        fun
+            (_, $#) ->
+                false;
+            (_, $\s) ->
+                false;
+            (_, _) ->
+                true
+        end,
+        Map
+    ).
 
 starts(Map) ->
     maps:to_list(maps:filter(fun amphipod/2, Map)).
@@ -104,8 +111,10 @@ bfs(Set1, Goal) ->
                     put(Current, visited),
                     Moves = moves(Current, Goal),
                     Next =
-                        [{Cost + cost(Start, End, Type), Current#{Start => $., End => Type}}
-                         || {Start, End, Type} <- Moves],
+                        [
+                            {Cost + cost(Start, End, Type), Current#{Start => $., End => Type}}
+                         || {Start, End, Type} <- Moves
+                        ],
                     Set3 = gb_sets:union(Set2, gb_sets:from_list(Next)),
 
                     bfs(Set3, Goal);
@@ -117,13 +126,15 @@ bfs(Set1, Goal) ->
 moves(Map, Goal) ->
     Open = maps:filter(fun(_, V) -> V == $. end, Map),
 
-    [{Start, End, Type}
+    [
+        {Start, End, Type}
      || {Start, Type} <- starts(Map),
         End <- single_moves(Start, Open),
         valid_space(End),
         type(Start) /= type(End),
         leave_room(Start, Type, Map, Goal),
-        enter_room(End, Type, Map, Goal)].
+        enter_room(End, Type, Map, Goal)
+    ].
 
 single_moves(_Pos, Map) when map_size(Map) == 0 ->
     [];

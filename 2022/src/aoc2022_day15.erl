@@ -26,8 +26,10 @@ run(Star, File) ->
 -define(STAR2_Y, 4000000).
 
 read(File) ->
-    [tools:group(2, L)
-     || L <- tools:read_format(File, "Sensor at x=~d, y=~d: closest beacon is at x=~d, y=~d")].
+    [
+        tools:group(2, L)
+     || L <- tools:read_format(File, "Sensor at x=~d, y=~d: closest beacon is at x=~d, y=~d")
+    ].
 
 star1(Data) ->
     SensorDist = [{S, distm(S, B)} || [S, B] <- Data],
@@ -48,13 +50,15 @@ star2(Data) ->
     NegX = lists:sort(lists:flatten(NegXS)),
 
     Points =
-        [{X, Y}
+        [
+            {X, Y}
          || A <- repeated(PosX, []),
             B <- repeated(NegX, []),
             (X = (B - A) div 2) >= 0,
             (Y = (B + A) div 2) >= 0,
             X =< ?STAR2_Y,
-            Y =< ?STAR2_Y],
+            Y =< ?STAR2_Y
+        ],
 
     [{X, Y}] = lists:filter(fun(P) -> test(SensorDist, P) end, Points),
     X * ?STAR2_Y + Y.

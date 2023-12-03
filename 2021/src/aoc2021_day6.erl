@@ -33,7 +33,8 @@ step(Result, 0) ->
     Result;
 step([{0, Zeros} | Rest], Steps) ->
     Update =
-        fun ({7, V}) ->
+        fun
+            ({7, V}) ->
                 {6, V + Zeros};
             ({K, V}) ->
                 {K - 1, V}

@@ -43,11 +43,15 @@ arcade(State, Pid) ->
             State
     end.
 
-input(#state{screen = _Screen,
-             paddle = {Px, _Py},
-             ball = {Bx, _By}} =
-          State,
-      Pid) ->
+input(
+    #state{
+        screen = _Screen,
+        paddle = {Px, _Py},
+        ball = {Bx, _By}
+    } =
+        State,
+    Pid
+) ->
     Data =
         case Px - Bx of
             0 ->
@@ -80,9 +84,11 @@ paint(Screen) ->
     Xs = [X || {X, _} <- maps:keys(Screen)],
     Ys = [Y || {_, Y} <- maps:keys(Screen)],
 
-    [paint({X, Y}, Screen, lists:max(Xs))
+    [
+        paint({X, Y}, Screen, lists:max(Xs))
      || Y <- lists:seq(lists:min(Ys), lists:max(Ys)),
-        X <- lists:seq(lists:min(Xs), lists:max(Xs))],
+        X <- lists:seq(lists:min(Xs), lists:max(Xs))
+    ],
     ok.
 
 paint({X, _} = Pos, Screen, X) ->

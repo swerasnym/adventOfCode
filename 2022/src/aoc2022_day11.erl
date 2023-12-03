@@ -9,16 +9,17 @@ run() ->
 
 run(Star, File) ->
     Data = read(File),
-    Res = case Star of
-              star1 ->
-                  star1(Data);
-              star2 ->
-                  star2(Data);
-              _ ->
-                  Star1 = star1(Data),
-                  Star2 = star2(Data),
-                  {Star1, Star2}
-          end,
+    Res =
+        case Star of
+            star1 ->
+                star1(Data);
+            star2 ->
+                star2(Data);
+            _ ->
+                Star1 = star1(Data),
+                Star2 = star2(Data),
+                {Star1, Star2}
+        end,
     erlang:erase(),
     Res.
 
@@ -39,24 +40,27 @@ star2(Monkeys) ->
     [A, B | _] = tools:dsort([count(M) || M <- maps:values(End)]),
     A * B.
 
-parse_monkey(["Monkey " ++ IdS,
-              "  Starting items: " ++ ItemsS,
-              "  Operation: new = " ++ New,
-              "  Test: divisible by " ++ TestS,
-              "    If true: throw to monkey " ++ TrueS,
-              "    If false: throw to monkey " ++ FalseS]) ->
+parse_monkey([
+    "Monkey " ++ IdS,
+    "  Starting items: " ++ ItemsS,
+    "  Operation: new = " ++ New,
+    "  Test: divisible by " ++ TestS,
+    "    If true: throw to monkey " ++ TrueS,
+    "    If false: throw to monkey " ++ FalseS
+]) ->
     [Id] = tools:parse_integers(IdS, ":"),
     Items = tools:parse_integers(ItemsS, ", "),
     [Test] = tools:parse_integers(TestS),
     [True] = tools:parse_integers(TrueS),
     [False] = tools:parse_integers(FalseS),
-    {Id,
-     #{items => Items,
-       new => New,
-       test => Test,
-       true => True,
-       false => False,
-       count => 0}}.
+    {Id, #{
+        items => Items,
+        new => New,
+        test => Test,
+        true => True,
+        false => False,
+        count => 0
+    }}.
 
 new("old * old", Old) ->
     Old * Old;
@@ -87,19 +91,23 @@ test(#{test := T}) ->
 
 process(Id, Monkeys, F) ->
     ThisM =
-        #{items := Items,
-          new := New,
-          test := Test,
-          true := TrueId,
-          false := FalseId,
-          count := C} =
-            maps:get(Id, Monkeys),
+        #{
+            items := Items,
+            new := New,
+            test := Test,
+            true := TrueId,
+            false := FalseId,
+            count := C
+        } =
+        maps:get(Id, Monkeys),
     NewItems = [F(new(New, Old)) || Old <- Items],
     {ToTrue, ToFalse} = lists:partition(fun(I) -> I rem Test == 0 end, NewItems),
 
     TrueM = #{items := TrueItems} = maps:get(TrueId, Monkeys),
     FalseM = #{items := FalseItems} = maps:get(FalseId, Monkeys),
 
-    Monkeys#{Id => ThisM#{items => [], count => C + length(Items)},
-             TrueId => TrueM#{items => TrueItems ++ ToTrue},
-             FalseId => FalseM#{items => FalseItems ++ ToFalse}}.
+    Monkeys#{
+        Id => ThisM#{items => [], count => C + length(Items)},
+        TrueId => TrueM#{items => TrueItems ++ ToTrue},
+        FalseId => FalseM#{items => FalseItems ++ ToFalse}
+    }.

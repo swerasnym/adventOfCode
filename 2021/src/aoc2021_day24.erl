@@ -32,11 +32,13 @@ profile(Star, File, Times) ->
 profile(F, Times) ->
     Expected = F(),
     Results =
-        [begin
-             {Time, Expected} = timer:tc(F),
-             Time
-         end
-         || _ <- lists:seq(1, Times)],
+        [
+            begin
+                {Time, Expected} = timer:tc(F),
+                Time
+            end
+         || _ <- lists:seq(1, Times)
+        ],
     {Expected, lists:sum(Results) / Times / 1000}.
 
 eprof(Star, File) ->
@@ -86,11 +88,12 @@ combind([Hd | Rest], Acc) ->
     combind(Rest, Acc * 10 + Hd).
 
 find_serial(AocData, MinMax) ->
-    F = fun ([1, _, V2]) ->
-                {push, V2};
-            ([26, V1, _]) ->
-                {pop, V1}
-        end,
+    F = fun
+        ([1, _, V2]) ->
+            {push, V2};
+        ([26, V1, _]) ->
+            {pop, V1}
+    end,
     find_serial([F(Row) || Row <- AocData], MinMax, 0, [], []).
 
 find_serial([], _MinMax, _Pos, [], Result) ->
@@ -100,21 +103,23 @@ find_serial([{push, V} | Rest], MinMax, Pos, Stack, Result) ->
     find_serial(Rest, MinMax, Pos + 1, [{Pos, V} | Stack], Result);
 find_serial([{pop, V} | Rest], max, Pos, [{SPos, Sv} | Stack], Result) ->
     Diff = Sv + V,
-    New = case Diff >= 0 of
-              true ->
-                  [{Pos, 9}, {SPos, 9 - Diff}];
-              false ->
-                  [{Pos, 9 + Diff}, {SPos, 9}]
-          end,
+    New =
+        case Diff >= 0 of
+            true ->
+                [{Pos, 9}, {SPos, 9 - Diff}];
+            false ->
+                [{Pos, 9 + Diff}, {SPos, 9}]
+        end,
     find_serial(Rest, max, Pos + 1, Stack, New ++ Result);
 find_serial([{pop, V} | Rest], min, Pos, [{SPos, Sv} | Stack], Result) ->
     Diff = Sv + V,
-    New = case Diff >= 0 of
-              true ->
-                  [{Pos, 1 + Diff}, {SPos, 1}];
-              false ->
-                  [{Pos, 1}, {SPos, 1 - Diff}]
-          end,
+    New =
+        case Diff >= 0 of
+            true ->
+                [{Pos, 1 + Diff}, {SPos, 1}];
+            false ->
+                [{Pos, 1}, {SPos, 1 - Diff}]
+        end,
     find_serial(Rest, min, Pos + 1, Stack, New ++ Result).
 
 %% ALU implementation

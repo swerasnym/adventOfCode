@@ -32,11 +32,13 @@ profile(Star, File, Times) ->
 profile(F, Times) ->
     Expected = F(),
     Results =
-        [begin
-             {Time, Expected} = timer:tc(F),
-             Time
-         end
-         || _ <- lists:seq(1, Times)],
+        [
+            begin
+                {Time, Expected} = timer:tc(F),
+                Time
+            end
+         || _ <- lists:seq(1, Times)
+        ],
     {Expected, lists:sum(Results) / Times / 1000}.
 
 star1(Data) ->
@@ -49,15 +51,17 @@ read(File) ->
     erase(),
     Lines = tools:read_lines(File),
     Paths =
-        [begin
-             [T, F] = string:split(Line, "-"),
-             Ta = list_to_atom(T),
-             Fa = list_to_atom(F),
-             put(Fa, small(F)),
-             put(Ta, small(T)),
-             [Fa, Ta]
-         end
-         || Line <- Lines],
+        [
+            begin
+                [T, F] = string:split(Line, "-"),
+                Ta = list_to_atom(T),
+                Fa = list_to_atom(F),
+                put(Fa, small(F)),
+                put(Ta, small(T)),
+                [Fa, Ta]
+            end
+         || Line <- Lines
+        ],
     Rooms = lists:umerge(Paths),
     maps:from_list([neigbours(Room, Paths, []) || Room <- Rooms]).
 

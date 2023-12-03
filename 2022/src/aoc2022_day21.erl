@@ -33,7 +33,8 @@ parse_monkey(Line) ->
     [Monkey, Job] = string:split(Line, ": "),
     case string:split(Job, " ", all) of
         [M1, "/", M2] ->
-            {Monkey, {M1, 'div', M2}}; %% assumption for the right results we get nice integers
+            %% assumption for the right results we get nice integers
+            {Monkey, {M1, 'div', M2}};
         [M1, "+", M2] ->
             {Monkey, {M1, '+', M2}};
         [M1, "-", M2] ->

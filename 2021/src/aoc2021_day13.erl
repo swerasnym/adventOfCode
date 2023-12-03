@@ -32,11 +32,13 @@ profile(Star, File, Times) ->
 profile(F, Times) ->
     Expected = F(),
     Results =
-        [begin
-             {Time, Expected} = timer:tc(F),
-             Time
-         end
-         || _ <- lists:seq(1, Times)],
+        [
+            begin
+                {Time, Expected} = timer:tc(F),
+                Time
+            end
+         || _ <- lists:seq(1, Times)
+        ],
     {Expected, lists:sum(Results) / Times / 1000}.
 
 star1({Points, Folds}) ->
@@ -53,18 +55,22 @@ read(File) ->
     [Points, Instructions] = tools:read_blocks(File),
 
     {P, I} =
-        {tools:parse_format(Points, "~d,~d"),
-         tools:parse_format(Instructions, "fold along ~c=~d\n")},
+        {
+            tools:parse_format(Points, "~d,~d"),
+            tools:parse_format(Instructions, "fold along ~c=~d\n")
+        },
     {[{X, Y} || [X, Y] <- P], I}.
 
 fold(["x", Xline]) ->
-    fun ({X, Y}) when X > Xline ->
+    fun
+        ({X, Y}) when X > Xline ->
             {2 * Xline - X, Y};
         (Point) ->
             Point
     end;
 fold(["y", Yline]) ->
-    fun ({X, Y}) when Y > Yline ->
+    fun
+        ({X, Y}) when Y > Yline ->
             {X, 2 * Yline - Y};
         (Point) ->
             Point

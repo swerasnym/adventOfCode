@@ -35,8 +35,7 @@ star2(Data) ->
     Reactions = lists:map(F, Order),
 
     Produce =
-        fun(Fuel) -> maps:get("ORE", lists:foldl(fun do_react/2, #{"FUEL" => Fuel}, Reactions))
-        end,
+        fun(Fuel) -> maps:get("ORE", lists:foldl(fun do_react/2, #{"FUEL" => Fuel}, Reactions)) end,
 
     Start = 1000000000000 div Produce(1),
     search(Start, 1000000000000, Produce).
@@ -65,9 +64,9 @@ read(Device, Acc) ->
             [Inputs, Output] = string:split(Line, " => "),
             InputsList = string:split(Inputs, ", ", all),
             F = fun(Elem) ->
-                   [Is, Element] = string:split(Elem, " "),
-                   {Element, list_to_integer(Is)}
-                end,
+                [Is, Element] = string:split(Elem, " "),
+                {Element, list_to_integer(Is)}
+            end,
 
             read(Device, [{F(Output), lists:map(F, InputsList)} | Acc])
     end.
@@ -79,11 +78,13 @@ build_graph(Data) ->
 
 build_graph(G, {{Head, _}, List}) ->
     digraph:add_vertex(G, Head),
-    [begin
-         digraph:add_vertex(G, Elem),
-         digraph:add_edge(G, Head, Elem)
-     end
-     || {Elem, _} <- List].
+    [
+        begin
+            digraph:add_vertex(G, Elem),
+            digraph:add_edge(G, Head, Elem)
+        end
+     || {Elem, _} <- List
+    ].
 
 react(Result, Data) ->
     F = fun({{R, _}, _}) -> R == Result end,
@@ -95,9 +96,9 @@ do_react({{Reaction, Output}, List}, Amounts) ->
     Amount = maps:get(Reaction, Amounts, 0),
     No = divup(Amount, Output),
     F = fun({E, A}, Acc) ->
-           C = maps:get(E, Acc, 0),
-           Acc#{E => C + A * No}
-        end,
+        C = maps:get(E, Acc, 0),
+        Acc#{E => C + A * No}
+    end,
     lists:foldl(F, Amounts, List).
 
 divup(A, B) ->

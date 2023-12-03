@@ -113,9 +113,11 @@ simulate(RockN, Stop, Well, Movements, AllMovements) ->
     {_, Offset} = lists:min(maps:keys(Well)),
 
     State =
-        {lists:sort([{X, Y - Offset} || {X, Y} <- maps:keys(Well)]),
-         RockN rem 5,
-         length(Movements)},
+        {
+            lists:sort([{X, Y - Offset} || {X, Y} <- maps:keys(Well)]),
+            RockN rem 5,
+            length(Movements)
+        },
     case erlang:get(State) of
         undefined ->
             erlang:put(State, {RockN, Offset}),
@@ -129,7 +131,8 @@ simulate(RockN, Stop, Well, Movements, AllMovements) ->
             %% tools:print_grid(Floor),
             simulate(RockN + 1, Stop, Floor, Rest, AllMovements);
         {LastRockN, LastOffset} ->
-            erlang:erase(), %% remove states to not end in an infinite loop
+            %% remove states to not end in an infinite loop
+            erlang:erase(),
             Distance = RockN - LastRockN,
             RocksLeft = Stop - RockN,
             LoopsLeft = RocksLeft div Distance,
@@ -190,5 +193,7 @@ neigbours(P, Well) ->
     [N || N <- neigbours(P), maps:is_key(N, Well)].
 
 neigbours({X, Y}) ->
-    [{X + Dx, Y + Dy}
-     || Dx <- [1, 0, -1], Dy <- [-1, 0, 1], {Dx, Dy} /= {0, 0}, Dx * Dy == 0].
+    [
+        {X + Dx, Y + Dy}
+     || Dx <- [1, 0, -1], Dy <- [-1, 0, 1], {Dx, Dy} /= {0, 0}, Dx * Dy == 0
+    ].

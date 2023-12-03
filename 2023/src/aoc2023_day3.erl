@@ -51,13 +51,13 @@ cmp({{X1, Y1}, _}, {{X2, Y2}, _}) ->
     {Y1, X1} =< {Y2, X2}.
 
 find_numbers(Grid) ->
-    Dn = [N || Pos := {symbol, _} <- Grid, N <-get_neigbours(Grid, Pos) ],
+    Dn = [N || Pos := {symbol, _} <- Grid, N <- get_neigbours(Grid, Pos)],
     Ext = [L || {Pos, _} <- Dn, L <- extend(Pos, Grid)],
     Sorted = lists:usort(fun cmp/2, Dn ++ Ext),
     numbers(Sorted).
 
 find_gears(Grid) ->
-    PG = [get_neigbours(Grid, Pos)|| Pos := {symbol, gear} <- Grid],
+    PG = [get_neigbours(Grid, Pos) || Pos := {symbol, gear} <- Grid],
     EPG = [[L || {Pos, _} <- Dn, L <- extend(Pos, Grid)] ++ Dn || Dn <- PG],
     NPG = [numbers(lists:usort(fun cmp/2, E)) || E <- EPG],
     [A * B || [A, B] <- NPG].

@@ -24,17 +24,21 @@ original_star1(Data) ->
 
 star1(Data) ->
     Cards = 10007,
-    F = lists:foldl(fun(Command, Function) -> instruction3(Command, Function, Cards) end,
-                    {1, x, 0},
-                    Data),
+    F = lists:foldl(
+        fun(Command, Function) -> instruction3(Command, Function, Cards) end,
+        {1, x, 0},
+        Data
+    ),
     eval(F, 2019, Cards).
 
 star2(Data) ->
     Cards = 119315717514047,
     Shuffles = 101741582076661,
-    F = lists:foldl(fun(Command, Function) -> instruction3(Command, Function, Cards) end,
-                    {1, x, 0},
-                    Data),
+    F = lists:foldl(
+        fun(Command, Function) -> instruction3(Command, Function, Cards) end,
+        {1, x, 0},
+        Data
+    ),
 
     {A, x, B} = pow_fun(F, Shuffles, Cards),
 
@@ -62,8 +66,10 @@ instruction("deal with increment " ++ NumberStr, Deck) ->
     Size = length(Deck),
     Number = list_to_integer(NumberStr),
     Order =
-        [{Pos rem Size, Card}
-         || {Pos, Card} <- lists:zip(lists:seq(0, Number * Size - 1, Number), Deck)],
+        [
+            {Pos rem Size, Card}
+         || {Pos, Card} <- lists:zip(lists:seq(0, Number * Size - 1, Number), Deck)
+        ],
     [Card || {_Pos, Card} <- lists:sort(Order)].
 
 % Creates a linear function mod Cards to do one shuffle

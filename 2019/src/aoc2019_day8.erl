@@ -26,10 +26,13 @@ star2(Data) ->
     Layers =
         [string:slice(Data, Pos, 25 * 6) || Pos <- lists:seq(0, string:length(Data) - 1, 25 * 6)],
     Image = [pixel(Pos, Layers) || Pos <- lists:seq(0, 25 * 6 - 1)],
-    [io:fwrite("~s~n", [string:slice(Image, Pos, 25)])
-     || Pos <- lists:seq(0, string:length(Image) - 1, 25)],
+    [
+        io:fwrite("~s~n", [string:slice(Image, Pos, 25)])
+     || Pos <- lists:seq(0, string:length(Image) - 1, 25)
+    ],
 
-    "ACKPZ". % manual decode!
+    % manual decode!
+    "ACKPZ".
 
 count(Layer, String) ->
     length(string:split(Layer, String, all)) - 1.

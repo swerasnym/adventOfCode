@@ -34,31 +34,35 @@ iterate(N, Map) ->
 
     Update =
         fun(Pos, Acc) ->
-           ActiveNeigbours = [Neigbour || Neigbour <- neigbours(Pos), maps:is_key(Neigbour, Map)],
+            ActiveNeigbours = [Neigbour || Neigbour <- neigbours(Pos), maps:is_key(Neigbour, Map)],
 
-           case {maps:get(Pos, Map, inactive), length(ActiveNeigbours)} of
-               {active, 2} ->
-                   Acc#{Pos => active};
-               {active, 3} ->
-                   Acc#{Pos => active};
-               {inactive, 3} ->
-                   Acc#{Pos => active};
-               _ ->
-                   Acc
-           end
+            case {maps:get(Pos, Map, inactive), length(ActiveNeigbours)} of
+                {active, 2} ->
+                    Acc#{Pos => active};
+                {active, 3} ->
+                    Acc#{Pos => active};
+                {inactive, 3} ->
+                    Acc#{Pos => active};
+                _ ->
+                    Acc
+            end
         end,
     iterate(N - 1, lists:foldl(Update, #{}, Check)).
 
 neigbours({X, Y, Z}) ->
-    [{Xn, Yn, Zn}
+    [
+        {Xn, Yn, Zn}
      || Xn <- lists:seq(X - 1, X + 1),
         Yn <- lists:seq(Y - 1, Y + 1),
         Zn <- lists:seq(Z - 1, Z + 1),
-        {Xn, Yn, Zn} /= {X, Y, Z}];
+        {Xn, Yn, Zn} /= {X, Y, Z}
+    ];
 neigbours({X, Y, Z, W}) ->
-    [{Xn, Yn, Zn, Wn}
+    [
+        {Xn, Yn, Zn, Wn}
      || Xn <- lists:seq(X - 1, X + 1),
         Yn <- lists:seq(Y - 1, Y + 1),
         Zn <- lists:seq(Z - 1, Z + 1),
         Wn <- lists:seq(W - 1, W + 1),
-        {Xn, Yn, Zn, Wn} /= {X, Y, Z, W}].
+        {Xn, Yn, Zn, Wn} /= {X, Y, Z, W}
+    ].

@@ -37,18 +37,22 @@ star2({Fileds, MyTicket, Tickets}) ->
 read(File) ->
     [Fields, "your ticket:\n" ++ MyTicket, "nearby tickets:\n" ++ NerbyTickets] =
         tools:read_blocks(File),
-    {[process_field(Field) || Field <- tools:parse_lines(Fields)],
-     tools:parse_integers(MyTicket, ","),
-     [tools:parse_integers(Ticket, ",") || Ticket <- tools:parse_lines(NerbyTickets)]}.
+    {
+        [process_field(Field) || Field <- tools:parse_lines(Fields)],
+        tools:parse_integers(MyTicket, ","),
+        [tools:parse_integers(Ticket, ",") || Ticket <- tools:parse_lines(NerbyTickets)]
+    }.
 
 process_field(Field) ->
     [Name, Data] = string:split(Field, ": "),
     Ranges =
-        [begin
-             [Min, Max] = string:split(Range, "-"),
-             {list_to_integer(Min), list_to_integer(Max)}
-         end
-         || Range <- string:split(Data, " or ", all)],
+        [
+            begin
+                [Min, Max] = string:split(Range, "-"),
+                {list_to_integer(Min), list_to_integer(Max)}
+            end
+         || Range <- string:split(Data, " or ", all)
+        ],
     {Name, Ranges}.
 
 verify_any(_Number, []) ->

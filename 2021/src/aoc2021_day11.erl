@@ -36,24 +36,30 @@ step(Map, Steps, Count) ->
     Map1 = maps:map(fun(_K, V) -> V + 1 end, Map),
     {Map2, Fk} = iterate(Map1, []),
     Map3 =
-        maps:map(fun (_K, V) when V > 9 ->
-                         0;
-                     (_K, V) ->
-                         V
-                 end,
-                 Map2),
+        maps:map(
+            fun
+                (_K, V) when V > 9 ->
+                    0;
+                (_K, V) ->
+                    V
+            end,
+            Map2
+        ),
     step(Map3, Steps - 1, Count + length(Fk)).
 
 step2(Map, Step) ->
     Map1 = maps:map(fun(_K, V) -> V + 1 end, Map),
     {Map2, Fk} = iterate(Map1, []),
     Map3 =
-        maps:map(fun (_K, V) when V > 9 ->
-                         0;
-                     (_K, V) ->
-                         V
-                 end,
-                 Map2),
+        maps:map(
+            fun
+                (_K, V) when V > 9 ->
+                    0;
+                (_K, V) ->
+                    V
+            end,
+            Map2
+        ),
 
     case maps:size(Map) == length(Fk) of
         true ->
@@ -73,10 +79,13 @@ iterate(Map, Flashed) ->
 
 inc(Map, Fk) ->
     Add = lists:flatmap(fun neigbours/1, Fk),
-    lists:foldl(fun (K, AccIn) when is_map_key(K, AccIn) ->
-                        maps:update_with(K, fun(V) -> V + 1 end, AccIn);
-                    (_, AccIn) ->
-                        AccIn
-                end,
-                Map,
-                Add).
+    lists:foldl(
+        fun
+            (K, AccIn) when is_map_key(K, AccIn) ->
+                maps:update_with(K, fun(V) -> V + 1 end, AccIn);
+            (_, AccIn) ->
+                AccIn
+        end,
+        Map,
+        Add
+    ).

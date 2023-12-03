@@ -31,11 +31,13 @@ profile(Star, File, Times) ->
 profile(F, Times) ->
     Expected = F(),
     Results =
-        [begin
-             {Time, Expected} = timer:tc(F),
-             Time
-         end
-         || _ <- lists:seq(1, Times)],
+        [
+            begin
+                {Time, Expected} = timer:tc(F),
+                Time
+            end
+         || _ <- lists:seq(1, Times)
+        ],
     {Expected, lists:sum(Results) / Times / 1000}.
 
 eprof(Star, File) ->
@@ -93,12 +95,14 @@ dirac_play({Pos, Score} = P1, P2) ->
     case get({P1, P2}) of
         undefined ->
             Results =
-                [begin
-                     NextPos = (Pos + Roll - 1) rem 10 + 1,
-                     {W2, W1} = dirac_play(P2, {NextPos, Score + NextPos}),
-                     {M * W1, M * W2}
-                 end
-                 || {Roll, M} <- get(dirac_roll)],
+                [
+                    begin
+                        NextPos = (Pos + Roll - 1) rem 10 + 1,
+                        {W2, W1} = dirac_play(P2, {NextPos, Score + NextPos}),
+                        {M * W1, M * W2}
+                    end
+                 || {Roll, M} <- get(dirac_roll)
+                ],
 
             Result = sum(Results, {0, 0}),
             put({P1, P2}, Result),

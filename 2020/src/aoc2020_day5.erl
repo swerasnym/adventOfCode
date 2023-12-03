@@ -27,11 +27,15 @@ read(File) ->
 
 parse(Ticket) ->
     BinaryString =
-        tools:replace(Ticket,
-                      #{$F => $0,
-                        $B => $1,
-                        $L => $0,
-                        $R => $1}),
+        tools:replace(
+            Ticket,
+            #{
+                $F => $0,
+                $B => $1,
+                $L => $0,
+                $R => $1
+            }
+        ),
     list_to_integer(BinaryString, 2).
 
 find_seat([A, B | _Rest]) when A + 2 == B ->

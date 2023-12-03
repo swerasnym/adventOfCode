@@ -18,9 +18,13 @@ run(Star, File) ->
 star1(Program) ->
     flush(),
     Table =
-        [{intcode:spawn(Program, [{input, [Address]}, {inputpid, self()}, {outputpid, self()}]),
-          Address}
-         || Address <- lists:seq(0, 49)],
+        [
+            {
+                intcode:spawn(Program, [{input, [Address]}, {inputpid, self()}, {outputpid, self()}]),
+                Address
+            }
+         || Address <- lists:seq(0, 49)
+        ],
     Result = switch1(Table),
     [intcode:send(Halt, halt) || Halt <- proplists:get_keys(Table)],
     Result.
@@ -28,9 +32,13 @@ star1(Program) ->
 star2(Program, Timeout) ->
     flush(),
     Table =
-        [{intcode:spawn(Program, [{input, [Address]}, {inputpid, self()}, {outputpid, self()}]),
-          Address}
-         || Address <- lists:seq(0, 49)],
+        [
+            {
+                intcode:spawn(Program, [{input, [Address]}, {inputpid, self()}, {outputpid, self()}]),
+                Address
+            }
+         || Address <- lists:seq(0, 49)
+        ],
 
     try switch2(Table, sets:new(), [none, none], none, Timeout) of
         none ->
@@ -80,7 +88,8 @@ switch1(Table) ->
 
 switch2(Table, Inactive, [X, Y] = Message, Sent, Timeout) ->
     case sets:size(Inactive) of
-        50 -> %% Idle?
+        %% Idle?
+        50 ->
             case is_idle(Timeout) of
                 active ->
                     switch2(Table, sets:new(), Message, Sent, Timeout);
@@ -94,7 +103,8 @@ switch2(Table, Inactive, [X, Y] = Message, Sent, Timeout) ->
                             switch2(Table, sets:new(), Message, Y, Timeout)
                     end
             end;
-        _ -> %% not idle
+        %% not idle
+        _ ->
             receive
                 {Pid, input} ->
                     Address = proplists:get_value(Pid, Table),

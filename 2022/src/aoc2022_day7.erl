@@ -26,12 +26,15 @@ read(File) ->
 star1(["$ cd /" | Commands]) ->
     Files = run(Commands, ["/"], #{}),
     Dirs =
-        maps:filter(fun ({dir, _}, _) ->
-                            true;
-                        (_, _) ->
-                            false
-                    end,
-                    Files),
+        maps:filter(
+            fun
+                ({dir, _}, _) ->
+                    true;
+                (_, _) ->
+                    false
+            end,
+            Files
+        ),
     %% io:format("~p~n", [Dirs]),
     Sizes = [sum_dir(K, Dirs) || K <- maps:keys(Dirs)],
     SmallDirs = lists:filter(fun(S) -> S =< 100000 end, Sizes),
@@ -40,12 +43,15 @@ star1(["$ cd /" | Commands]) ->
 star2(["$ cd /" | Commands]) ->
     Files = run(Commands, ["/"], #{}),
     Dirs =
-        maps:filter(fun ({dir, _}, _) ->
-                            true;
-                        (_, _) ->
-                            false
-                    end,
-                    Files),
+        maps:filter(
+            fun
+                ({dir, _}, _) ->
+                    true;
+                (_, _) ->
+                    false
+            end,
+            Files
+        ),
     %% io:format("~p~n", [Dirs]),
     Sizes = [sum_dir(K, Dirs) || K <- maps:keys(Dirs)],
     Used = sum_dir({dir, ["/"]}, Dirs),

@@ -16,17 +16,21 @@ run(Star, File) ->
     end.
 
 star1(Data) ->
-    hd([Value1 * Value2
-        || Value1 <- Data, Value2 <- Data, Value1 + Value2 == 2020, Value1 =< Value2]).
+    hd([
+        Value1 * Value2
+     || Value1 <- Data, Value2 <- Data, Value1 + Value2 == 2020, Value1 =< Value2
+    ]).
 
 star2(Data) ->
-    hd([Value1 * Value2 * Value3
-        || Value1 <- Data,
-           Value2 <- Data,
-           Value3 <- Data,
-           Value1 + Value2 + Value3 == 2020,
-           Value1 =< Value2,
-           Value2 =< Value3]).
+    hd([
+        Value1 * Value2 * Value3
+     || Value1 <- Data,
+        Value2 <- Data,
+        Value3 <- Data,
+        Value1 + Value2 + Value3 == 2020,
+        Value1 =< Value2,
+        Value2 =< Value3
+    ]).
 
 read(File) ->
     tools:read_integers(File).

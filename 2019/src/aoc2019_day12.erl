@@ -6,10 +6,12 @@
 
 run(Star, _) ->
     Data =
-        #{1 => #moon{pos = {13, -13, -2}},
-          2 => #moon{pos = {16, 2, -15}},
-          3 => #moon{pos = {7, -18, -12}},
-          4 => #moon{pos = {-3, -8, -8}}},
+        #{
+            1 => #moon{pos = {13, -13, -2}},
+            2 => #moon{pos = {16, 2, -15}},
+            3 => #moon{pos = {7, -18, -12}},
+            4 => #moon{pos = {-3, -8, -8}}
+        },
     case Star of
         star1 ->
             star1(Data);

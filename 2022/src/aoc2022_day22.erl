@@ -93,11 +93,9 @@ move({X, Y}, west) ->
     {X - 1, Y}.
 
 wrap({X, _}, north, Map) ->
-    {north,
-     lists:max([P || P = {Xk, _} <- maps:keys(Map), Xk == X, maps:get(P, Map) /= $\s])};
+    {north, lists:max([P || P = {Xk, _} <- maps:keys(Map), Xk == X, maps:get(P, Map) /= $\s])};
 wrap({X, _}, south, Map) ->
-    {south,
-     lists:min([P || P = {Xk, _} <- maps:keys(Map), Xk == X, maps:get(P, Map) /= $\s])};
+    {south, lists:min([P || P = {Xk, _} <- maps:keys(Map), Xk == X, maps:get(P, Map) /= $\s])};
 wrap({_, Y}, east, Map) ->
     {east, lists:min([P || P = {_, Yk} <- maps:keys(Map), Yk == Y, maps:get(P, Map) /= $\s])};
 wrap({_, Y}, west, Map) ->

@@ -28,18 +28,21 @@ read(File) ->
 process_bag(BagContent) ->
     [Bag, Contents] = string:split(lists:droplast(BagContent), "s contain "),
 
-    F = fun ("no other bags") ->
-                {emty, 0};
-            (Content) ->
-                case string:to_integer(Content) of
-                    {1, " " ++ Rbag} ->
-                        {list_to_atom(Rbag), 1};
-                    {Number, " " ++ Rbag} ->
-                        {list_to_atom(lists:droplast(Rbag)), Number}
-                end
-        end,
-    {list_to_atom(Bag),
-     maps:from_list([F(Content) || Content <- string:split(Contents, ", ", all)])}.
+    F = fun
+        ("no other bags") ->
+            {emty, 0};
+        (Content) ->
+            case string:to_integer(Content) of
+                {1, " " ++ Rbag} ->
+                    {list_to_atom(Rbag), 1};
+                {Number, " " ++ Rbag} ->
+                    {list_to_atom(lists:droplast(Rbag)), Number}
+            end
+    end,
+    {
+        list_to_atom(Bag),
+        maps:from_list([F(Content) || Content <- string:split(Contents, ", ", all)])
+    }.
 
 find_all(Bags, Keys) ->
     F = fun({_Bag, Map}) -> has_any(Map, Keys) end,

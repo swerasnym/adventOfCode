@@ -41,8 +41,10 @@ star2({RuleMap, Messages}) ->
 
 read(File) ->
     [Rules, Messages] = tools:read_blocks(File),
-    {maps:from_list([parse_rule(RuleLine) || RuleLine <- tools:parse_lines(Rules)]),
-     tools:parse_lines(Messages)}.
+    {
+        maps:from_list([parse_rule(RuleLine) || RuleLine <- tools:parse_lines(Rules)]),
+        tools:parse_lines(Messages)
+    }.
 
 parse_rule(RuleLine) ->
     {Id, ": " ++ RuleList} = string:to_integer(RuleLine),

@@ -31,13 +31,15 @@ star2(Images) ->
     {FirstEdges, _FirstImage} = proplists:get_value(hd(Counrers), Images),
 
     Internal =
-        [Side
+        [
+            Side
          || {Side, Value} <- maps:to_list(FirstEdges),
             maps:get(Value, Count) == 1,
             Side /= top_rev,
             Side /= bot_rev,
             Side /= left_rev,
-            Side /= right_rev],
+            Side /= right_rev
+        ],
 
     Neigbours = build(Internal, hd(Counrers), Images, Sides, Count),
     Grid = orient(Neigbours, Images, Sides, Count),
@@ -62,10 +64,12 @@ highlight_mosters([], _Monster) ->
     no_monsters_found;
 highlight_mosters([Map = #{max := {Xmax, Ymax}} | Maps], Monster = #{max := {Mx, My}}) ->
     Positions =
-        [{X, Y}
+        [
+            {X, Y}
          || X <- lists:seq(0, Xmax - Mx - 1),
             Y <- lists:seq(0, Ymax - My - 1),
-            is_moster({X, Y}, Map, Monster)],
+            is_moster({X, Y}, Map, Monster)
+        ],
 
     case length(Positions) of
         0 ->
@@ -90,13 +94,15 @@ make_moster() ->
 
 commbind(Grid = #{{0, 0} := #{max := {Xmax, Ymax}}}) ->
     List =
-        [{{Gx * (Xmax - 1) + X - 1, Gy * (Ymax - 1) + Y - 1}, Value}
+        [
+            {{Gx * (Xmax - 1) + X - 1, Gy * (Ymax - 1) + Y - 1}, Value}
          || {{Gx, Gy}, Image} <- maps:to_list(Grid),
             {{X, Y}, Value} <- maps:to_list(Image),
             X /= 0,
             Y /= 0,
             X /= Xmax,
-            Y /= Xmax],
+            Y /= Xmax
+        ],
     Map = maps:from_list(List),
     {Mx, My} = lists:max(maps:keys(Map)),
     Map#{max => {Mx, My}}.
@@ -115,28 +121,32 @@ orient(Pos = {X, Y}, Grid, Images, Sides, Count, Acc, Max) ->
 
     {_Edges, Map} = proplists:get_value(Id, Images),
     [NewMap] =
-        [Orientation
+        [
+            Orientation
          || Orientation <- get_tansforms(Map),
-            check_neigbours(Id, Pos, Orientation, Grid, Sides, Count)],
+            check_neigbours(Id, Pos, Orientation, Grid, Sides, Count)
+        ],
 
     orient({X + 1, Y}, Grid, Images, Sides, Count, Acc#{Pos => NewMap}, Max).
 
 check_neigbours(Id, {X, Y}, Map, Grid, Sides, Count) ->
-    is_neigbour(Id, top(Map), maps:get({X, Y - 1}, Grid, edge), Sides, Count)
-    and is_neigbour(Id, bot(Map), maps:get({X, Y + 1}, Grid, edge), Sides, Count)
-    and is_neigbour(Id, left(Map), maps:get({X - 1, Y}, Grid, edge), Sides, Count)
-    and is_neigbour(Id, right(Map), maps:get({X + 1, Y}, Grid, edge), Sides, Count).
+    is_neigbour(Id, top(Map), maps:get({X, Y - 1}, Grid, edge), Sides, Count) and
+        is_neigbour(Id, bot(Map), maps:get({X, Y + 1}, Grid, edge), Sides, Count) and
+        is_neigbour(Id, left(Map), maps:get({X - 1, Y}, Grid, edge), Sides, Count) and
+        is_neigbour(Id, right(Map), maps:get({X + 1, Y}, Grid, edge), Sides, Count).
 
 get_tansforms(Grid) ->
     Flip = tools:flip_grid(Grid),
-    [Grid,
-     tools:rotate_grid(Grid, cw),
-     tools:rotate_grid(Grid, ccw),
-     tools:rotate_grid(tools:rotate_grid(Grid)),
-     Flip,
-     tools:rotate_grid(Flip, cw),
-     tools:rotate_grid(Flip, ccw),
-     tools:rotate_grid(tools:rotate_grid(Flip))].
+    [
+        Grid,
+        tools:rotate_grid(Grid, cw),
+        tools:rotate_grid(Grid, ccw),
+        tools:rotate_grid(tools:rotate_grid(Grid)),
+        Flip,
+        tools:rotate_grid(Flip, cw),
+        tools:rotate_grid(Flip, ccw),
+        tools:rotate_grid(tools:rotate_grid(Flip))
+    ].
 
 is_neigbour(_Id, Value, edge, _Sides, Count) ->
     maps:get(Value, Count) == 1;
@@ -198,12 +208,16 @@ flip(right_rev) ->
 build([E1, _E2], Id, Images, Sides, Count) ->
     Row1 = match_edges(E1, Id, Images, Sides, Count),
 
-    [match_edges(get_new_internal_edge(proplists:get_value(RowId, Images), Count, Side),
-                 RowId,
-                 Images,
-                 Sides,
-                 Count)
-     || {RowId, Side} <- Row1].
+    [
+        match_edges(
+            get_new_internal_edge(proplists:get_value(RowId, Images), Count, Side),
+            RowId,
+            Images,
+            Sides,
+            Count
+        )
+     || {RowId, Side} <- Row1
+    ].
 
 match_edges(Edge, Id, Images, Sides, Count) ->
     {Edges, _Image} = proplists:get_value(Id, Images),
@@ -217,13 +231,15 @@ match_edges(Edge, Id, Images, Sides, Count) ->
 
 get_new_internal_edge({Edges, _Image}, Count, Current) ->
     [S, _Srev] =
-        [Side
+        [
+            Side
          || {Side, Value} <- maps:to_list(Edges),
             maps:get(Value, Count) == 1,
             Side /= Current,
             Side /= flip(Current),
             opposed(Side) /= Current,
-            opposed(Side) /= flip(Current)],
+            opposed(Side) /= flip(Current)
+        ],
     S.
 
 reorder(Map, Id) ->
@@ -242,18 +258,20 @@ is_corner(Edges, Map) ->
     4 == length([V || V <- Edges, maps:get(V, Map) == 1]).
 
 get_edges(ImageMap = #{max := {Xmax, Ymax}}) ->
-    #{top => list_to_integer([maps:get({X, 0}, ImageMap) || X <- lists:seq(0, Xmax)], 2),
-      top_rev =>
-          list_to_integer([maps:get({X, 0}, ImageMap) || X <- lists:seq(Xmax, 0, -1)], 2),
-      bot => list_to_integer([maps:get({X, Ymax}, ImageMap) || X <- lists:seq(0, Xmax)], 2),
-      bot_rev =>
-          list_to_integer([maps:get({X, Ymax}, ImageMap) || X <- lists:seq(Xmax, 0, -1)], 2),
-      left => list_to_integer([maps:get({0, Y}, ImageMap) || Y <- lists:seq(0, Ymax)], 2),
-      left_rev =>
-          list_to_integer([maps:get({0, Y}, ImageMap) || Y <- lists:seq(Ymax, 0, -1)], 2),
-      right => list_to_integer([maps:get({Xmax, Y}, ImageMap) || Y <- lists:seq(0, Ymax)], 2),
-      right_rev =>
-          list_to_integer([maps:get({Xmax, Y}, ImageMap) || Y <- lists:seq(Ymax, 0, -1)], 2)}.
+    #{
+        top => list_to_integer([maps:get({X, 0}, ImageMap) || X <- lists:seq(0, Xmax)], 2),
+        top_rev =>
+            list_to_integer([maps:get({X, 0}, ImageMap) || X <- lists:seq(Xmax, 0, -1)], 2),
+        bot => list_to_integer([maps:get({X, Ymax}, ImageMap) || X <- lists:seq(0, Xmax)], 2),
+        bot_rev =>
+            list_to_integer([maps:get({X, Ymax}, ImageMap) || X <- lists:seq(Xmax, 0, -1)], 2),
+        left => list_to_integer([maps:get({0, Y}, ImageMap) || Y <- lists:seq(0, Ymax)], 2),
+        left_rev =>
+            list_to_integer([maps:get({0, Y}, ImageMap) || Y <- lists:seq(Ymax, 0, -1)], 2),
+        right => list_to_integer([maps:get({Xmax, Y}, ImageMap) || Y <- lists:seq(0, Ymax)], 2),
+        right_rev =>
+            list_to_integer([maps:get({Xmax, Y}, ImageMap) || Y <- lists:seq(Ymax, 0, -1)], 2)
+    }.
 
 top(ImageMap = #{max := {Xmax, _Ymax}}) ->
     list_to_integer([maps:get({X, 0}, ImageMap) || X <- lists:seq(0, Xmax)], 2).

@@ -7,12 +7,14 @@ run(Star, File) ->
 
     G = digraph:new(),
 
-    [begin
-         digraph:add_vertex(G, V1),
-         digraph:add_vertex(G, V2),
-         digraph:add_edge(G, V1, V2)
-     end
-     || {V1, V2} <- Edges],
+    [
+        begin
+            digraph:add_vertex(G, V1),
+            digraph:add_vertex(G, V2),
+            digraph:add_edge(G, V1, V2)
+        end
+     || {V1, V2} <- Edges
+    ],
     case Star of
         star1 ->
             star1(G);
@@ -45,8 +47,10 @@ read(File) ->
     {ok, Data} = file:read_file(File),
     List = string:split(string:trim(Data), "\n", all),
 
-    [begin
-         [A, B] = string:split(Item, ")"),
-         {A, B}
-     end
-     || Item <- List].
+    [
+        begin
+            [A, B] = string:split(Item, ")"),
+            {A, B}
+        end
+     || Item <- List
+    ].

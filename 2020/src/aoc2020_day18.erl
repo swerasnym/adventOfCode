@@ -23,12 +23,14 @@ star2(Data) ->
     lists:sum([calculate(shunt2(Tokens, [], []), []) || Tokens <- Data]).
 
 read(File) ->
-    [begin
-         Line1 = string:replace(Line, "(", "( ", all),
-         Line2 = string:replace(Line1, ")", " )", all),
-         string:split(Line2, " ", all)
-     end
-     || Line <- tools:read_lines(File)].
+    [
+        begin
+            Line1 = string:replace(Line, "(", "( ", all),
+            Line2 = string:replace(Line1, ")", " )", all),
+            string:split(Line2, " ", all)
+        end
+     || Line <- tools:read_lines(File)
+    ].
 
 shunt([], Out, []) ->
     lists:reverse(Out);

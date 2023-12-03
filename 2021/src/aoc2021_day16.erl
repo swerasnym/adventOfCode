@@ -32,11 +32,13 @@ profile(Star, File, Times) ->
 profile(F, Times) ->
     Expected = F(),
     Results =
-        [begin
-             {Time, Expected} = timer:tc(F),
-             Time
-         end
-         || _ <- lists:seq(1, Times)],
+        [
+            begin
+                {Time, Expected} = timer:tc(F),
+                Time
+            end
+         || _ <- lists:seq(1, Times)
+        ],
     {Expected, lists:sum(Results) / Times / 1000}.
 
 star1(Data) ->
@@ -52,7 +54,7 @@ star1(Data) ->
     io:format("~p~n~p~n", [Data, Parsed]),
     sum_versions(Parsed).
 
-    %% [V1,V2,V3, T1,T2,T3, A1,A2,A3,A4,A5, B1,B2,B3,B4,B5,   ]
+%% [V1,V2,V3, T1,T2,T3, A1,A2,A3,A4,A5, B1,B2,B3,B4,B5,   ]
 
 %% [[_,_,_] = Head, | [ [_,_,_] = Type |  Rest] ] =
 %% {Heder}.
@@ -81,8 +83,11 @@ parse_message(Message) ->
 
     {{{ver, list_to_integer(Verssion, 2)}, list_to_integer(Type, 2), Data}, {rest, Rest}}.
 
-parse_message("100",
-              Message) -> %% integer
+parse_message(
+    "100",
+    %% integer
+    Message
+) ->
     parse_value(Message, []);
 parse_message(Other, [Lt | Message]) ->
     case Lt of
