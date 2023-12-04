@@ -46,6 +46,7 @@
     gcd/1, gcd/2,
     lcm/1, lcm/2,
     egcd/2,
+    pow/2,
     mod_inv/2,
     mod/2,
     chinese_remainder/1
@@ -460,6 +461,16 @@ mod(A, M) ->
         false ->
             X
     end.
+
+%% @doc Calculates Base^Exponent for integer exponents.
+pow(Base, Exponent) -> pow(Base, Exponent, 1).
+
+pow(_, 0, RunningTotal) ->
+    RunningTotal;
+pow(SquaredBase, Exponent, RunningTotal) when Exponent rem 2 =:= 0 ->
+    pow(SquaredBase * SquaredBase, Exponent div 2, RunningTotal);
+pow(SquaredBase, Exponent, RunningTotal) ->
+    pow(SquaredBase * SquaredBase, Exponent div 2, SquaredBase * RunningTotal).
 
 %% internal
 calc_inverses([], []) ->

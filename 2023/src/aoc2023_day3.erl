@@ -2,8 +2,6 @@
 
 -export([run/0, run/2]).
 
--compile([nowarn_export_all, export_all]).
-
 run() ->
     {S1, S2} = Res = run(all, "../data/day3.txt"),
     io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
