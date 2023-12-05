@@ -51,6 +51,14 @@
     mod/2,
     chinese_remainder/1
 ]).
+-export([interval_from_length/2]).
+-export([intervals_overlapp/2]).
+-export([interval_sort/1]).
+-export([interval_split/2]).
+-export([interval_inside/2]).
+-export([interval_after/2]).
+-export([interval_before/2]).
+-export([interval_shift/2]).
 
 -spec ws() -> string().
 ws() ->
@@ -505,3 +513,78 @@ chinese_remainder(Congruences) ->
                 ]),
             mod(Solution, ModPI)
     end.
+
+%% Intervalls
+interval_from_length(Start, 0) ->
+    {Start, Start};
+interval_from_length(Start, N) when N > 0 ->
+    {Start, Start + N};
+interval_from_length(Start, N) ->
+    {Start + N, Start}.
+
+intervals_overlapp({A1, A2}, {B1, B2}) ->
+    A1 =< B2 andalso B1 =< A2;
+intervals_overlapp(_, _) ->
+    false.
+
+interval_sort({A, B}) when A > B ->
+    {B, A};
+interval_sort(I) ->
+    I.
+
+interval_split({A1, A2} = A, {B1, B2} = B) ->
+    case intervals_overlapp(A, B) of
+        false ->
+            [A];
+        true when A1 < B1, A2 > B2 ->
+            %% ABBA
+            [{A1, B1}, B, {B2, A2}];
+        true when A1 < B1 ->
+            %% ABAB
+            [{A1, B1}, {B1, A2}];
+        true when A2 > B2 ->
+            %% BABA
+            [{A1, B2}, {B2, A2}];
+        true ->
+            %% BAAB
+            [A]
+    end;
+interval_split(A, _) ->
+    A.
+
+%% @doc Returns the part of interval A that exists before B
+interval_before({_, A2} = A, {B1, _}) when A2 < B1 ->
+    A;
+interval_before({A1, _}, {B1, _}) when A1 >= B1 ->
+    empty;
+interval_before({A1, _}, {B1, _}) ->
+    {A1, B1};
+interval_before(A, _) ->
+    A.
+
+%% @doc Returns the part of interval A that exists after B
+interval_after({A1, _} = A, {_, B2}) when A1 > B2 ->
+    A;
+interval_after({_, A2}, {_, B2}) when A2 =< B2 ->
+    empty;
+interval_after({_, A2}, {_, B2}) ->
+    {B2, A2};
+interval_after(A, _) ->
+    A.
+
+interval_inside(_, empty) ->
+    empty;
+interval_inside({A1, A2}, {B1, B2}) when B2 < A1 orelse A2 < B1 ->
+    empty;
+interval_inside({A1, A2}, {B1, B2} = B) when A1 < B1, B2 < A2 ->
+    B;
+interval_inside({A1, A2}, {B1, _}) when A1 < B1 ->
+    {B1, A2};
+interval_inside({A1, A2}, {_, B2}) when B2 < A2 ->
+    {A1, B2};
+interval_inside(A, _) ->
+    A.
+interval_shift(empty, _) ->
+    empty;
+interval_shift({A1, A2}, Amount) ->
+    {A1 + Amount, A2 + Amount}.
