@@ -21,19 +21,17 @@ run(Star, File) ->
     end.
 
 star1(Data) ->
-    Ranked = lists:enumerate(lists:sort(fun cmp1/2, Data)),
-    lists:sum([Rank * Bid || {Rank, {_, Bid}} <- Ranked]).
+    Ranked = lists:enumerate(lists:sort([value1(D) || D <- Data])),
+    lists:sum([Rank * Bid || {Rank, {_, _, Bid}} <- Ranked]).
 
 star2(Data) ->
-    Ranked = lists:enumerate(lists:sort(fun cmp2/2, Data)),
-    lists:sum([Rank * Bid || {Rank, {_, Bid}} <- Ranked]).
+    Ranked = lists:enumerate(lists:sort([value2(D) || D <- Data])),
+    lists:sum([Rank * Bid || {Rank, {_, _, Bid}} <- Ranked]).
 
 read(File) ->
     Lines = tools:read_lines(File, fun(L) -> string:split(L, " ") end),
     [{Cards, list_to_integer(Bid)} || [Cards, Bid] <- Lines].
 
-parse_card1(C) when C > $0, C =< $9 ->
-    C - $0;
 parse_card1($T) ->
     10;
 parse_card1($J) ->
@@ -43,8 +41,9 @@ parse_card1($Q) ->
 parse_card1($K) ->
     13;
 parse_card1($A) ->
-    14.
-
+    14;
+parse_card1(C) when C >= $2, C =< $9 ->
+    C - $0.
 parse_card2($J) ->
     1;
 parse_card2(C) ->
@@ -69,19 +68,14 @@ strength(Cards) ->
             4
     end.
 
-cmp1(C1, C2) ->
-    value1(C1) =< value1(C2).
+value1({Cards, Bid}) ->
+    {strength(Cards), [parse_card1(C) || C <- Cards], Bid}.
 
-value1({Cards, _}) ->
-    {strength(Cards), [parse_card1(C) || C <- Cards]}.
-
-cmp2(C1, C2) ->
-    value2(C1) =< value2(C2).
-
-value2({Cards, _}) ->
+value2({Cards, Bid}) ->
     {
         lists:max(
-            [strength(lists:flatten(string:replace(Cards, "J", R, all))) || R <- "23456789TKQA"]
+            [strength(lists:flatten(string:replace(Cards, "J", R, all))) || R <- Cards]
         ),
-        [parse_card2(C) || C <- Cards]
+        [parse_card2(C) || C <- Cards],
+        Bid
     }.
