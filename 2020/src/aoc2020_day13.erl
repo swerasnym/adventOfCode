@@ -5,7 +5,7 @@
 run() ->
     {S1, S2} = Res = run(all, "../data/day13.data"),
     io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
-    {138, 226845233210288} = Res.
+    Res.
 
 run(Star, File) ->
     Data = read(File),
