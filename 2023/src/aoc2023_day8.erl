@@ -5,7 +5,7 @@
 run() ->
     {S1, S2} = Res = run(all, "../data/day8.txt"),
     io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
-    Res.
+    {19637, 8811050362409} = Res.
 
 run(Star, File) ->
     Data = read(File),
@@ -25,16 +25,18 @@ star1({Path, Map}) ->
 
 star2({Path, Map}) ->
     As = lists:filter(fun ends_in_a/1, maps:keys(Map)),
-    Zs = lists:filter(fun ends_in_z/1, maps:keys(Map)),
-    %% My data had exactly one reachable goal for each start, so I tried to just LCM them together It worked!.
-    tools:lcm([S || A <- As, Z <- Zs, (S = steps(A, Path, Z, Map)) /= unreachable]).
+    combind([steps(A, Path, fun ends_in_z/1, Map) || A <- As]).
 
 read(File) ->
     [[Path], Dirs0] = tools:read_blocks(File, parse_lines),
-
     Dirs1 = [string:tokens(D, " =,()") || D <- Dirs0],
-
     {Path, #{Dir => {L, R} || [Dir, L, R] <- Dirs1}}.
+
+combind(Cycles) ->
+    case tools:chinese_remainder([{C, M} || {[C], M} <- Cycles]) of
+        {0, M} -> M;
+        {X, _} -> X
+    end.
 
 steps(Start, Path, Goal, Map) ->
     steps(Start, Path, Path, Goal, Map, 0, #{}).
@@ -43,17 +45,33 @@ steps(Pos, [], Path0, Goal, Map, Count, Visited) ->
     steps(Pos, Path0, Path0, Goal, Map, Count, Visited);
 steps(Goal, _, _, Goal, _, Count, _) ->
     Count;
-steps(Pos, Path, _, _, _, _, Visited) when is_map_key({Pos, length(Path)}, Visited) ->
-    unreachable;
+steps(Pos, Path, _, _, _, Count, Visited) when is_map_key({Pos, length(Path)}, Visited) ->
+    case maps:get(goals, Visited, unreachable) of
+        unreachable ->
+            unreachable;
+        Goals ->
+            Cycle = Count - maps:get({Pos, length(Path)}, Visited),
+            {[G rem Cycle || G <- Goals], Cycle}
+    end;
 steps(Pos, [Dir | Rest] = Path, Path0, Goal, Map, Count, Visited) ->
-    {L, R} = maps:get(Pos, Map),
-    case Dir of
-        $L ->
-            steps(L, Rest, Path0, Goal, Map, Count + 1, Visited#{{Pos, length(Path)} => true});
-        $R ->
-            steps(R, Rest, Path0, Goal, Map, Count + 1, Visited#{{Pos, length(Path)} => true})
-    end.
+    Next = select(Dir, maps:get(Pos, Map)),
+    NextV = update_visited(Pos, Path, Count, Goal, Visited),
+    steps(Next, Rest, Path0, Goal, Map, Count + 1, NextV).
 
+update_visited(Pos, Path, Count, Goal, V) when is_function(Goal, 1) ->
+    case Goal(Pos) of
+        true ->
+            V#{{Pos, length(Path)} => Count, goals => [Count | maps:get(goals, V, [])]};
+        false ->
+            V#{{Pos, length(Path)} => Count}
+    end;
+update_visited(Pos, Path, Count, _Goal, V) ->
+    V#{{Pos, length(Path)} => Count}.
+
+select($L, {L, _}) ->
+    L;
+select($R, {_, R}) ->
+    R.
 ends_in_a([_, _, Letter]) ->
     $A == Letter.
 

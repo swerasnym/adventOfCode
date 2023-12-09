@@ -426,32 +426,34 @@ sign(N) when is_number(N), N > 0 ->
 sign(N) when is_number(N), N < 0 ->
     -1.
 
-gcd(A, 0) ->
-    abs(A);
-gcd(A, B) ->
-    gcd(B, A rem B).
-
-lcm(A, B) ->
-    A * B div gcd(A, B).
-
 gcd([A]) ->
     A;
 gcd([A, B | Rest]) ->
     gcd([gcd(A, B) | Rest]).
+
+gcd(A, 0) ->
+    abs(A);
+gcd(A, B) ->
+    gcd(B, A rem B).
 
 lcm([A]) ->
     A;
 lcm([A, B | Rest]) ->
     lcm([lcm(A, B) | Rest]).
 
-egcd(_, 0) ->
-    {1, 0};
+lcm(A, B) ->
+    A * B div gcd(A, B).
+
+%% @doc egcd(A,B) calculates the tuple {R, X, Y} s.t. A*X + B*Y = R, with R = gcd(A, B).
+%% Note that R is allowed to be negative.
+egcd(R, 0) ->
+    {R, 1, 0};
 egcd(A, B) ->
-    {S, T} = egcd(B, A rem B),
-    {T, S - A div B * T}.
+    {R, S, T} = egcd(B, A rem B),
+    {R, T, S - A div B * T}.
 
 mod_inv(A, B) ->
-    {X, Y} = egcd(A, B),
+    {_R, X, Y} = egcd(A, B),
     case A * X + B * Y =:= 1 of
         true ->
             X;
@@ -480,38 +482,37 @@ pow(SquaredBase, Exponent, RunningTotal) when Exponent rem 2 =:= 0 ->
 pow(SquaredBase, Exponent, RunningTotal) ->
     pow(SquaredBase * SquaredBase, Exponent div 2, SquaredBase * RunningTotal).
 
-%% internal
-calc_inverses([], []) ->
-    [];
-calc_inverses([N | Ns], [M | Ms]) ->
-    case mod_inv(N, M) of
-        undefined ->
-            undefined;
-        Inv ->
-            [Inv | calc_inverses(Ns, Ms)]
-    end.
+-spec chinese_remainder(Congruences) -> Result when
+    Congruences :: [{Ri, Mi}],
+    Result :: {X, M} | undefined,
+    Ri :: integer(),
+    Mi :: integer(),
+    X :: integer(),
+    M :: integer().
 
-chinese_remainder(Congruences) ->
-    {Residues, Modulii} = lists:unzip(Congruences),
-    ModPI = lists:foldl(fun(A, B) -> A * B end, 1, Modulii),
-    CRTModulii = [ModPI div M || M <- Modulii],
-    case calc_inverses(CRTModulii, Modulii) of
-        undefined ->
-            undefined;
-        Inverses ->
-            Solution =
-                lists:sum([
-                    A * B
-                 || {A, B} <-
-                        lists:zip(
-                            CRTModulii,
-                            [
-                                A * B
-                             || {A, B} <- lists:zip(Residues, Inverses)
-                            ]
-                        )
-                ]),
-            mod(Solution, ModPI)
+%% @doc Solves a system of linear congruences:
+%% X ~ R1 (mod M1),
+%% X ~ R2 (mod M2),
+%% ...,
+%% X ~ Rn (mod Mn)
+%%
+%% returns {X, M} such that X + kM is a solution for all integers k; or undefined when no solution exists (i.e. when when gcd(Mi, Mj) does not divide (Ri-Rj) for some i /= j).
+
+chinese_remainder([V]) ->
+    V;
+chinese_remainder([{R1, M1}, {R2, M2} | Rest]) ->
+    {G, P, Q} = egcd(M1, M2),
+    case (R1 - R2) rem G of
+        0 ->
+            M1G = M1 div G,
+            M2G = M2 div G,
+            %% TODO Remove Sanity check below...
+            {1, P, Q} = egcd(M1G, M2G),
+            M = M1 * M2G,
+            X = mod(R1 * M2G * Q + R2 * M1G * P, M),
+            chinese_remainder([{X, M} | Rest]);
+        _ ->
+            undefined
     end.
 
 %% Intervalls

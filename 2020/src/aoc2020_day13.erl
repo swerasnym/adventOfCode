@@ -1,6 +1,11 @@
 -module(aoc2020_day13).
 
--export([run/2]).
+-export([run/0, run/2]).
+
+run() ->
+    {S1, S2} = Res = run(all, "../data/day13.data"),
+    io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
+    {138, 226845233210288} = Res.
 
 run(Star, File) ->
     Data = read(File),
@@ -23,7 +28,8 @@ star1({Time, Buses}) ->
 star2({_Time, Buses}) ->
     Reminders =
         [{-Rem, Id} || {Id, Rem} <- lists:zip(Buses, lists:seq(0, length(Buses) - 1)), Id /= x],
-    tools:chinese_remainder(Reminders).
+    {Rem, _Mod} = tools:chinese_remainder(Reminders),
+    Rem.
 
 dep_time(Id, Time) ->
     case Time div Id * Id of
