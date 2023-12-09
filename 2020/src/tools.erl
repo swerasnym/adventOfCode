@@ -59,6 +59,9 @@
 -export([interval_after/2]).
 -export([interval_before/2]).
 -export([interval_shift/2]).
+-export([overlap/1]).
+-export([overlap/2]).
+-export([chinese_multi_reminder/1]).
 
 -spec ws() -> string().
 ws() ->
@@ -458,6 +461,8 @@ mod_inv(A, B) ->
         true ->
             X;
         false ->
+            %% TODO: check what hapens for negative modulii
+            %% io:format("~p~n", [_R]),
             undefined
     end.
 
@@ -513,6 +518,29 @@ chinese_remainder([{R1, M1}, {R2, M2} | Rest]) ->
             chinese_remainder([{X, M} | Rest]);
         _ ->
             undefined
+    end.
+-spec chinese_multi_reminder(Congruences) -> Result when
+    Congruences :: [{[Ri], Mi}],
+    Result :: {[X], M} | undefined,
+    Ri :: integer(),
+    Mi :: integer(),
+    X :: integer(),
+    M :: integer().
+%% @doc Solves a system of linear congruences with multiple valid resudies:
+chinese_multi_reminder([A]) ->
+    A;
+chinese_multi_reminder([{As, Ma}, {Bs, Mb} | Rest]) ->
+    Lcm = lcm(Ma, Mb),
+    XsLcm = [R || Ra <- As, Rb <- Bs, (R = chinese_remainder([{Ra, Ma}, {Rb, Mb}])) /= undefined],
+
+    Xs = [X || {X, L} <- XsLcm, L == Lcm],
+    %% Sanity check
+    true = length(Xs) == length(XsLcm),
+    case length(Xs) of
+        0 ->
+            undefined;
+        _ ->
+            chinese_multi_reminder([{lists:usort(Xs), Lcm} | Rest])
     end.
 
 %% Intervalls
@@ -589,3 +617,22 @@ interval_shift(empty, _) ->
     empty;
 interval_shift({A1, A2}, Amount) ->
     {A1 + Amount, A2 + Amount}.
+
+overlap([]) ->
+    [];
+overlap([A]) ->
+    A;
+overlap([A, B | Rest]) ->
+    overlap([overlap(A, B, []) | Rest]).
+
+overlap(A, B) ->
+    overlap(A, B, []).
+
+overlap(A, B, Overlap) when length(A) == 0 orelse length(B) == 0 ->
+    lists:reverse(Overlap);
+overlap([A | Ra], [A | Rb], Overlap) ->
+    overlap(Ra, Rb, [A | Overlap]);
+overlap([A | Rest], B, Overlap) when A < hd(B) ->
+    overlap(Rest, B, Overlap);
+overlap(A, [B | Rest], Overlap) when B < hd(A) ->
+    overlap(A, Rest, Overlap).

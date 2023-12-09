@@ -2,6 +2,8 @@
 
 -export([run/0, run/2]).
 
+%% Comunity Bonus1 should give {276, 676}
+%%  Bonus2 should give  {unreachable,19}
 run() ->
     {S1, S2} = Res = run(all, "../data/day8.txt"),
     io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
@@ -14,6 +16,8 @@ run(Star, File) ->
             star1(Data);
         star2 ->
             star2(Data);
+        star3 ->
+            star3(Data);
         _ ->
             Star1 = star1(Data),
             Star2 = star2(Data),
@@ -25,6 +29,17 @@ star1({Path, Map}) ->
 
 star2({Path, Map}) ->
     As = lists:filter(fun ends_in_a/1, maps:keys(Map)),
+    Steps = [steps(A, Path, fun ends_in_z/1, Map) || A <- As],
+    case [G || {{[G], G}, []} <- Steps] of
+        Cycles when length(Cycles) == length(As) ->
+            tools:lcm(Cycles);
+        _ ->
+            star3({Path, Map})
+    end.
+
+%% In the aoc data we always had perfect cycles allowing for just using LCM, star3 handles some more extreme inputs
+star3({Path, Map}) ->
+    As = lists:filter(fun ends_in_a/1, maps:keys(Map)),
     combind([steps(A, Path, fun ends_in_z/1, Map) || A <- As]).
 
 read(File) ->
@@ -32,11 +47,48 @@ read(File) ->
     Dirs1 = [string:tokens(D, " =,()") || D <- Dirs0],
     {Path, #{Dir => {L, R} || [Dir, L, R] <- Dirs1}}.
 
-combind(Cycles) ->
-    case tools:chinese_remainder([{C, M} || {[C], M} <- Cycles]) of
-        {0, M} -> M;
-        {X, _} -> X
+combind(Paths) ->
+    io:format("~p", [Paths]),
+    %% Add a -1 to take care of the case when all values are inside all cycles...
+    LatsVisitOutsideCycle = lists:max(lists:flatten([-1] ++ [L || {_, L} <- Paths])),
+    EarlyVisits = [
+        lists:usort(
+            lists:flatten(
+                L ++ [lists:seq(R, LatsVisitOutsideCycle, M) || R <- Rs, R < LatsVisitOutsideCycle]
+            )
+        )
+     || {{Rs, M}, L} <- Paths
+    ],
+
+    case tools:overlap(EarlyVisits) of
+        [] ->
+            {WithCycles, WithoutCycles} = lists:partition(fun({{Rs, _}, _}) -> Rs /= [] end, Paths),
+            CycleOnly = tools:chinese_multi_reminder([C || {C, _} <- WithCycles]),
+
+            io:format("CO:~p~n", [CycleOnly]),
+            case WithoutCycles of
+                [] when CycleOnly /= undefined ->
+                    {Xc, Mc} = CycleOnly,
+                    %% Need to take at least enough steps to reach one value in each cyclic part.
+                    MinimumSteps = lists:max([lists:min(Rs) || {{Rs, _}, _} <- WithCycles]),
+                    lists:min([find_t(MinimumSteps, X, Mc) || X <- Xc]);
+                _ ->
+                    undefined
+            end;
+        Overlap ->
+            lists:min(Overlap)
     end.
+
+find_t(Min, X, M) when Min > X ->
+    T = (Min - X) div M,
+    case X + T * M of
+        N when N < Min ->
+            N + M;
+        N ->
+            N
+    end;
+find_t(_Min, X, _M) ->
+    X.
 
 steps(Start, Path, Goal, Map) ->
     steps(Start, Path, Path, Goal, Map, 0, #{}).
@@ -50,8 +102,9 @@ steps(Pos, Path, _, _, _, Count, Visited) when is_map_key({Pos, length(Path)}, V
         unreachable ->
             unreachable;
         Goals ->
-            Cycle = Count - maps:get({Pos, length(Path)}, Visited),
-            {[G rem Cycle || G <- Goals], Cycle}
+            FirstVisit = maps:get({Pos, length(Path)}, Visited),
+            Cycle = Count - FirstVisit,
+            {{[G || G <- Goals, G >= FirstVisit], Cycle}, [G || G <- Goals, G < FirstVisit]}
     end;
 steps(Pos, [Dir | Rest] = Path, Path0, Goal, Map, Count, Visited) ->
     Next = select(Dir, maps:get(Pos, Map)),
