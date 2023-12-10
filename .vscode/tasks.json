@@ -28,7 +28,19 @@
               },
             "dependsOn": "compile",
         },
-
+        {
+          "label": "shell",
+          "type": "shell",
+          "options": {
+          "cwd": "${fileDirname}",
+          },
+          "command": "erl",
+          "group": {
+              "kind": "build",
+              "isDefault": true
+            },
+          "dependsOn": "compile",
+      },
 
         {
           "label": "run2",
