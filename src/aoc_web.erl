@@ -5,21 +5,86 @@
 
 %% @doc Provide an cached API towards https://adventofcode.com
 -export([start_link/0]).
-% -export([alloc/0, free/1]).
-% -export([init/1, handle_call/3, handle_cast/2]).
-
-%% for test for now...
--compile([export_all, nowarn_export_all]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2]).
+-export([get_input_path/2, get_input_path/3, base_url/0]).
+-export([get_aoc_page/2, get_aoc_page/3]).
+-export([run/0]).
 
 -define(BASE_URL, "https://adventofcode.com/").
+-define(PACING, 5000).
+
+run() ->
+    start_link(),
+    get_input_path(2022, 20),
+    get_input_path(2022, 21),
+    get_input_path(2022, 22),
+    get_input_path(2022, 23).
 
 start_link() ->
-    gen_server:start_link({global, ?MODULE}, ?MODULE, nothing, []).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, nothing, []).
 
 %% Returns the internal state.
 init(nothing) ->
-    application:ensure_all_started([inets, ssl]),
-    {ok, #{}}.
+    {ok, _} = application:ensure_all_started([inets, ssl]),
+    ok = ensure_paths(),
+    io:format("Started!~n"),
+    {ok, #{
+        queue => queue:new(),
+        requesters => #{},
+        processing => false
+    }}.
+
+handle_call(
+    {download, UrlPath},
+    From,
+    #{
+        queue := Queue,
+        requesters := Requesters,
+        processing := Processing
+    } = State
+) ->
+    io:format("call ~p ~n", [State]),
+    case maps:get(UrlPath, Requesters, []) of
+        [] ->
+            Queue1 = queue:in(UrlPath, Queue),
+            inform_download(Processing),
+            {noreply, State#{
+                queue := Queue1,
+                requesters := Requesters#{UrlPath => [From]},
+                processing := true
+            }};
+        OlderRequests ->
+            {noreply, State#{requesters := Requesters#{UrlPath := [From | OlderRequests]}}}
+    end.
+
+inform_download(false) ->
+    self() ! process_downloads,
+    ok;
+inform_download(true) ->
+    ok.
+
+handle_cast(_Req, State) ->
+    {noreply, State}.
+
+handle_info(
+    process_downloads,
+    #{
+        queue := Queue,
+        requesters := Requesters
+    } = State
+) ->
+    io:format("process_downloads ~p ~n", [State]),
+    case queue:out(Queue) of
+        {empty, _} ->
+            {noreply, State#{processing := false}};
+        {{value, {Url, Path} = UP}, Queue1} ->
+            Result = store_remore_aoc_page(Url, Path),
+            [gen_statem:reply(From, Result) || From <- maps:get(UP, Requesters, [])],
+
+            timer:send_after(?PACING, process_downloads),
+
+            {noreply, State#{queue := Queue1, requesters := maps:remove(UP, Requesters)}}
+    end.
 
 session_coockie() ->
     Path = iolist_to_binary([base_dir(), "SESSION"]),
@@ -43,20 +108,20 @@ ensure_paths() ->
 
 base_dir() ->
     {ok, [[Home]]} = init:get_argument(home),
-    application:get_env(aoc_web, storage_path, [Home, "/aoc_storage/"]).
+    application:get_env(aoc_web, storage_path, Home ++ "/aoc_storage/").
 
 get_dir(inputs) ->
-    [base_dir(), "/inputs"];
+    base_dir() ++ "inputs/";
 get_dir(problems) ->
-    [base_dir(), "/inputs"];
+    base_dir() ++ "inputs/";
 get_dir(results) ->
-    [base_dir(), "/results"].
+    base_dir() ++ "results/".
 
-get_input(Year, Day) ->
-    get_input(Year, Day, cached).
+get_input_path(Year, Day) ->
+    get_input_path(Year, Day, cached).
 
-get_input(Year, Day, Type) when Year >= 2015, Day >= 1, Day =< 25 ->
-    Dir = get_dir(inputs) ++ "/" ++ integer_to_list(Year),
+get_input_path(Year, Day, Type) when Year >= 2015, Day >= 1, Day =< 25 ->
+    Dir = get_dir(inputs) ++ integer_to_list(Year),
     File = "day" ++ integer_to_list(Day) ++ ".txt",
     Path = Dir ++ "/" ++ File,
     LocalUrl = integer_to_list(Year) ++ "/day/" ++ integer_to_list(Day) ++ "/input",
@@ -75,17 +140,25 @@ get_aoc_page(LocalUrl, Path) ->
 get_aoc_page(LocalUrl, Path, cached) ->
     case filelib:is_file(Path) of
         true ->
-            {ok, file:read_file(Path)};
+            {ok, Path};
         false ->
             get_aoc_page(LocalUrl, Path, remote)
     end;
 get_aoc_page(LocalUrl, Path, remote) ->
+    gen_server:call(?MODULE, {download, {LocalUrl, Path}}, infinity).
+
+%% internal
+%%
+base_url() ->
+    ?BASE_URL.
+
+store_remore_aoc_page(LocalUrl, Path) ->
     maybe
         {ok, SessionCoockie} ?= session_coockie(),
         {ok, Page} ?= get_url(?BASE_URL ++ LocalUrl, [SessionCoockie]),
         case file:write_file(Path, Page) of
             ok ->
-                {ok, Page};
+                {ok, Path};
             WriteError ->
                 {error, {saving, Page, Path, WriteError}}
         end
@@ -96,7 +169,6 @@ get_aoc_page(LocalUrl, Path, remote) ->
             {error, Error}
     end.
 
-%% internal
 get_url(Url, Options) ->
     io:format("Fetching: ~s ~p~n", [Url, Options]),
     case httpc:request(get, {Url, Options}, [], [{full_result, false}]) of
