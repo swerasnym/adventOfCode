@@ -1,0 +1,6 @@
+{
+    "files.exclude": {
+        "**/_build": true,
+        "**/*.beam": true
+    }
+}
