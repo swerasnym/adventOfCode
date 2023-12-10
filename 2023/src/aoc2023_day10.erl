@@ -20,36 +20,45 @@ run(Star, File) ->
             {Star1, Star2}
     end.
 
-star1(Map) ->
-    erlang:erase(),
-    Start = [P || P := [north, south, east, west] <- Map],
-    move(Start, Map, 0, []),
-    erlang:get(dist).
+star1({Start, Map}) ->
+    {Count, _} = move([Start], Map, 0, []),
+    Count.
 
-star2(#{max := {XMax, YMax}} = Map) ->
-    io:format("~p~n", [{XMax, YMax}]),
-    erlang:erase(),
-    Start = [P || P := [north, south, east, west] <- Map],
-    MapOut = move(Start, Map, 0, []),
-    SimplifiedMap = maps:map(fun(P, Val) -> transform(P, Val, Map) end, MapOut),
-
-    % [io:format("~p~n" , [Row]) || Row <- tools:grid_to_lists(SimplifiedMap)],
+star2({Start, Map}) ->
+    {_, MapOut} = move([Start], Map, 0, []),
+    SimplifiedMap = #{Pos => simplify(Val) || Pos := Val <- MapOut},
     lists:sum([count_row(0, Row, outside) || Row <- tools:grid_to_lists(SimplifiedMap)]).
 
 read(File) ->
-    tools:read_grid(File, #{
-        $S => [north, south, east, west],
+    Map = tools:read_grid(File, #{
+        $S => start,
         $. => empty,
         $| => [north, south],
-        $- => [east, west],
         $L => [north, east],
         $J => [north, west],
         $7 => [south, west],
         $F => [south, east],
-        %% To be able to parse examples with IO
+        $- => [east, west],
+        %% To be able to parse examples with inside/outside marked.
         $I => empty,
         $O => empty
-    }).
+    }),
+    [Start] = [P || P := start <- Map],
+    StartDirs = [
+        D
+     || D <- [north, south, east, west],
+        lists:member(Start, neigbours(get_neigbour(Start, D), Map))
+    ],
+    %% Asert that only one pipe pice is valid
+    2 = length(StartDirs),
+    {Start, Map#{Start := StartDirs}}.
+
+neigbours(Pos, Map) when is_map(Map) ->
+    [get_neigbour(Pos, Dir) || Dir <- maps:get(Pos, Map)];
+neigbours(Pos, Dirs) when is_list(Dirs) ->
+    [get_neigbour(Pos, Dir) || Dir <- Dirs];
+neigbours(_, _) ->
+    [].
 
 get_neigbour({X, Y}, north) -> {X, Y - 1};
 get_neigbour({X, Y}, south) -> {X, Y + 1};
@@ -57,32 +66,16 @@ get_neigbour({X, Y}, east) -> {X + 1, Y};
 get_neigbour({X, Y}, west) -> {X - 1, Y}.
 
 move([], Map, Count, []) ->
-    Map;
+    {Count, Map};
 move([], Map, Count, NextLayer) ->
-    % io:format("~p ~p~n", [Count+1, NextLayer]),
     move(NextLayer, Map, Count + 1, []);
 move([Pos | Rest], Map, Count, NextLayer) ->
-    % io:format("~p ~p~n", [Count, Pos]),
-    case maps:get(Pos, Map, empty) of
-        empty ->
-            move(Rest, Map, Count, NextLayer);
-        {visited, Count} ->
-            move(Rest, Map, Count, NextLayer);
-        {visited, N} when N == Count - 1 ->
-            move(Rest, Map, Count, NextLayer);
+    case maps:get(Pos, Map) of
         {visited, _} ->
             move(Rest, Map, Count, NextLayer);
-        Dirs ->
-            Neigbours = [get_neigbour(Pos, D) || D <- Dirs],
-            NFilter = [
-                N
-             || N <- Neigbours,
-                is_list(NDirs = maps:get(N, Map, empty)),
-                lists:member(Pos, [get_neigbour(N, ND) || ND <- NDirs])
-            ],
-            %  io:format("~p ~p ~p ~p ~p~n", [Count, Pos, Dirs, Neigbours, NFilter]),
-            erlang:put(dist, Count),
-            move(Rest, Map#{Pos := {visited, Count}}, Count, NFilter ++ NextLayer)
+        Dirs when Dirs /= empty ->
+            New = [N || N <- neigbours(Pos, Dirs), is_list(maps:get(N, Map))],
+            move(Rest, Map#{Pos := {visited, Dirs}}, Count, New ++ NextLayer)
     end.
 
 count_row(Count, [], _) ->
@@ -94,39 +87,15 @@ count_row(Count, [empty | Rest], inside) ->
 count_row(Count, [flip | Rest], IO) ->
     count_row(Count, Rest, flip(IO));
 count_row(Count, [ignore | Rest], IO) ->
-    count_row(Count, Rest, IO);
-count_row(Count, [Dir, Dir | Rest], IO) ->
-    count_row(Count, Rest, IO);
-count_row(Count, [Dir, ignore | Rest], IO) ->
-    count_row(Count, [Dir | Rest], IO);
-count_row(Count, [up, down | Rest], IO) ->
-    count_row(Count, Rest, flip(IO));
-count_row(Count, [down, up | Rest], IO) ->
-    count_row(Count, Rest, flip(IO)).
+    count_row(Count, Rest, IO).
 
 flip(outside) -> inside;
 flip(inside) -> outside.
 
-transform(Pos, {visited, _}, Map) ->
-    case maps:get(Pos, Map) of
-        [north, south, east, west] = Dirs ->
-            Neigbours = [{get_neigbour(Pos, D), D} || D <- Dirs],
-            NewD = [
-                D
-             || {N, D} <- Neigbours,
-                is_list(NDirs = maps:get(N, Map, empty)),
-                lists:member(Pos, [get_neigbour(N, ND) || ND <- NDirs])
-            ],
-
-            transform(Pos, {visited, 0}, Map#{Pos := NewD});
-        [north, south] ->
-            flip;
-        [east, west] ->
-            ignore;
-        [north, _] ->
-            up;
-        [south, _] ->
-            down
-    end;
-transform(_, _, _) ->
+simplify({visited, [north, _]}) ->
+    %% Its enough to check that a pipe has a notthen exit to count boundaries from the outside.
+    flip;
+simplify({visited, _}) ->
+    ignore;
+simplify(_) ->
     empty.
