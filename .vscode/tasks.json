@@ -16,6 +16,29 @@
               },
         },
         {
+          "label": "rebar3 compile",
+          "type": "shell",
+          "options": {
+          },
+          "command": "rebar3 compile",
+          "group": {
+              "kind": "build",
+              "isDefault": true
+            },
+        },
+        {
+        "label": "rebar3 run",
+        "type": "shell",
+        "options": {
+        },
+        "command": "rebar3 shell --eval 'aoc_web:start_link().' --eval 'try ${fileBasenameNoExtension}:run() catch C:B:ST -> io:format(\"~n~p~n~p~n~p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
+        "group": {
+            "kind": "build",
+            "isDefault": true
+          },
+        "dependsOn": "rebar3 compile",
+    },
+        {
             "label": "run",
             "type": "shell",
             "options": {

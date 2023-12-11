@@ -168,8 +168,12 @@ replace_n([Head | Rest], Replacements, N, Acc) ->
 
 %% @doc Reads a whole file into a string, wihout any trailing whitespace.
 read_string(File) ->
-    {ok, Bin} = file:read_file(File),
-    string:trim(binary_to_list(Bin), trailing).
+    case file:read_file(File) of
+        {ok, Bin} ->
+            string:trim(binary_to_list(Bin), trailing);
+        Error ->
+            erlang:error(Error, [File])
+    end.
 
 %% @doc Tokenizes a whole file using string:tokens/2 ignoring any trailing whitespaces.
 read_tokens(File, Separators) ->

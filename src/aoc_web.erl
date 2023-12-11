@@ -43,7 +43,7 @@ handle_call(
         processing := Processing
     } = State
 ) ->
-    io:format("call ~p ~n", [State]),
+    % io:format("call ~p ~n", [State]),
     case maps:get(UrlPath, Requesters, []) of
         [] ->
             Queue1 = queue:in(UrlPath, Queue),
@@ -73,7 +73,7 @@ handle_info(
         requesters := Requesters
     } = State
 ) ->
-    io:format("process_downloads ~p ~n", [State]),
+    %% io:format("process_downloads ~p ~n", [State]),
     case queue:out(Queue) of
         {empty, _} ->
             {noreply, State#{processing := false}};
@@ -121,6 +121,8 @@ get_input_path(Year, Day) ->
     get_input_path(Year, Day, cached).
 
 get_input_path(Year, Day, Type) when Year >= 2015, Day >= 1, Day =< 25 ->
+    ok = check_date(Year, Day),
+
     Dir = get_dir(inputs) ++ integer_to_list(Year),
     File = "day" ++ integer_to_list(Day) ++ ".txt",
     Path = Dir ++ "/" ++ File,
@@ -132,6 +134,14 @@ get_input_path(Year, Day, Type) when Year >= 2015, Day >= 1, Day =< 25 ->
             Input;
         Error ->
             Error
+    end.
+
+check_date(Year, Day) ->
+    case calendar:local_time() > {{Year, 12, Day}, {6, 0, 0}} of
+        true ->
+            ok;
+        false ->
+            error("Problem is not realased yet!", [Year, Day])
     end.
 
 get_aoc_page(LocalUrl, Path) ->
@@ -170,7 +180,7 @@ store_remore_aoc_page(LocalUrl, Path) ->
     end.
 
 get_url(Url, Options) ->
-    io:format("Fetching: ~s ~p~n", [Url, Options]),
+    io:format("Fetching: ~s~n", [Url]),
     case httpc:request(get, {Url, Options}, [], [{full_result, false}]) of
         {ok, {200, Page}} ->
             {ok, Page};

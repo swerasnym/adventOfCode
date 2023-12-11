@@ -3,7 +3,8 @@
 -export([run/0, run/2]).
 
 run() ->
-    {S1, S2} = Res = run(all, "../data/day1.txt"),
+    %%{S1, S2} = Res = run(all, "/home/rasmus/repos/adventOfCode/2023/data/day1_ex.txt"),
+    {S1, S2} = Res = run(all, aoc_web:get_input_path(2023, 1)),
     io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
     Res.
 
