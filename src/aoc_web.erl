@@ -9,16 +9,17 @@
 -export([get_input_path/2, get_input_path/3, base_url/0]).
 -export([get_aoc_page/2, get_aoc_page/3]).
 -export([run/0]).
+-export([get_problem_path/2, get_problem_path/3]).
 
 -define(BASE_URL, "https://adventofcode.com/").
 -define(PACING, 5000).
-
+-define(RELEASE_TIME, {6, 0, 0}).
 run() ->
     start_link(),
-    get_input_path(2022, 20),
+    get_input_path(2015, 20),
     get_input_path(2022, 21),
     get_input_path(2022, 22),
-    get_input_path(2022, 23).
+    get_problem_path(2023, 11).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, nothing, []).
@@ -113,14 +114,14 @@ base_dir() ->
 get_dir(inputs) ->
     base_dir() ++ "inputs/";
 get_dir(problems) ->
-    base_dir() ++ "inputs/";
+    base_dir() ++ "problems/";
 get_dir(results) ->
     base_dir() ++ "results/".
 
 get_input_path(Year, Day) ->
     get_input_path(Year, Day, cached).
 
-get_input_path(Year, Day, Type) when Year >= 2015, Day >= 1, Day =< 25 ->
+get_input_path(Year, Day, Type) ->
     ok = check_date(Year, Day),
 
     Dir = get_dir(inputs) ++ integer_to_list(Year),
@@ -128,21 +129,42 @@ get_input_path(Year, Day, Type) when Year >= 2015, Day >= 1, Day =< 25 ->
     Path = Dir ++ "/" ++ File,
     LocalUrl = integer_to_list(Year) ++ "/day/" ++ integer_to_list(Day) ++ "/input",
 
-    ok = filelib:ensure_path(Dir),
     case get_aoc_page(LocalUrl, Path, Type) of
-        {ok, Input} ->
-            Input;
+        {ok, InputPath} ->
+            io:format("Input path: ~s~n", [InputPath]),
+            InputPath;
         Error ->
             Error
     end.
 
-check_date(Year, Day) ->
-    case calendar:local_time() > {{Year, 12, Day}, {6, 0, 0}} of
+get_problem_path(Year, Day) ->
+    get_problem_path(Year, Day, cached).
+
+get_problem_path(Year, Day, Type) ->
+    ok = check_date(Year, Day),
+
+    Dir = get_dir(problems) ++ integer_to_list(Year),
+    File = "day" ++ integer_to_list(Day) ++ ".html",
+    Path = Dir ++ "/" ++ File,
+    LocalUrl = integer_to_list(Year) ++ "/day/" ++ integer_to_list(Day),
+
+    case get_aoc_page(LocalUrl, Path, Type) of
+        {ok, InputPath} ->
+            io:format("Problem path: ~s~n", [InputPath]),
+            InputPath;
+        Error ->
+            Error
+    end.
+
+check_date(Year, Day) when Year >= 2015, Day >= 1, Day =< 25 ->
+    case calendar:local_time() > {{Year, 12, Day}, ?RELEASE_TIME} of
         true ->
             ok;
         false ->
             error("Problem is not realased yet!", [Year, Day])
-    end.
+    end;
+check_date(Year, Day) ->
+    error("No such problem will ever exist", [Year, Day]).
 
 get_aoc_page(LocalUrl, Path) ->
     get_aoc_page(LocalUrl, Path, cached).
@@ -166,6 +188,7 @@ store_remore_aoc_page(LocalUrl, Path) ->
     maybe
         {ok, SessionCoockie} ?= session_coockie(),
         {ok, Page} ?= get_url(?BASE_URL ++ LocalUrl, [SessionCoockie]),
+        ok = filelib:ensure_path(filename:dirname(Path)),
         case file:write_file(Path, Page) of
             ok ->
                 {ok, Path};
@@ -180,7 +203,7 @@ store_remore_aoc_page(LocalUrl, Path) ->
     end.
 
 get_url(Url, Options) ->
-    io:format("Fetching: ~s~n", [Url]),
+    io:format("Downloading: ~s~n", [Url]),
     case httpc:request(get, {Url, Options}, [], [{full_result, false}]) of
         {ok, {200, Page}} ->
             {ok, Page};
