@@ -1,4 +1,5 @@
 -module(aoc_web).
+
 -feature(maybe_expr, enable).
 
 -behaviour(gen_server).
@@ -14,12 +15,19 @@
 -define(BASE_URL, "https://adventofcode.com/").
 -define(PACING, 5000).
 -define(RELEASE_TIME, {6, 0, 0}).
+
+-record(state, {
+    queue = queue:new() :: queue:queue(),
+    requesters = #{} :: map(),
+    processing = false :: boolean()
+}).
+
 run() ->
     start_link(),
     get_input_path(2015, 20),
     get_input_path(2022, 21),
     get_input_path(2022, 22),
-    get_problem_path(2023, 11).
+    get_problem_path(2023, 12).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, nothing, []).
@@ -29,19 +37,15 @@ init(nothing) ->
     {ok, _} = application:ensure_all_started([inets, ssl]),
     ok = ensure_paths(),
     io:format("Started!~n"),
-    {ok, #{
-        queue => queue:new(),
-        requesters => #{},
-        processing => false
-    }}.
+    {ok, #state{}}.
 
 handle_call(
     {download, UrlPath},
     From,
-    #{
-        queue := Queue,
-        requesters := Requesters,
-        processing := Processing
+    #state{
+        queue = Queue,
+        requesters = Requesters,
+        processing = Processing
     } = State
 ) ->
     % io:format("call ~p ~n", [State]),
@@ -49,13 +53,13 @@ handle_call(
         [] ->
             Queue1 = queue:in(UrlPath, Queue),
             inform_download(Processing),
-            {noreply, State#{
-                queue := Queue1,
-                requesters := Requesters#{UrlPath => [From]},
-                processing := true
+            {noreply, State#state{
+                queue = Queue1,
+                requesters = Requesters#{UrlPath => [From]},
+                processing = true
             }};
         OlderRequests ->
-            {noreply, State#{requesters := Requesters#{UrlPath := [From | OlderRequests]}}}
+            {noreply, State#state{requesters = Requesters#{UrlPath := [From | OlderRequests]}}}
     end.
 
 inform_download(false) ->
@@ -69,22 +73,22 @@ handle_cast(_Req, State) ->
 
 handle_info(
     process_downloads,
-    #{
-        queue := Queue,
-        requesters := Requesters
+    #state{
+        queue = Queue,
+        requesters = Requesters
     } = State
 ) ->
     %% io:format("process_downloads ~p ~n", [State]),
     case queue:out(Queue) of
         {empty, _} ->
-            {noreply, State#{processing := false}};
+            {noreply, State#state{processing = false}};
         {{value, {Url, Path} = UP}, Queue1} ->
             Result = store_remore_aoc_page(Url, Path),
             [gen_statem:reply(From, Result) || From <- maps:get(UP, Requesters, [])],
 
-            timer:send_after(?PACING, process_downloads),
+            erlang:send_after(self(), ?PACING, process_downloads),
 
-            {noreply, State#{queue := Queue1, requesters := maps:remove(UP, Requesters)}}
+            {noreply, State#state{queue = Queue1, requesters = maps:remove(UP, Requesters)}}
     end.
 
 session_coockie() ->
