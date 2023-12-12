@@ -1,0 +1,15 @@
+{application, aoc, [
+    {description, "A collection of Advent of Code solutions."},
+    {vsn, git},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib,
+        inet,
+        ssl
+    ]},
+    {env, []},
+    {modules, []},
+
+    {links, []}
+]}.
