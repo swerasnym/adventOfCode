@@ -1,6 +1,3 @@
 {
-    "files.exclude": {
-        "**/_build": true,
-        "**/*.beam": true
-    }
+    "explorer.excludeGitIgnore": true,
 }
