@@ -1,25 +1,20 @@
 -module(aoc2023_day1).
+-behaviour(aoc_solution).
 
 -export([run/0, run/2]).
 
-run() ->
-    %%{S1, S2} = Res = run(all, "/home/rasmus/repos/adventOfCode/2023/data/day1_ex.txt"),
-    {S1, S2} = Res = run(all, aoc_web:get_input_path(2023, 1)),
-    io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
-    Res.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
 
-run(Star, File) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+info() ->
+    maps:merge(aoc_solution:default_info(), #{problem => {2023, 1}}).
+
+run() ->
+    %% aoc_solution:run(?MODULE, all, "2023/data/day1_ex.txt").
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Data) ->
     lists:sum([number(filter1(V, [])) || V <- Data]).

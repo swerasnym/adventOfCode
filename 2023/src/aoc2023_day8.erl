@@ -1,28 +1,21 @@
 -module(aoc2023_day8).
+-behaviour(aoc_solution).
 
--export([run/0, run/2]).
+-export([run/0, run/2, star3/1]).
 
 %% Comunity Bonus1 should give {276, 676}
 %%  Bonus2 should give  {unreachable,19}
-run() ->
-    {S1, S2} = Res = run(all, "../data/day8.txt"),
-    io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
-    Res.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
 
-run(Star, File) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        star3 ->
-            star3(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+info() ->
+    maps:merge(aoc_solution:default_info(), #{problem => {2023, 8}, all => [star1, star2, star3]}).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1({Path, Map}) ->
     steps("AAA", Path, "ZZZ", Map).

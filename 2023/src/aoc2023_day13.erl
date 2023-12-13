@@ -1,15 +1,20 @@
 -module(aoc2023_day13).
 -behaviour(aoc_solution).
 
--export([run/0]).
+-export([run/0, run/2]).
+
+%% callbacks
 -export([info/0, star1/1, star2/1, read/1]).
 
+info() ->
+    maps:merge(aoc_solution:default_info(), #{problem => {2023, 13}}).
+
 run() ->
-    % aoc_solution:run(?MODULE, all, "/home/rasmus/repos/adventOfCode/2023/data/day13_ex.txt")).
+    %% aoc_solution:run(?MODULE, all, "2023/data/day13_ex.txt").
     aoc_solution:run(?MODULE).
 
-info() ->
-    #{problem => {2023, 13}}.
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Grids) ->
     lists:sum([value_ref(find_reflections(G)) || G <- Grids]).

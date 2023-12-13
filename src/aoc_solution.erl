@@ -13,30 +13,32 @@
 -callback star1(Data :: data()) -> result().
 -callback star2(Data :: data()) -> result().
 
--export([run/1, run/2, run/3, run_data/3]).
+-export([run/1, run/3]).
 -export([default_info/0]).
 
 run(M) ->
-    #{
-        problem := {Year, Day},
-        all := All
-    } = maps:merge(default_info(), M:info()),
-    File = aoc_web:get_input_path(Year, Day),
-    Data = M:read(File),
-    [run_data(M, Star, Data) || Star <- All].
+    run(M, all, input).
 
-run(M, Star) ->
+run(M, all, FileOrData) ->
+    #{all := All} = M:info(),
+    run(M, All, FileOrData);
+run(M, StarOrStars, input) ->
     #{problem := {Year, Day}} = M:info(),
     File = aoc_web:get_input_path(Year, Day),
-    run(M, Star, File).
-run(M, all, File) ->
-    #{all := All} = maps:merge(default_info(), M:info()),
     Data = M:read(File),
-    [run_data(M, Star, Data) || Star <- All];
-run(M, Star, File) ->
-    Data = M:read(File),
-    run_data(M, Star, Data).
+    run_data(M, StarOrStars, Data);
+run(M, StarOrStars, {data, Data}) ->
+    run_data(M, StarOrStars, Data);
+run(M, StarOrStars, File) ->
+    FilePath = filename:join(code:lib_dir(aoc), File),
+    Data = M:read(FilePath),
+    run_data(M, StarOrStars, Data).
 
+run_data(M, Stars, Data) when is_list(Stars) ->
+    Results = [run_data(M, Star, Data) || Star <- Stars],
+    Out = lists:zip(Stars, Results),
+    io:format("Results: ~p~n", [Out]),
+    Out;
 run_data(M, Star, Data) ->
     Res = M:Star(Data),
     io:format("~p: ~p ~n", [Star, Res]),

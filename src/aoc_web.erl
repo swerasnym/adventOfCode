@@ -86,7 +86,7 @@ handle_info(
             Result = store_remore_aoc_page(Url, Path),
             [gen_statem:reply(From, Result) || From <- maps:get(UP, Requesters, [])],
 
-            erlang:send_after(self(), ?PACING, process_downloads),
+            erlang:send_after(?PACING, self(), process_downloads),
 
             {noreply, State#state{queue = Queue1, requesters = maps:remove(UP, Requesters)}}
     end.

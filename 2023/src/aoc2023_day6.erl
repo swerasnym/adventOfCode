@@ -1,25 +1,19 @@
 -module(aoc2023_day6).
+-behaviour(aoc_solution).
 
 -export([run/0, run/2]).
 
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
+
+info() ->
+    maps:merge(aoc_solution:default_info(), #{problem => {2023, 6}}).
+
 run() ->
-    {S1, S2} = Res = run(all, "../data/day6.txt"),
-    io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
-    Res.
+    aoc_solution:run(?MODULE).
 
-run(Star, File) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
-
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 star1({Time, Distance}) ->
     Data = lists:zip(tools:parse_integers(Time), tools:parse_integers(Distance)),
     tools:product([record(D) || D <- Data]).
