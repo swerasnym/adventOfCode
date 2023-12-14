@@ -1,5 +1,4 @@
 -module(aoc_web).
-
 -feature(maybe_expr, enable).
 
 -behaviour(gen_server).

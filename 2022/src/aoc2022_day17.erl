@@ -1,25 +1,19 @@
 -module(aoc2022_day17).
+-behaviour(aoc_solution).
 
 -export([run/0, run/2]).
 
-run() ->
-    {S1, S2} = Res = run(all, "../data/day17.txt"),
-    io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
-    Res.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
 
-run(Star, File) ->
-    erlang:erase(),
-    Data = read(File),
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+info() ->
+    maps:merge(aoc_solution:default_info(), #{problem => {2022, 17}}).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 -define(STOP1, 2022).
 -define(STOP2, 1000000000000).
@@ -28,6 +22,7 @@ read(File) ->
     tools:read_lines(File).
 
 star1([Movements]) ->
+    erlang:erase(),
     Well = tools:drop_max(tools:lists_to_grid(["FFFFFFF"])),
     End = simulate(0, ?STOP1, Well, Movements, Movements),
     %%ools:print_grid(End),
@@ -35,6 +30,7 @@ star1([Movements]) ->
     -NegHeight.
 
 star2([Movements]) ->
+    erlang:erase(),
     Well = tools:drop_max(tools:lists_to_grid(["FFFFFFF"])),
     End = simulate(0, ?STOP2, Well, Movements, Movements),
     %%tools:print_grid(End),
