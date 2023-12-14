@@ -356,12 +356,10 @@ rotate_grid(Grid) ->
     rotate_grid(Grid, ccw).
 
 rotate_grid(#{max := {Xmax, Ymax}} = Grid, ccw) ->
-    NewGrid =
-        maps:from_list([{{Y, Xmax - X}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]),
+    NewGrid = #{{Y, Xmax - X} => Value || {X, Y} := Value <- Grid},
     NewGrid#{max => {Ymax, Xmax}};
 rotate_grid(#{max := {Xmax, Ymax}} = Grid, cw) ->
-    NewGrid =
-        maps:from_list([{{Ymax - Y, X}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]),
+    NewGrid = #{{Ymax - Y, X} => Value || {X, Y} := Value <- Grid},
     NewGrid#{max => {Ymax, Xmax}}.
 
 flip_grid(Grid) ->

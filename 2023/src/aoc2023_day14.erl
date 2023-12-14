@@ -10,73 +10,78 @@ info() ->
     maps:merge(aoc_solution:default_info(), #{problem => {2023, 14}}).
 
 run() ->
-    %   aoc_solution:run(?MODULE, all, "2023/data/day14_ex.txt").
+    % aoc_solution:run(?MODULE, all, "2023/data/day14_ex.txt").
     aoc_solution:run(?MODULE).
 
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Grid) ->
-    Grid1 = tilt_north(Grid, 0, 0),
+    Grid1 = tilt(Grid, north),
     print(Grid1),
     load(Grid1).
 
 star2(Grid) ->
     erlang:erase(),
-    End = cycle([], Grid, 1000000001),
+    End = cycle(Grid, 1000000000),
     erlang:erase(),
     load(End).
 
 read(File) ->
     tools:read_grid(File, #{$O => round, $# => cube, $. => empty}).
 
-cycle(_, Grid, 0) ->
-    io:nl(),
+cycle(Grid, 0) ->
     Grid;
-cycle([], Grid, N) ->
-    io:format("."),
-    cycle([north, west, south, east], Grid, N - 1);
-cycle([H | Rest], Grid, N) ->
-    Key = {H, Grid},
-    Res = tilt(H, Grid),
-    case erlang:get(Key) of
+cycle(Grid, N) ->
+    case erlang:get(Grid) of
         undefined ->
-            erlang:put(Key, N),
-            cycle(Rest, Res, N);
-        Fn when Fn - N < N ->
+            North = tilt(Grid, north),
+            West = tilt(North, west),
+            South = tilt(West, south),
+            East = tilt(South, east),
+            erlang:put(Grid, {N, East}),
+            cycle(East, N - 1);
+        {Fn, Res} when Fn - N < N ->
             Length = Fn - N,
-            Cycles = N div Length,
-            io:format("~nLoop: Fn:~p N:~p L:~p C:~p ~n", [Fn, N, Length, Cycles]),
-            cycle(Rest, Res, N - Length * Cycles);
-        _ ->
-            cycle(Rest, Res, N)
+            Cycles = (N - 1) div Length,
+            cycle(Res, N - 1 - Length * Cycles);
+        {_, Res} ->
+            cycle(Res, N - 1)
     end.
 
-tilt(north, Grid) ->
-    tilt_north(Grid, 0, 0);
-tilt(east, Grid) ->
-    tools:rotate_grid(tilt_north(tools:rotate_grid(Grid, ccw), 0, 0), cw);
-tilt(west, Grid) ->
-    tools:rotate_grid(tilt_north(tools:rotate_grid(Grid, cw), 0, 0), ccw);
-tilt(south, Grid) ->
-    tools:flip_grid(tilt_north(tools:flip_grid(Grid, y), 0, 0), y).
+tilt(#{max := {Xmax, Ymax}} = G, north) ->
+    tilt(G, {0, 1}, [{X, Y} || Y <- lists:seq(0, Ymax - 1), X <- lists:seq(0, Xmax)]);
+tilt(#{max := {Xmax, Ymax}} = G, west) ->
+    tilt(G, {1, 0}, [{X, Y} || X <- lists:seq(0, Xmax - 1), Y <- lists:seq(0, Ymax)]);
+tilt(#{max := {Xmax, Ymax}} = G, south) ->
+    tilt(G, {0, -1}, [{X, Y} || Y <- lists:seq(Ymax, 1, -1), X <- lists:seq(0, Xmax)]);
+tilt(#{max := {Xmax, Ymax}} = G, east) ->
+    tilt(G, {-1, 0}, [{X, Y} || X <- lists:seq(Xmax, 1, -1), Y <- lists:seq(0, Ymax)]).
 
-tilt_north(#{max := {_, Y}} = G, _, Y) ->
-    G;
-tilt_north(#{max := {Xmax, _}} = G, X, Y) when X > Xmax ->
-    tilt_north(G, 0, Y + 1);
-tilt_north(G, X, Y) ->
-    G1 =
-        case {maps:get({X, Y}, G), next({X, Y + 1}, {0, 1}, G)} of
-            {empty, {round, Pos}} ->
-                G#{{X, Y} := round, Pos := empty};
-            _ ->
-                G
-        end,
-    tilt_north(G1, X + 1, Y).
+tilt(G, DxDy, PosList) ->
+    lists:foldl(fun({X, Y}, Acc) -> tilt(Acc, X, Y, DxDy) end, G, PosList).
 
-next({X, Y}, _, #{max := {Xmax, Ymax}}) when X > Xmax orelse Y > Ymax ->
-    empty;
+tilt(G, X, Y, {Dx, Dy}) ->
+    case maps:get({X, Y}, G) of
+        empty ->
+            case next({X + Dx, Y + Dy}, {Dx, Dy}, G) of
+                {round, Pos} ->
+                    G#{{X, Y} := round, Pos := empty};
+                _ ->
+                    G
+            end;
+        _ ->
+            G
+    end.
+
+next({X, _} = Pos, {_, 0}, #{max := {X, _}} = G) ->
+    {maps:get(Pos, G), Pos};
+next({_, Y} = Pos, {0, _}, #{max := {_, Y}} = G) ->
+    {maps:get(Pos, G), Pos};
+next({0, _} = Pos, {_, 0}, G) ->
+    {maps:get(Pos, G), Pos};
+next({_, 0} = Pos, {0, _}, G) ->
+    {maps:get(Pos, G), Pos};
 next({X, Y} = Pos, {Dx, Dy}, G) ->
     case maps:get(Pos, G) of
         empty ->

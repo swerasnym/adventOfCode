@@ -40,8 +40,8 @@ run_data(M, Stars, Data) when is_list(Stars) ->
     io:format("Results: ~p~n", [Out]),
     Out;
 run_data(M, Star, Data) ->
-    Res = M:Star(Data),
-    io:format("~p: ~p ~n", [Star, Res]),
+    {Time, Res} = timer:tc(M, Star, [Data]),
+    io:format("~p: ~p (~p ms) ~n", [Star, Res, Time / 1000.0]),
     Res.
 
 default_info() ->
