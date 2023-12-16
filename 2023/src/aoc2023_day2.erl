@@ -1,4 +1,4 @@
--module(aoc2023_day02).
+-module(aoc2023_day2).
 -behaviour(aoc_solution).
 
 -export([run/0, run/2]).
