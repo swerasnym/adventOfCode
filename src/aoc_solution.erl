@@ -13,8 +13,12 @@
 -callback star1(Data :: data()) -> result().
 -callback star2(Data :: data()) -> result().
 
--export([run/1, run/2, run/3, run/4]).
+-export([run/0, run/1, run/2, run/3, run/4]).
 -export([default_info/0]).
+
+run() ->
+    {_, Modules} = lists:unzip(get_all_solutions()),
+    run(Modules, all, both).
 
 run(M) ->
     run(M, all, input, default_options()).
@@ -22,41 +26,51 @@ run(M) ->
 run(M, Opts) ->
     run(M, all, input, Opts).
 
-run(M, all, FileOrData) ->
-    run(M, all, FileOrData, default_options()).
+run(M, StarOrStars, FileOrData) ->
+    run(M, StarOrStars, FileOrData, default_options()).
 
-run(M, all, FileOrData, Opts) ->
-    #{all := All} = M:info(),
-    run(M, All, FileOrData, Opts);
-run(M, StarOrStars, input, Opts) ->
+run(M, StarOrStars, FileOrData, #{summary := true}) ->
+    Results = run_file(M, StarOrStars, FileOrData),
+    io:format("Summary:~n"),
+    print(Results),
+    Results;
+run(M, StarOrStars, FileOrData, _Opts) ->
+    run_file(M, StarOrStars, FileOrData).
+% Modules
+run_file(Modules, StarOrStars, FileOrData) when is_list(Modules) ->
+    [run_file(M, StarOrStars, FileOrData) || M <- Modules];
+run_file(M, StarOrStars, {files, Files}) when is_list(Files) ->
+    [run_file(M, StarOrStars, File) || File <- Files, File /= both];
+run_file(M, StarOrStars, {data, Data}) ->
+    run_data(M, StarOrStars, Data);
+run_file(M, StarOrStars, both) ->
+    run_file(M, StarOrStars, {files, [examples, input]});
+run_file(M, StarOrStars, input) ->
     #{problem := {Year, Day}} = M:info(),
     File = aoc_web:get_input_path(Year, Day),
-    Data = M:read(File),
-    run_data_print(M, StarOrStars, Data, Opts);
-run(M, StarOrStars, {data, Data}, Opts) ->
-    run_data_print(M, StarOrStars, Data, Opts);
-run(M, StarOrStars, File, Opts) ->
+    run_file(M, StarOrStars, File);
+run_file(M, StarOrStars, examples) ->
+    #{examples := Examples} = M:info(),
+    [run_file(M, StarOrStars, {example, Example}) || Example <- Examples];
+run_file(M, _, {example, {File, Star, ExpectedResult}}) ->
+    validate_example(run_file(M, Star, File), ExpectedResult);
+run_file(M, StarOrStars, File) when is_list(File) ->
     FilePath = filename:join(code:lib_dir(aoc), File),
-    Data = M:read(FilePath),
-    run_data_print(M, StarOrStars, Data, Opts).
+    {Time, Data} = timer:tc(M, read, [FilePath]),
+    [
+        #{file => FilePath, time => Time, module => M},
+        run_data(M, StarOrStars, Data)
+    ].
 
-run_data_print(M, StarOrStars, Data, #{print := true} = Opts) ->
-    Res = run_data(M, StarOrStars, Data, Opts),
-    print(Res),
-    Res;
-run_data_print(M, StarOrStars, Data, #{print := false} = Opts) ->
-    run_data(M, StarOrStars, Data, Opts).
-
-run_data(M, Stars, Data, Opts) when is_list(Stars) ->
-    [{Star, run_data(M, Star, Data, Opts)} || Star <- Stars];
-run_data(M, Star, Data, Opts) ->
-    case maps:get(time, Opts, false) of
-        true ->
-            {Time, Res} = timer:tc(M, Star, [Data]),
-            #{result => Res, time => Time};
-        false ->
-            #{result => M:Star(Data)}
-    end.
+run_data(M, all, Data) ->
+    #{all := All} = M:info(),
+    run_data(M, All, Data);
+run_data(M, Stars, Data) when is_list(Stars) ->
+    [run_data(M, Star, Data) || Star <- Stars];
+run_data(M, Star, Data) ->
+    io:format("~p:~p~n", [M, Star]),
+    {Time, Res} = timer:tc(M, Star, [Data]),
+    #{result => Res, time => Time, module => M, star => Star}.
 
 default_info() ->
     #{
@@ -66,19 +80,44 @@ default_info() ->
     }.
 
 default_options() ->
-    #{time => true, print => true}.
-
+    #{summary => true}.
 print([]) ->
     ok;
-print([{Module, Star, Result} | Rest]) ->
-    io:format("~p ~p: ", [Module, Star]),
-    print(Result),
+print([R | Rest]) ->
+    print(R),
     print(Rest);
-print([{Star, Result} | Rest]) ->
-    io:format("~p: ", [Star]),
-    print(Result),
-    print(Rest);
-print(#{result := Res, time := Time}) ->
-    io:format("~p (~p ms)~n", [Res, Time / 1000.0]);
-print(#{result := Res}) ->
-    io:format("~p~n", [Res]).
+print(#{file := File, time := Time}) ->
+    io:format("~s (~p ms)~n", [File, Time / 1000.0]);
+print(#{result := Res, test := ok, time := Time, module := M, star := Star}) ->
+    io:format("~p:~p -> ~p (OK, ~p ms)~n", [M, Star, Res, Time / 1000.0]);
+print(#{result := Res, test := {failed, Exp}, time := Time, module := M, star := Star}) ->
+    io:format("~p:~p -> ~p (FAIL, ~p ms) expected:~p,~n", [M, Star, Res, Time / 1000.0, Exp]);
+print(#{result := Res, time := Time, module := M, star := Star}) ->
+    io:format("~p:~p -> ~p (~p ms)~n", [M, Star, Res, Time / 1000.0]).
+
+validate_example([#{file := _} = File, Example], ExpectedResult) ->
+    [File, validate_example(Example, ExpectedResult)];
+validate_example(#{result := Res} = Result, ExpectedResult) ->
+    case Res == ExpectedResult of
+        true ->
+            Result#{test => ok};
+        false ->
+            Result#{test => {failed, ExpectedResult}}
+    end.
+
+get_all_solutions() ->
+    {ok, _} = application:ensure_all_started(aoc),
+    {ok, aoc} = application:get_application(?MODULE),
+    {ok, Modules} = application:get_key(aoc, modules),
+    SolutionModules = lists:filter(fun is_aoc_solution/1, Modules),
+    lists:sort([{maps:get(problem, M:info(), missing), M} || M <- SolutionModules]).
+
+is_aoc_solution(Module) ->
+    {module, Module} = code:ensure_loaded(Module),
+    Attributes = erlang:get_module_info(Module, attributes),
+    case proplists:get_value(behaviour, Attributes) of
+        undefined ->
+            false;
+        List ->
+            lists:member(aoc_solution, List)
+    end.
