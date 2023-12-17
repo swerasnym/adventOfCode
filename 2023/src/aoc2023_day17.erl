@@ -24,10 +24,12 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(#{max := End} = Map) ->
-    search([{0, {{0, 0}, east, 3}}], End, Map, #{}, fun move1/2).
+    Start = gb_sets:from_list([{0, {{0, 0}, east, 3}}]),
+    search(Start, End, Map, #{}, fun move1/2).
 
 star2(#{max := End} = Map) ->
-    search([{0, {{0, 0}, west, 10}}, {0, {{0, 0}, north, 10}}], End, Map, #{}, fun move2/2).
+    Start = gb_sets:from_list([{0, {{0, 0}, west, 0}}, {0, {{0, 0}, north, 0}}]),
+    search(Start, End, Map, #{}, fun move2/2).
 
 read(File) ->
     tools:read_grid(File, fun(D) -> D - $0 end).
@@ -46,22 +48,18 @@ get_turns(east) ->
 get_turns(west) ->
     [north, south].
 
-next({Pos, Dir, 0}, Max, _Nmin) ->
+next({Pos, Dir, 0}, Max, _Min) ->
     [{get_neigbour(Pos, D), D, Max - 1} || D <- get_turns(Dir)];
-next({Pos, Dir, 9}, Max, Nmin) ->
-    [{get_neigbour(Pos, Dir), Dir, 8}];
-next({Pos, Dir, 8}, Max, Nmin) ->
-    [{get_neigbour(Pos, Dir), Dir, 7}];
-next({Pos, Dir, 7}, Max, Nmin) ->
-    [{get_neigbour(Pos, Dir), Dir, 6}];
-next({Pos, Dir, N}, Max, _Nmin) when N > 0 ->
+next({Pos, Dir, N}, Max, Min) when N > Max - Min ->
+    [{get_neigbour(Pos, Dir), Dir, N - 1}];
+next({Pos, Dir, N}, Max, _Min) when N > 0 ->
     [{get_neigbour(Pos, D), D, Max - 1} || D <- get_turns(Dir)] ++
         [{get_neigbour(Pos, Dir), Dir, N - 1}].
 
 move1({Dist, PDN}, Map) ->
     [
         {Dist + maps:get(NextPos, Map), Next}
-     || {NextPos, _, _} = Next <- next(PDN, 3, 1), maps:is_key(NextPos, Map)
+     || {NextPos, _, _} = Next <- next(PDN, 3, 0), maps:is_key(NextPos, Map)
     ].
 
 move2({Dist, PDN}, Map) ->
@@ -70,13 +68,17 @@ move2({Dist, PDN}, Map) ->
      || {NextPos, _, _} = Next <- next(PDN, 10, 4), maps:is_key(NextPos, Map)
     ].
 
-search([{Dist, {End, _, _}} | _], End, _, _, _) ->
-    Dist;
-search([{Dist, PDN} = State | Rest], End, Map, Visited, Move) ->
-    % io:format("~p~n", [State]),
+search(States, End, Map, Visited, Move) ->
+    {State, Rest} = gb_sets:take_smallest(States),
+    {Dist, PDN} = State,
+    {Pos, _, _} = PDN,
     case maps:is_key(PDN, Visited) of
+        false when Pos == End ->
+            Dist;
         false ->
-            search(lists:sort(Rest ++ Move(State, Map)), End, Map, Visited#{PDN => Dist}, Move);
+            New = Move(State, Map),
+            Next = gb_sets:union(Rest, gb_sets:from_list(New)),
+            search(Next, End, Map, Visited#{PDN => Dist}, Move);
         true ->
             search(Rest, End, Map, Visited, Move)
     end.
