@@ -14,10 +14,13 @@
 -callback star2(Data :: data()) -> result().
 
 -export([run/0, run/1, run/2, run/3, run/4]).
+-export([get_all_solutions/0]).
 -export([default_info/0]).
 
 run() ->
-    {_, Modules} = lists:unzip(get_all_solutions()),
+    SolutionModules = get_all_solutions(),
+    Sorted = lists:sort([{maps:get(problem, M:info(), missing), M} || M <- SolutionModules]),
+    {_, Modules} = lists:unzip(Sorted),
     run(Modules, all, both).
 
 run(M) ->
@@ -68,8 +71,9 @@ run_data(M, all, Data) ->
 run_data(M, Stars, Data) when is_list(Stars) ->
     [run_data(M, Star, Data) || Star <- Stars];
 run_data(M, Star, Data) ->
-    io:format("~p:~p~n", [M, Star]),
+    io:format("~p:~p", [M, Star]),
     {Time, Res} = timer:tc(M, Star, [Data]),
+    io:format(" -> ~p~n", [Res]),
     #{result => Res, time => Time, module => M, star => Star}.
 
 default_info() ->
@@ -109,8 +113,7 @@ get_all_solutions() ->
     {ok, _} = application:ensure_all_started(aoc),
     {ok, aoc} = application:get_application(?MODULE),
     {ok, Modules} = application:get_key(aoc, modules),
-    SolutionModules = lists:filter(fun is_aoc_solution/1, Modules),
-    lists:sort([{maps:get(problem, M:info(), missing), M} || M <- SolutionModules]).
+    lists:filter(fun is_aoc_solution/1, Modules).
 
 is_aoc_solution(Module) ->
     {module, Module} = code:ensure_loaded(Module),

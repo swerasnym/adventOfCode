@@ -12,12 +12,13 @@ info() ->
         {"2023/data/day16_ex.txt", star2, 51}
     ],
 
-    maps:merge(aoc_solution:default_info(), #{problem => {2023, 16}, examples => Examples}).
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2023, 16},
+        examples => Examples
+    }).
 
 run() ->
     aoc_solution:run(?MODULE, all, both).
-
-%aoc_solution:run(?MODULE).
 
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
