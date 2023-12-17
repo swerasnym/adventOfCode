@@ -9,7 +9,7 @@
 -export([get_input_path/2, get_input_path/3, base_url/0]).
 -export([get_aoc_page/2, get_aoc_page/3]).
 -export([run/0]).
--export([get_problem_path/2, get_problem_path/3]).
+-export([get_problem_path/2, get_problem_path/3, check_date/2]).
 
 -define(BASE_URL, "https://adventofcode.com/").
 -define(PACING, 5000).
@@ -125,38 +125,36 @@ get_input_path(Year, Day) ->
     get_input_path(Year, Day, cached).
 
 get_input_path(Year, Day, Type) ->
-    ok = check_date(Year, Day),
-
-    Dir = get_dir(inputs) ++ integer_to_list(Year),
-    File = "day" ++ integer_to_list(Day) ++ ".txt",
-    Path = Dir ++ "/" ++ File,
-    LocalUrl = integer_to_list(Year) ++ "/day/" ++ integer_to_list(Day) ++ "/input",
-
-    case get_aoc_page(LocalUrl, Path, Type) of
-        {ok, InputPath} ->
-            io:format("Input path: ~s~n", [InputPath]),
-            InputPath;
+    maybe
+        ok ?= check_date(Year, Day),
+        Dir = get_dir(inputs) ++ integer_to_list(Year),
+        File = "day" ++ integer_to_list(Day) ++ ".txt",
+        Path = Dir ++ "/" ++ File,
+        LocalUrl = integer_to_list(Year) ++ "/day/" ++ integer_to_list(Day) ++ "/input",
+        {ok, _InputPath} ?= get_aoc_page(LocalUrl, Path, Type)
+    else
+        {error, _} = Error ->
+            Error;
         Error ->
-            Error
+            {error, Error}
     end.
 
 get_problem_path(Year, Day) ->
     get_problem_path(Year, Day, cached).
 
 get_problem_path(Year, Day, Type) ->
-    ok = check_date(Year, Day),
-
-    Dir = get_dir(problems) ++ integer_to_list(Year),
-    File = "day" ++ integer_to_list(Day) ++ ".html",
-    Path = Dir ++ "/" ++ File,
-    LocalUrl = integer_to_list(Year) ++ "/day/" ++ integer_to_list(Day),
-
-    case get_aoc_page(LocalUrl, Path, Type) of
-        {ok, InputPath} ->
-            io:format("Problem path: ~s~n", [InputPath]),
-            InputPath;
+    maybe
+        ok ?= check_date(Year, Day),
+        Dir = get_dir(problems) ++ integer_to_list(Year),
+        File = "day" ++ integer_to_list(Day) ++ ".html",
+        Path = Dir ++ "/" ++ File,
+        LocalUrl = integer_to_list(Year) ++ "/day/" ++ integer_to_list(Day),
+        {ok, _Path} ?= get_aoc_page(LocalUrl, Path, Type)
+    else
+        {error, _} = Error ->
+            Error;
         Error ->
-            Error
+            {error, Error}
     end.
 
 check_date(Year, Day) when Year >= 2015, Day >= 1, Day =< 25 ->
@@ -164,10 +162,11 @@ check_date(Year, Day) when Year >= 2015, Day >= 1, Day =< 25 ->
         true ->
             ok;
         false ->
-            error("Problem is not realased yet!", [Year, Day])
+            {error,
+                lists:flatten(io_lib:format("Problem ~p for ~p is not released yet!", [Day, Year]))}
     end;
 check_date(Year, Day) ->
-    error("No such problem will ever exist", [Year, Day]).
+    {error, lists:flatten(io_lib:format("Problem ~p for ~p will never exist!", [Day, Year]))}.
 
 get_aoc_page(LocalUrl, Path) ->
     get_aoc_page(LocalUrl, Path, cached).

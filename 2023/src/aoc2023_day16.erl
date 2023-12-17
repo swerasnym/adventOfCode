@@ -18,7 +18,7 @@ info() ->
     }).
 
 run() ->
-    aoc_solution:run(?MODULE, all, both).
+    aoc_solution:run(?MODULE).
 
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).

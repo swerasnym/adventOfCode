@@ -7,10 +7,32 @@
 -export([info/0, star1/1, star2/1, read/1]).
 
 info() ->
-    maps:merge(aoc_solution:default_info(), #{problem => {2023, 1}}).
+    Data2 = [
+        "1abc2",
+        "pqr3stu8vwx",
+        "a1b2c3d4e5f",
+        "treb7uchet"
+    ],
+    Data3 = [
+        "two1nine",
+        "eightwothree",
+        "abcone2threexyz",
+        "xtwone3four",
+        "4nineeightseven2",
+        "zoneight234",
+        "7pqrstsixteen"
+    ],
+
+    Examples = [
+        {{data, ["7"]}, star1, 77},
+        {{data, Data2}, star1, 142},
+        {{data, Data2}, star2, 142},
+        {{data, Data3}, star2, 281}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{problem => {2023, 1}, examples => Examples}).
 
 run() ->
-    %% aoc_solution:run(?MODULE, all, "2023/data/day1_ex.txt").
     aoc_solution:run(?MODULE).
 
 run(StarOrStars, FileOrData) ->

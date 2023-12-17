@@ -20,50 +20,66 @@
 run() ->
     SolutionModules = get_all_solutions(),
     Sorted = lists:sort([{maps:get(problem, M:info(), missing), M} || M <- SolutionModules]),
-    {_, Modules} = lists:unzip(Sorted),
-    run(Modules, all, both).
+    Released = [M || {{Year, Day}, M} <- Sorted, aoc_web:check_date(Year, Day) == ok],
+    run(Released).
 
 run(M) ->
-    run(M, all, input, default_options()).
+    run(M, all, both, default_options()).
 
 run(M, Opts) ->
-    run(M, all, input, Opts).
+    run(M, all, both, Opts).
 
 run(M, StarOrStars, FileOrData) ->
     run(M, StarOrStars, FileOrData, default_options()).
 
 run(M, StarOrStars, FileOrData, #{summary := true}) ->
-    Results = run_file(M, StarOrStars, FileOrData),
-    io:format("Summary:~n"),
-    print(Results),
+    Results = merge_meta(run_file(M, StarOrStars, FileOrData), #{}),
+    io:format("~n~n~n~n~nResults:~n------------------------------~n"),
+    print(Results, #{}),
+    io:format("------------------------------~n"),
     Results;
 run(M, StarOrStars, FileOrData, _Opts) ->
-    run_file(M, StarOrStars, FileOrData).
-% Modules
+    merge_meta(run_file(M, StarOrStars, FileOrData), #{}).
+
 run_file(Modules, StarOrStars, FileOrData) when is_list(Modules) ->
-    [run_file(M, StarOrStars, FileOrData) || M <- Modules];
+    %% List of modules
+    [{#{module => M}, run_file(M, StarOrStars, FileOrData)} || M <- Modules];
 run_file(M, StarOrStars, {files, Files}) when is_list(Files) ->
+    %% List of files
     [run_file(M, StarOrStars, File) || File <- Files, File /= both];
 run_file(M, StarOrStars, {data, Data}) ->
-    run_data(M, StarOrStars, Data);
+    %% Direct Data
+    {#{source => data, data => Data}, run_data(M, StarOrStars, Data)};
 run_file(M, StarOrStars, both) ->
+    %% Alas to run both examples and inputs
     run_file(M, StarOrStars, {files, [examples, input]});
 run_file(M, StarOrStars, input) ->
+    %% Fetch input file
     #{problem := {Year, Day}} = M:info(),
-    File = aoc_web:get_input_path(Year, Day),
-    run_file(M, StarOrStars, File);
+    case aoc_web:get_input_path(Year, Day) of
+        {ok, File} ->
+            {#{type => input}, run_file(M, StarOrStars, File)};
+        {error, Error} ->
+            {result, #{module => M, error => Error}, error}
+    end;
 run_file(M, StarOrStars, examples) ->
+    %% Fetch examples
     #{examples := Examples} = M:info(),
     [run_file(M, StarOrStars, {example, Example}) || Example <- Examples];
 run_file(M, _, {example, {File, Star, ExpectedResult}}) ->
-    validate_example(run_file(M, Star, File), ExpectedResult);
+    {#{type => example, expected => ExpectedResult}, run_file(M, Star, File)};
 run_file(M, StarOrStars, File) when is_list(File) ->
     FilePath = filename:join(code:lib_dir(aoc), File),
-    {Time, Data} = timer:tc(M, read, [FilePath]),
-    [
-        #{file => FilePath, time => Time, module => M},
-        run_data(M, StarOrStars, Data)
-    ].
+    case filelib:is_file(FilePath) of
+        false ->
+            {result, #{module => M, error => "File not found: " ++ FilePath}, error};
+        true ->
+            {Time, Data} = timer:tc(M, read, [FilePath]),
+            {
+                #{source => file, path => FilePath, read_time => Time},
+                run_data(M, StarOrStars, Data)
+            }
+    end.
 
 run_data(M, all, Data) ->
     #{all := All} = M:info(),
@@ -71,10 +87,17 @@ run_data(M, all, Data) ->
 run_data(M, Stars, Data) when is_list(Stars) ->
     [run_data(M, Star, Data) || Star <- Stars];
 run_data(M, Star, Data) ->
-    io:format("~p:~p", [M, Star]),
+    io:format("~p:~p ->~n", [M, Star]),
     {Time, Res} = timer:tc(M, Star, [Data]),
-    io:format(" -> ~p~n", [Res]),
-    #{result => Res, time => Time, module => M, star => Star}.
+    io:format("~p~n", [Res]),
+    {result, #{time => Time, star => Star}, Res}.
+
+merge_meta({result, Meta1, Result}, Meta2) ->
+    {Result, maps:merge(Meta2, Meta1)};
+merge_meta(List, Meta) when is_list(List) ->
+    [merge_meta(I, Meta) || I <- List];
+merge_meta({Meta1, Item}, Meta2) ->
+    merge_meta(Item, maps:merge(Meta2, Meta1)).
 
 default_info() ->
     #{
@@ -85,29 +108,79 @@ default_info() ->
 
 default_options() ->
     #{summary => true}.
-print([]) ->
-    ok;
-print([R | Rest]) ->
-    print(R),
-    print(Rest);
-print(#{file := File, time := Time}) ->
-    io:format("~s (~p ms)~n", [File, Time / 1000.0]);
-print(#{result := Res, test := ok, time := Time, module := M, star := Star}) ->
-    io:format("~p:~p -> ~p (OK, ~p ms)~n", [M, Star, Res, Time / 1000.0]);
-print(#{result := Res, test := {failed, Exp}, time := Time, module := M, star := Star}) ->
-    io:format("~p:~p -> ~p (FAIL, ~p ms) expected:~p,~n", [M, Star, Res, Time / 1000.0, Exp]);
-print(#{result := Res, time := Time, module := M, star := Star}) ->
-    io:format("~p:~p -> ~p (~p ms)~n", [M, Star, Res, Time / 1000.0]).
 
-validate_example([#{file := _} = File, Example], ExpectedResult) ->
-    [File, validate_example(Example, ExpectedResult)];
-validate_example(#{result := Res} = Result, ExpectedResult) ->
-    case Res == ExpectedResult of
+print([], PrevMeta) ->
+    PrevMeta;
+print([R | Rest], PrevMeta1) ->
+    PrevMeta2 = print(R, PrevMeta1),
+    print(Rest, PrevMeta2);
+print({Result, Meta}, PrevMeta) ->
+    print_input(Meta, PrevMeta),
+    print_result(Result, Meta),
+    Meta.
+
+print_input(#{module := M, error := Error}, #{module := M, error := Error}) ->
+    ok;
+print_input(#{module := M, error := Error}, PrevMeta) ->
+    case maps:is_key(error, PrevMeta) of
         true ->
-            Result#{test => ok};
+            ok;
         false ->
-            Result#{test => {failed, ExpectedResult}}
-    end.
+            print_line(PrevMeta)
+    end,
+    case io_lib:deep_char_list(Error) of
+        true ->
+            io:format("~p error: ~s~n", [M, Error]);
+        false ->
+            io:format("~p error: ~p~n", [M, Error])
+    end;
+print_input(
+    #{type := Type, source := data, data := Data},
+    #{type := Type, source := data, data := Data}
+) ->
+    ok;
+print_input(#{type := Type, source := data, data := Data}, PrevMeta) ->
+    print_line(PrevMeta),
+    io:format("~p: ~0P~n", [Type, Data, 6]);
+print_input(
+    #{type := Type, source := file, path := FilePath},
+    #{type := Type, source := file, path := FilePath}
+) ->
+    ok;
+print_input(#{type := Type, source := file, path := FilePath}, PrevMeta) ->
+    print_line(PrevMeta),
+    io:format("~p: ~s~n", [Type, FilePath]).
+
+print_line(Map) when map_size(Map) == 0 ->
+    ok;
+print_line(_) ->
+    io:nl().
+
+print_result(error, #{error := _}) ->
+    ok;
+print_result(Result, #{module := M, star := Star} = Meta) ->
+    {Response, Expected} = format_expected(Result, Meta),
+    Time = format_time(Meta),
+    io:format("~s~p:~p -> ~p \t~s~s~n", [Response, M, Star, Result, Time, Expected]);
+print_result(Result, #{star := Star} = Meta) ->
+    {Response, Expected} = format_expected(Result, Meta),
+    Time = format_time(Meta),
+    io:format("~s~p -> ~p \t~s~s~n", [Response, Star, Result, Time, Expected]).
+format_time(#{time := Time, read_time := ReadTime}) ->
+    io_lib:format("(~.3f ms, ~.3f ms, ~.3f ms)", [
+        ReadTime / 1000.0, Time / 1000.0, (ReadTime + Time) / 1000.0
+    ]);
+format_time(#{time := Time}) ->
+    io_lib:format("(~.3f ms)", [Time / 1000.0]);
+format_time(_) ->
+    "".
+
+format_expected(Result, #{expected := Result}) ->
+    {"\033[0;32mOK   \033[0m", ""};
+format_expected(_Result, #{expected := Other}) ->
+    {"\033[0;31mFAIL \033[0m", io_lib:format(" expected: ~p", [Other])};
+format_expected(_, _) ->
+    {"", ""}.
 
 get_all_solutions() ->
     {ok, _} = application:ensure_all_started(aoc),
