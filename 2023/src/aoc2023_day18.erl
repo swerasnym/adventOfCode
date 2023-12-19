@@ -25,29 +25,29 @@ run(StarOrStars, FileOrData) ->
 
 star1(Data) ->
     {Dirs, _} = lists:unzip(Data),
-    {Dug, _} = lists:mapfoldl(fun move/2, {0, 0}, Dirs),
+    {Dug, _} = lists:mapfoldl(fun dig/2, {0, 0}, Dirs),
     Map = maps:from_list(lists:flatten(Dug)),
     lists:sum([fill(L, 0, 0) || L <- tools:grid_to_lists(Map, $.)]).
 
 star2(Data) ->
     Dirs = lists:map(fun change/1, Data),
-    {Dug, {{0, 0}, P}} = lists:mapfoldl(fun move2/2, {{0, 0}, 0}, Dirs),
+    {Dug, {{0, 0}, P}} = lists:mapfoldl(fun dig2/2, {{0, 0}, 0}, Dirs),
     %% Asume non intersecting i.e. winding number 1.
     area([{0, 0} | Dug], 0) + P div 2 + 1.
 
 read(File) ->
     [{{Dir, N}, Color} || [Dir, N, Color] <- tools:read_format(File, "~c ~d~s")].
 
-move({"R", N}, {X, Y}) -> {[{{Xd, Y}, $R} || Xd <- lists:seq(X + 1, X + N)], {X + N, Y}};
-move({"L", N}, {X, Y}) -> {[{{Xd, Y}, $L} || Xd <- lists:seq(X - N, X - 1)], {X - N, Y}};
-move({"D", N}, {X, Y}) -> {[{{X, Yd}, $D} || Yd <- lists:seq(Y, Y + N)], {X, Y + N}};
-move({"U", N}, {X, Y}) -> {[{{X, Yd}, $U} || Yd <- lists:seq(Y - N, Y)], {X, Y - N}}.
+dig({"R", N}, {X, Y}) -> {[{{Xd, Y}, $R} || Xd <- lists:seq(X + 1, X + N)], {X + N, Y}};
+dig({"L", N}, {X, Y}) -> {[{{Xd, Y}, $L} || Xd <- lists:seq(X - N, X - 1)], {X - N, Y}};
+dig({"D", N}, {X, Y}) -> {[{{X, Yd}, $D} || Yd <- lists:seq(Y, Y + N)], {X, Y + N}};
+dig({"U", N}, {X, Y}) -> {[{{X, Yd}, $U} || Yd <- lists:seq(Y - N, Y)], {X, Y - N}}.
 
 %% Get ends
-move2({"R", N}, {{X, Y}, P}) -> {{X + N, Y}, {{X + N, Y}, P + N}};
-move2({"L", N}, {{X, Y}, P}) -> {{X - N, Y}, {{X - N, Y}, P + N}};
-move2({"D", N}, {{X, Y}, P}) -> {{X, Y + N}, {{X, Y + N}, P + N}};
-move2({"U", N}, {{X, Y}, P}) -> {{X, Y - N}, {{X, Y - N}, P + N}}.
+dig2({"R", N}, {{X, Y}, P}) -> {{X + N, Y}, {{X + N, Y}, P + N}};
+dig2({"L", N}, {{X, Y}, P}) -> {{X - N, Y}, {{X - N, Y}, P + N}};
+dig2({"D", N}, {{X, Y}, P}) -> {{X, Y + N}, {{X, Y + N}, P + N}};
+dig2({"U", N}, {{X, Y}, P}) -> {{X, Y - N}, {{X, Y - N}, P + N}}.
 
 area([_], Sum) ->
     Sum div 2;
