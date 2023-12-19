@@ -1,116 +1,109 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "compile",
-            "type": "shell",
-            "options": {
-            "cwd": "${fileDirname}",
-            },
-            "command": "erl -make",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-              },
-        },
-        {
-          "label": "rebar3 compile",
-          "type": "shell",
-          "options": {
-          },
-          "command": "rebar3 compile",
-          "group": {
-              "kind": "build",
-              "isDefault": true
-            },
-        },
-        {
-        "label": "rebar3 run",
-        "type": "shell",
-        "options": {
-        },
-        "command": "rebar3 shell --eval 'aoc_web:start_link().' --eval 'try ${fileBasenameNoExtension}:run() catch C:B:ST -> io:format(\"~n~p~n~p~n~p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
-        "group": {
-            "kind": "build",
-            "isDefault": true
-          },
-        "dependsOn": "rebar3 compile",
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "rebar3 compile",
+      "type": "shell",
+      "options": {},
+      "command": "rebar3 compile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
     },
-        {
-            "label": "run",
-            "type": "shell",
-            "options": {
-            "cwd": "${fileDirname}",
-            },
-            "command": "erl -noshell -run ${fileBasenameNoExtension} run -run erlang halt",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-              },
-            "dependsOn": "compile",
-        },
-        {
-          "label": "shell",
-          "type": "shell",
-          "options": {
-          "cwd": "${fileDirname}",
-          },
-          "command": "erl",
-          "group": {
-              "kind": "build",
-              "isDefault": true
-            },
-          "dependsOn": "compile",
+    {
+      "label": "rebar3 run",
+      "type": "shell",
+      "options": {},
+      "command": "rebar3 shell --eval 'aoc_web:start_link().' --eval 'try ${fileBasenameNoExtension}:run() catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
+      "group": {
+        "kind": "build",
+        "isDefault": true
       },
-
-        {
-          "label": "run2",
-          "type": "shell",
-          "options": {
-          "cwd": "${fileDirname}",
-          },
-          "command": "echo -e \"${fileBasenameNoExtension}:run().\\nhalt().\\n\" | erl",
-          "group": {
-              "kind": "build",
-              "isDefault": true
-            },
-          "dependsOn": "compile",
+      "dependsOn": "rebar3 compile",
+    },
+    {
+      "label": "rebar3 run examples",
+      "type": "shell",
+      "options": {},
+      "command": "rebar3 shell --eval 'aoc_web:start_link().' --eval 'try ${fileBasenameNoExtension}:run(all,examples) catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
+      "group": {
+        "kind": "build",
+        "isDefault": true
       },
-
-        {
-            "label": "run-with-input",
-            "type": "shell",
-            "options": {
-            "cwd": "${fileDirname}",
-            },
-            "command": "erl -noshell -pa ebin -eval '${fileBasenameNoExtension}:run(${input:star},\"${input:file}\")'  -eval 'init:stop()'",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-              },
-            "dependsOn": "compile",
-        },
-    ],
-    "inputs": [
-        {
-          "id": "star",
-          "type": "pickString",
-          "description": "Which Star of the day?",
-          "options": [
-            "star1",
-            "star2",
-            "all",
-          ],
-          "default": "all",
-        },
-        {
-            "id": "file",
-            "type": "promptString",
-            "description": "file",
-            "default": "../data/day1.txt",
-          },
-      ],
-
+      "dependsOn": "rebar3 compile",
+    },
+    {
+      "label": "rebar3 run star1",
+      "type": "shell",
+      "options": {},
+      "command": "rebar3 shell --eval 'aoc_web:start_link().' --eval 'try ${fileBasenameNoExtension}:run(star1,input) catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": "rebar3 compile",
+    },
+    {
+      "label": "rebar3 run star2",
+      "type": "shell",
+      "options": {},
+      "command": "rebar3 shell --eval 'aoc_web:start_link().' --eval 'try ${fileBasenameNoExtension}:run(star2,input) catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": "rebar3 compile",
+    },
+    {
+      "label": "rebar3 shell",
+      "type": "shell",
+      "options": {},
+      "command": "rebar3 shell",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+    },
+    {
+      "label": "compile",
+      "type": "shell",
+      "options": {
+        "cwd": "${fileDirname}",
+      },
+      "command": "erl -make",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+    },
+    {
+      "label": "shell",
+      "type": "shell",
+      "options": {
+        "cwd": "${fileDirname}",
+      },
+      "command": "erl",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": "compile",
+    },
+    {
+      "label": "run",
+      "type": "shell",
+      "options": {
+        "cwd": "${fileDirname}",
+      },
+      "command": "echo -e \"${fileBasenameNoExtension}:run().\\nhalt().\\n\" | erl",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": "compile",
+    },
+  ]
 }
