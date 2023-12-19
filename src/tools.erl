@@ -62,6 +62,7 @@
 -export([overlap/1]).
 -export([overlap/2]).
 -export([chinese_multi_reminder/1]).
+-export([interval_length/1]).
 
 -spec ws() -> string().
 ws() ->
@@ -490,18 +491,14 @@ pow(SquaredBase, Exponent, RunningTotal) ->
     pow(SquaredBase * SquaredBase, Exponent div 2, SquaredBase * RunningTotal).
 
 -spec chinese_remainder(Congruences) -> Result when
-    Congruences :: [{Ri, Mi}],
-    Result :: {X, M} | undefined,
-    Ri :: integer(),
-    Mi :: integer(),
-    X :: integer(),
-    M :: integer().
+    Congruences :: [{Ri :: integer(), Mi :: integer()}],
+    Result :: {X :: integer(), M :: integer()} | undefined.
 
 %% @doc Solves a system of linear congruences:
-%% X ~ R1 (mod M1),
-%% X ~ R2 (mod M2),
-%% ...,
-%% X ~ Rn (mod Mn)
+%% ```X + k*M ~ R1 (mod M1),
+%%    X + k*M ~ R2 (mod M2),
+%%    ...,
+%%    X + k*M ~ Rn (mod Mn)'''
 %%
 %% returns {X, M} such that X + kM is a solution for all integers k; or undefined when no solution exists (i.e. when when gcd(Mi, Mj) does not divide (Ri-Rj) for some i /= j).
 
@@ -522,12 +519,8 @@ chinese_remainder([{R1, M1}, {R2, M2} | Rest]) ->
             undefined
     end.
 -spec chinese_multi_reminder(Congruences) -> Result when
-    Congruences :: [{[Ri], Mi}],
-    Result :: {[X], M} | undefined,
-    Ri :: integer(),
-    Mi :: integer(),
-    X :: integer(),
-    M :: integer().
+    Congruences :: [{[Ri :: integer()], Mi :: integer()}],
+    Result :: {[X :: integer()], M :: integer()} | undefined.
 %% @doc Solves a system of linear congruences with multiple valid resudies:
 chinese_multi_reminder([A]) ->
     A;
@@ -553,6 +546,10 @@ interval_from_length(Start, N) when N > 0 ->
 interval_from_length(Start, N) ->
     {Start + N, Start}.
 
+interval_length(empty) ->
+    0;
+interval_length({Start, End}) when is_number(Start), is_number(End) ->
+    End - Start.
 intervals_overlapp({A1, A2}, {B1, B2}) ->
     A1 =< B2 andalso B1 =< A2;
 intervals_overlapp(_, _) ->
@@ -584,6 +581,8 @@ interval_split(A, _) ->
     A.
 
 %% @doc Returns the part of interval A that exists before B
+interval_before(A, {B}) ->
+    interval_before(A, {B, B});
 interval_before({_, A2} = A, {B1, _}) when A2 < B1 ->
     A;
 interval_before({A1, _}, {B1, _}) when A1 >= B1 ->
@@ -594,6 +593,9 @@ interval_before(A, _) ->
     A.
 
 %% @doc Returns the part of interval A that exists after B
+%%
+interval_after(A, {B}) ->
+    interval_after(A, {B, B});
 interval_after({A1, _} = A, {_, B2}) when A1 > B2 ->
     A;
 interval_after({_, A2}, {_, B2}) when A2 =< B2 ->
