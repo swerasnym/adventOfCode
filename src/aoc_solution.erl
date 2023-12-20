@@ -33,7 +33,8 @@ run(M, StarOrStars, FileOrData) ->
     run(M, StarOrStars, FileOrData, default_options()).
 
 run(M, StarOrStars, FileOrData, #{summary := true}) ->
-    Results = merge_meta(run_file(M, StarOrStars, FileOrData), #{}),
+    Results0 = merge_meta(run_file(M, StarOrStars, FileOrData), #{}),
+    Results = check_answers(true, lists:flatten(Results0)),
     io:format("~n~n~n~n~nResults:~n------------------------------~n"),
     print(Results, #{}),
     io:format("------------------------------~n"),
@@ -58,7 +59,7 @@ run_file(M, StarOrStars, input) ->
     #{problem := {Year, Day}} = M:info(),
     case aoc_web:get_input_path(Year, Day) of
         {ok, File} ->
-            {#{type => input}, run_file(M, StarOrStars, File)};
+            {#{type => input, problem => {Year, Day}}, run_file(M, StarOrStars, File)};
         {error, Error} ->
             {result, #{module => M, error => Error}, error}
     end;
@@ -177,6 +178,10 @@ format_time(_) ->
 
 format_expected(Result, #{expected := Result}) ->
     {"\033[0;32mOK   \033[0m", ""};
+format_expected(manual, #{expected := Expected}) ->
+    {"MAN  ", io_lib:format(" expected: ~p", [Expected])};
+format_expected(_Result, #{expected := unknown}) ->
+    {"", ""};
 format_expected(_Result, #{expected := Other}) ->
     {"\033[0;31mFAIL \033[0m", io_lib:format(" expected: ~p", [Other])};
 format_expected(_, _) ->
@@ -197,3 +202,15 @@ is_aoc_solution(Module) ->
         List ->
             lists:member(aoc_solution, List)
     end.
+
+check_answers(false, List) ->
+    List;
+check_answers(true, List) ->
+    check_answers(List, []);
+check_answers([], Acc) ->
+    lists:reverse(Acc);
+check_answers([{Res, #{type := input, problem := {Year, Day}, star := Star} = Meta} | Rest], Acc) ->
+    Answer = aoc_web:get_answer(Year, Day, Star),
+    check_answers(Rest, [{Res, Meta#{expected => Answer}} | Acc]);
+check_answers([H | Rest], Acc) ->
+    check_answers(Rest, [H | Acc]).

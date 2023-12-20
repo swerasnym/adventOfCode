@@ -10,6 +10,8 @@
 -export([get_aoc_page/2, get_aoc_page/3]).
 -export([run/0]).
 -export([get_problem_path/2, get_problem_path/3, check_date/2]).
+-export([get_answers/2]).
+-export([get_answer/3]).
 
 -define(BASE_URL, "https://adventofcode.com/").
 -define(PACING, 5000).
@@ -81,6 +83,11 @@ handle_info(
     case queue:out(Queue) of
         {empty, _} ->
             {noreply, State#state{processing = false}};
+        {{value, {Url, no_cache} = UP}, Queue1} ->
+            Result = get_url(?BASE_URL ++ Url, [cookie]),
+            [gen_statem:reply(From, Result) || From <- maps:get(UP, Requesters, [])],
+            erlang:send_after(?PACING, self(), process_downloads),
+            {noreply, State#state{queue = Queue1, requesters = maps:remove(UP, Requesters)}};
         {{value, {Url, Path} = UP}, Queue1} ->
             Result = store_remore_aoc_page(Url, Path),
             [gen_statem:reply(From, Result) || From <- maps:get(UP, Requesters, [])],
@@ -188,8 +195,7 @@ base_url() ->
 
 store_remore_aoc_page(LocalUrl, Path) ->
     maybe
-        {ok, SessionCoockie} ?= session_coockie(),
-        {ok, Page} ?= get_url(?BASE_URL ++ LocalUrl, [SessionCoockie]),
+        {ok, Page} ?= get_url(?BASE_URL ++ LocalUrl, [cookie]),
         ok = filelib:ensure_path(filename:dirname(Path)),
         case file:write_file(Path, Page) of
             ok ->
@@ -204,6 +210,13 @@ store_remore_aoc_page(LocalUrl, Path) ->
             {error, Error}
     end.
 
+get_url(Url, [cookie]) ->
+    case session_coockie() of
+        {ok, SessionCoockie} ->
+            get_url(Url, [SessionCoockie]);
+        {error, Error} ->
+            {error, Error}
+    end;
 get_url(Url, Options) ->
     io:format("Downloading: ~s~n", [Url]),
     case httpc:request(get, {Url, Options}, [], [{full_result, false}]) of
@@ -213,4 +226,56 @@ get_url(Url, Options) ->
             {error, {forbidden, Error}};
         {error, _} = Error ->
             Error
+    end.
+
+get_answer(Year, Day, star1) ->
+    case get_answers(Year, Day) of
+        [] ->
+            unknown;
+        [Answer | _] ->
+            Answer
+    end;
+get_answer(Year, Day, star2) ->
+    case get_answers(Year, Day) of
+        [_, Answer | _] ->
+            Answer;
+        _ ->
+            unknown
+    end;
+get_answer(_Year, _Day, _) ->
+    unknown.
+
+get_answers(Year, Day) ->
+    maybe
+        {ok, Page} ?= aoc_web:get_problem_path(Year, Day),
+        {ok, File} ?= file:read_file(Page),
+        {ok, Tokens, []} ?= htmerl:sax(File),
+        find_answers(Tokens, [])
+    else
+        Error ->
+            io:format("No answer due to ~p.", [Error]),
+            []
+    end.
+
+find_answers([], Answers) ->
+    lists:reverse(Answers);
+find_answers([{characters, <<"Your puzzle answer was">>}, _, {characters, Answer} | Rest], Answers) ->
+    find_answers(Rest, [binary_to_answer(Answer) | Answers]);
+find_answers([_ | Rest], Answers) ->
+    find_answers(Rest, Answers).
+
+binary_to_answer(B) ->
+    Funs = [
+        fun erlang:binary_to_float/1,
+        fun erlang:binary_to_integer/1,
+        fun erlang:binary_to_list/1
+    ],
+    try_fun(Funs, B).
+
+try_fun([Fun | Rest], B) ->
+    try
+        Fun(B)
+    catch
+        _:_ ->
+            try_fun(Rest, B)
     end.

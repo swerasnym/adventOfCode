@@ -12,7 +12,7 @@ info() ->
     ],
 
     maps:merge(aoc_solution:default_info(), #{
-        problem => {2023, 18},
+        problem => {2023, 25},
         examples => Examples,
         all => [star1]
     }).
