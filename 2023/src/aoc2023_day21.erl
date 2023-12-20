@@ -24,7 +24,8 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Data) ->
-    Data.
+    io:format("~120p", [Data]),
+    unknown.
 
 star2(Data) ->
     Data,
