@@ -14,10 +14,10 @@
       },
     },
     {
-      "label": "rebar3 run",
+      "label": "run",
       "type": "shell",
       "options": {},
-      "command": "rebar3 shell --eval 'aoc_web:start_link().' --eval 'try ${fileBasenameNoExtension}:run() catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
+      "command": "rebar3 shell --eval 'try ${fileBasenameNoExtension}:run() catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -25,10 +25,10 @@
       "dependsOn": "rebar3 compile",
     },
     {
-      "label": "rebar3 run examples",
+      "label": "run input",
       "type": "shell",
       "options": {},
-      "command": "rebar3 shell --eval 'aoc_web:start_link().' --eval 'try ${fileBasenameNoExtension}:run(all,examples) catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
+      "command": "rebar3 shell --eval 'try ${fileBasenameNoExtension}:run(all,input) catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -36,10 +36,10 @@
       "dependsOn": "rebar3 compile",
     },
     {
-      "label": "rebar3 run star1",
+      "label": "run examples",
       "type": "shell",
       "options": {},
-      "command": "rebar3 shell --eval 'aoc_web:start_link().' --eval 'try ${fileBasenameNoExtension}:run(star1,input) catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
+      "command": "rebar3 shell --eval 'try ${fileBasenameNoExtension}:run(all,examples) catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -47,10 +47,32 @@
       "dependsOn": "rebar3 compile",
     },
     {
-      "label": "rebar3 run star2",
+      "label": "run star1",
       "type": "shell",
       "options": {},
-      "command": "rebar3 shell --eval 'aoc_web:start_link().' --eval 'try ${fileBasenameNoExtension}:run(star2,input) catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
+      "command": "rebar3 shell --eval 'try ${fileBasenameNoExtension}:run(star1,input) catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": "rebar3 compile",
+    },
+    {
+      "label": "run star2",
+      "type": "shell",
+      "options": {},
+      "command": "rebar3 shell --eval 'try ${fileBasenameNoExtension}:run(star2,input) catch C:B:ST -> io:format(\"~n~p~n~p~n~120p~n~n~p~n\", [C, B, ST, B]) end.' --eval 'halt().'",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": "rebar3 compile",
+    },
+    {
+      "label": "update problem",
+      "type": "shell",
+      "options": {},
+      "command": "rebar3 shell --eval '#{problem := {Year, Day}} =${fileBasenameNoExtension}:info(), aoc_web:get_problem_path(Year, Day, remote).' --eval 'halt().'",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -68,7 +90,7 @@
       },
     },
     {
-      "label": "compile",
+      "label": "erl compile",
       "type": "shell",
       "options": {
         "cwd": "${fileDirname}",
@@ -80,7 +102,7 @@
       },
     },
     {
-      "label": "shell",
+      "label": "erl shell",
       "type": "shell",
       "options": {
         "cwd": "${fileDirname}",
@@ -93,7 +115,7 @@
       "dependsOn": "compile",
     },
     {
-      "label": "run",
+      "label": "erl run",
       "type": "shell",
       "options": {
         "cwd": "${fileDirname}",
