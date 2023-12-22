@@ -15,7 +15,7 @@
 -callback star2(Data :: data()) -> result().
 -callback star2(Data :: data(), Parameters :: any()) -> result().
 
--optional_callbacks([star1/2, star2/1, star2/2]).
+-optional_callbacks([star1/2, star2/2]).
 
 -export([run/0, run/1, run/2, run/3, run/4]).
 -export([get_all_solutions/0]).
