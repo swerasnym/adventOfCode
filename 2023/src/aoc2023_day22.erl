@@ -25,62 +25,48 @@ run(StarOrStars, FileOrData) ->
 
 star1(Data) ->
     % Verrify the assumption that the points are sorted in each dimention.
-    Sizes = [size(C1, C2) || {C1, C2} <- Data],
-    true = lists:all(fun all_pos/1, Sizes),
+    true = lists:all(fun ordered/1, Data),
 
-    Sorted = lists:sort(fun cmp/2, Data),
-    Bricks = [make_brick(N, B) || {N, B} <- lists:enumerate(Sorted)],
-    Supports = move(Bricks, [], #{}, []),
-    Singles = lists:usort([S || [S] <- Supports, is_integer(S)]),
+    Bricks = [make_brick(N, B) || {N, B} <- lists:enumerate(Data)],
+    Supports = move(lists:sort(Bricks), #{}, []),
+    Singles = lists:usort([S || {_, [S]} <- Supports, is_integer(S)]),
     length(Data) - length(Singles).
 
 star2(Data) ->
-    Sorted = lists:sort(fun cmp/2, Data),
-    Bricks = [make_brick(N, B) || {N, B} <- lists:enumerate(Sorted)],
-    Supports = move(Bricks, [], #{}, []),
-    Singles = lists:usort([S || [S] <- Supports, is_integer(S)]),
-    EnumeratedSupports = lists:enumerate(Supports),
+    Bricks = [make_brick(N, B) || {N, B} <- lists:enumerate(Data)],
+    Supports = move(lists:sort(Bricks), #{}, []),
+    Singles = lists:usort([S || {_, [S]} <- Supports, is_integer(S)]),
 
-    Counts = [count_falls([S], EnumeratedSupports) || S <- Singles],
+    Counts = [count_falls([S], Supports) || S <- Singles],
     lists:sum(Counts).
 
 read(File) ->
-    [erlang:list_to_tuple(tools:group(3, L)) || L <- tools:read_format(File, "~d,~d,~d~~~d,~d,~d")].
+    [erlang:list_to_tuple(L) || L <- tools:read_format(File, "~d,~d,~d~~~d,~d,~d")].
 
-size({X1, Y1, Z1}, {X2, Y2, Z2}) ->
-    {X2 - X1 + 1, Y2 - Y1 + 1, Z2 - Z1 + 1}.
-
-all_pos({X, Y, Z}) when X >= 0, Y >= 0, Z >= 0 ->
+ordered({X1, Y1, Z1, X2, Y2, Z2}) when X1 =< X2, Y1 =< Y2, Z1 =< Z2 ->
     true;
-all_pos(_) ->
+ordered(_) ->
     false.
 
-cmp({{_, _, Z1}, _}, {{_, _, Z2}, _}) when Z1 < Z2 ->
-    true;
-cmp({{_, _, Z1}, _}, {{_, _, Z2}, _}) when Z1 > Z2 ->
-    false;
-cmp(C1, C2) ->
-    C1 =< C2.
-
-move([], _Out, _Pile, Supports) ->
+move([], _Pile, Supports) ->
     lists:reverse(Supports);
-move([{1, Brick} = H | Rest], Out, Pile, Supports) ->
-    move(Rest, [H | Out], maps:merge(Pile, Brick), [[ground] | Supports]);
-move([{Zmin, Brick} = H | Rest], Out, Pile, Supports) ->
+move([{1, N, Brick} | Rest], Pile, Supports) ->
+    move(Rest, maps:merge(Pile, Brick), [{N, [ground]} | Supports]);
+move([{Zmin, N, Brick} | Rest], Pile, Supports) ->
     case below(Brick, Pile) of
         [] ->
             Moved = #{{X, Y, Z - 1} => V || {X, Y, Z} := V <- Brick},
-            move([{Zmin - 1, Moved} | Rest], Out, Pile, Supports);
+            move([{Zmin - 1, N, Moved} | Rest], Pile, Supports);
         Sups ->
-            move(Rest, [H | Out], maps:merge(Pile, Brick), [Sups | Supports])
+            move(Rest, maps:merge(Pile, Brick), [{N, Sups} | Supports])
     end.
 
 below(Brick, Pile) ->
-    lists:usort([maps:get({X, Y, Z - 1}, Pile, 0) || {X, Y, Z} <- maps:keys(Brick)]) -- [0].
+    lists:usort([maps:get({X, Y, Z - 1}, Pile, void) || {X, Y, Z} <- maps:keys(Brick)]) -- [void].
 
-make_brick(N, {{X1, Y1, Z1}, {X2, Y2, Z2}}) ->
+make_brick(N, {X1, Y1, Z1, X2, Y2, Z2}) ->
     Points = [{X, Y, Z} || X <- lists:seq(X1, X2), Y <- lists:seq(Y1, Y2), Z <- lists:seq(Z1, Z2)],
-    {Z1, maps:from_keys(Points, N)}.
+    {Z1, N, maps:from_keys(Points, N)}.
 
 count_falls(Falling, []) ->
     length(Falling) - 1;
