@@ -1,65 +1,35 @@
 -module(aoc2021_day23).
-
--export([run/0, run/2, profile/3, eprof/2]).
-
+-behaviour(aoc_solution).
 -hank([{unnecessary_function_arguments, [{amphipod, 2}]}]).
+
+-export([run/0, run/2]).
+
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
+
+info() ->
+    Examples = [
+        % {"2021/data/dayN_ex.txt", star1, unknown},
+        % {"2021/data/dayN_ex.txt", star2, unknown}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2021, 23},
+        examples => Examples
+    }).
+
 run() ->
-    {S1, S2} = Res = run(all, "../data/day23.txt"),
-    io:format("S1: ~p ~nS2: ~p ~n", [S1, S2]),
-    Res.
-run(Star, File) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+    aoc_solution:run(?MODULE).
 
-profile(Star, File, Times) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            profile(fun() -> star1(Data) end, Times);
-        star2 ->
-            profile(fun() -> star2(Data) end, Times);
-        _ ->
-            Star1 = profile(fun() -> star1(Data) end, Times),
-            Star2 = profile(fun() -> star2(Data) end, Times),
-            {Star1, Star2}
-    end.
-
-profile(F, Times) ->
-    Expected = F(),
-    Results =
-        [
-            begin
-                {Time, Expected} = timer:tc(F),
-                Time
-            end
-         || _ <- lists:seq(1, Times)
-        ],
-    {Expected, lists:sum(Results) / Times / 1000}.
-
-eprof(Star, File) ->
-    eprof:start(),
-    eprof:start_profiling([self()]),
-    Result = run(Star, File),
-    eprof:stop_profiling(),
-    eprof:analyze(),
-    eprof:stop(),
-    Result.
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1({{Start, Goal}, _}) ->
-    erase(),
+    erlang:erase(),
     bfs(gb_sets:singleton({0, remove_fluff(Start)}), remove_fluff(Goal)).
 
 star2({_, {Start, Goal}}) ->
-    erase(),
+    erlang:erase(),
     bfs(gb_sets:singleton({0, remove_fluff(Start)}), remove_fluff(Goal)).
 
 read(File) ->
@@ -111,9 +81,9 @@ bfs(Set1, Goal) ->
         {Cost, Goal} ->
             Cost;
         {Cost, Current} ->
-            case get(Current) of
+            case erlang:get(Current) of
                 undefined ->
-                    put(Current, visited),
+                    erlang:put(Current, visited),
                     Moves = moves(Current, Goal),
                     Next =
                         [
@@ -144,7 +114,7 @@ moves(Map, Goal) ->
 single_moves(_Pos, Map) when map_size(Map) == 0 ->
     [];
 single_moves(Pos, Map) ->
-    case get({moves, Pos, Map}) of
+    case erlang:get({moves, Pos, Map}) of
         undefined ->
             Moves = [N || N <- neigbours(Pos), maps:get(N, Map, $#) == $.],
             Filled = maps:without(Moves, Map),

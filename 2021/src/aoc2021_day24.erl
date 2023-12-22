@@ -1,54 +1,28 @@
 -module(aoc2021_day24).
+-behaviour(aoc_solution).
 
--export([run/2, profile/3, eprof/2]).
+-export([run/0, run/2]).
 -export([alu_inp/2, alu_add/2, alu_mul/2, alu_div/2, alu_mod/2, alu_eql/2]).
 
-run(Star, File) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
 
-profile(Star, File, Times) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            profile(fun() -> star1(Data) end, Times);
-        star2 ->
-            profile(fun() -> star2(Data) end, Times);
-        _ ->
-            Star1 = profile(fun() -> star1(Data) end, Times),
-            Star2 = profile(fun() -> star2(Data) end, Times),
-            {Star1, Star2}
-    end.
+info() ->
+    Examples = [
+        % {"2021/data/dayN_ex.txt", star1, unknown},
+        % {"2021/data/dayN_ex.txt", star2, unknown}
+    ],
 
-profile(F, Times) ->
-    Expected = F(),
-    Results =
-        [
-            begin
-                {Time, Expected} = timer:tc(F),
-                Time
-            end
-         || _ <- lists:seq(1, Times)
-        ],
-    {Expected, lists:sum(Results) / Times / 1000}.
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2021, 24},
+        examples => Examples
+    }).
 
-eprof(Star, File) ->
-    eprof:start(),
-    eprof:start_profiling([self()]),
-    Result = run(Star, File),
-    eprof:stop_profiling(),
-    eprof:analyze(),
-    eprof:stop(),
-    Result.
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1({Program, other}) ->
     alu_run(Program, []);

@@ -1,45 +1,27 @@
 -module(aoc2021_day16).
+-behaviour(aoc_solution).
 
--export([run/2, profile/3]).
+-export([run/0, run/2]).
 
-run(Star, File) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
 
-profile(Star, File, Times) ->
-    Data = read(File),
+info() ->
+    Examples = [
+        % {"2021/data/dayN_ex.txt", star1, unknown},
+        % {"2021/data/dayN_ex.txt", star2, unknown}
+    ],
 
-    case Star of
-        star1 ->
-            profile(fun() -> star1(Data) end, Times);
-        star2 ->
-            profile(fun() -> star2(Data) end, Times);
-        _ ->
-            Star1 = profile(fun() -> star1(Data) end, Times),
-            Star2 = profile(fun() -> star2(Data) end, Times),
-            {Star1, Star2}
-    end.
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2021, 16},
+        examples => Examples
+    }).
 
-profile(F, Times) ->
-    Expected = F(),
-    Results =
-        [
-            begin
-                {Time, Expected} = timer:tc(F),
-                Time
-            end
-         || _ <- lists:seq(1, Times)
-        ],
-    {Expected, lists:sum(Results) / Times / 1000}.
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Data) ->
     L = length(Data) * 4,
@@ -50,7 +32,7 @@ star1(Data) ->
     %% {Verssion, Message1} = lists:split(3, Message),
     %% {Type, Message1} = lists:split(3, Message1),
     %% {Value} = lists:split(3, Message),
-    {Parsed, Rest} = parse_message(lists:sublist("0000000", Padding) ++ Message),
+    {Parsed, _} = parse_message(lists:sublist("0000000", Padding) ++ Message),
     io:format("~p~n~p~n", [Data, Parsed]),
     sum_versions(Parsed).
 
@@ -67,7 +49,7 @@ star2(Data) ->
     %% {Verssion, Message1} = lists:split(3, Message),
     %% {Type, Message1} = lists:split(3, Message1),
     %% {Value} = lists:split(3, Message),
-    {Parsed, Rest} = parse_message(lists:sublist("0000000", Padding) ++ Message),
+    {Parsed, _} = parse_message(lists:sublist("0000000", Padding) ++ Message),
     io:format("~p~n~p~n", [Data, Parsed]),
     compute(Parsed).
 
@@ -83,13 +65,9 @@ parse_message(Message) ->
 
     {{{ver, list_to_integer(Verssion, 2)}, list_to_integer(Type, 2), Data}, {rest, Rest}}.
 
-parse_message(
-    "100",
-    %% integer
-    Message
-) ->
+parse_message("100", Message) ->
     parse_value(Message, []);
-parse_message(Other, [Lt | Message]) ->
+parse_message(_, [Lt | Message]) ->
     case Lt of
         $0 ->
             {LengthB, Message1} = lists:split(15, Message),

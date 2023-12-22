@@ -1,61 +1,35 @@
 -module(aoc2021_day21).
+-behaviour(aoc_solution).
 
--export([run/2, profile/3, eprof/2]).
+-export([run/0, run/2]).
 
-run(Star, File) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
 
-profile(Star, File, Times) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            profile(fun() -> star1(Data) end, Times);
-        star2 ->
-            profile(fun() -> star2(Data) end, Times);
-        _ ->
-            Star1 = profile(fun() -> star1(Data) end, Times),
-            Star2 = profile(fun() -> star2(Data) end, Times),
-            {Star1, Star2}
-    end.
+info() ->
+    Examples = [
+        % {"2021/data/dayN_ex.txt", star1, unknown},
+        % {"2021/data/dayN_ex.txt", star2, unknown}
+    ],
 
-profile(F, Times) ->
-    Expected = F(),
-    Results =
-        [
-            begin
-                {Time, Expected} = timer:tc(F),
-                Time
-            end
-         || _ <- lists:seq(1, Times)
-        ],
-    {Expected, lists:sum(Results) / Times / 1000}.
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2021, 21},
+        examples => Examples
+    }).
 
-eprof(Star, File) ->
-    eprof:start(),
-    eprof:start_profiling([self()]),
-    Result = run(Star, File),
-    eprof:stop_profiling(),
-    eprof:analyze(),
-    eprof:stop(),
-    Result.
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Data) ->
     {Turn, [_Winner, {_, _, Score}]} = play(Data, 0, 0),
     3 * Turn * Score.
 
 star2([{1, Pos1, Score1}, {2, Pos2, Score2}]) ->
-    erase(),
-    put(dirac_roll, dirac_roll()),
+    erlang:erase(),
+    erlang:put(dirac_roll, dirac_roll()),
     {W1, W2} = dirac_play({Pos1, Score1}, {Pos2, Score2}),
     max(W1, W2).
 
@@ -92,7 +66,7 @@ dirac_roll() ->
 dirac_play(_P1, {_Pos2, Score2}) when Score2 >= 21 ->
     {0, 1};
 dirac_play({Pos, Score} = P1, P2) ->
-    case get({P1, P2}) of
+    case erlang:get({P1, P2}) of
         undefined ->
             Results =
                 [
@@ -101,11 +75,11 @@ dirac_play({Pos, Score} = P1, P2) ->
                         {W2, W1} = dirac_play(P2, {NextPos, Score + NextPos}),
                         {M * W1, M * W2}
                     end
-                 || {Roll, M} <- get(dirac_roll)
+                 || {Roll, M} <- erlang:get(dirac_roll)
                 ],
 
             Result = sum(Results, {0, 0}),
-            put({P1, P2}, Result),
+            erlang:put({P1, P2}, Result),
             Result;
         Result ->
             Result

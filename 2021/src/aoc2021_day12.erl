@@ -1,45 +1,27 @@
 -module(aoc2021_day12).
+-behaviour(aoc_solution).
 
--export([run/2, profile/3]).
+-export([run/0, run/2]).
 
-run(Star, File) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
 
-profile(Star, File, Times) ->
-    Data = read(File),
+info() ->
+    Examples = [
+        % {"2021/data/dayN_ex.txt", star1, unknown},
+        % {"2021/data/dayN_ex.txt", star2, unknown}
+    ],
 
-    case Star of
-        star1 ->
-            profile(fun() -> star1(Data) end, Times);
-        star2 ->
-            profile(fun() -> star2(Data) end, Times);
-        _ ->
-            Star1 = profile(fun() -> star1(Data) end, Times),
-            Star2 = profile(fun() -> star2(Data) end, Times),
-            {Star1, Star2}
-    end.
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2021, 12},
+        examples => Examples
+    }).
 
-profile(F, Times) ->
-    Expected = F(),
-    Results =
-        [
-            begin
-                {Time, Expected} = timer:tc(F),
-                Time
-            end
-         || _ <- lists:seq(1, Times)
-        ],
-    {Expected, lists:sum(Results) / Times / 1000}.
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Data) ->
     paths(start, [], Data, true).
@@ -48,7 +30,7 @@ star2(Data) ->
     paths(start, [], Data, false).
 
 read(File) ->
-    erase(),
+    erlang:erase(),
     Lines = tools:read_lines(File),
     Paths =
         [
@@ -56,8 +38,8 @@ read(File) ->
                 [T, F] = string:split(Line, "-"),
                 Ta = list_to_atom(T),
                 Fa = list_to_atom(F),
-                put(Fa, small(F)),
-                put(Ta, small(T)),
+                erlang:put(Fa, small(F)),
+                erlang:put(Ta, small(T)),
                 [Fa, Ta]
             end
          || Line <- Lines
@@ -90,15 +72,15 @@ paths(Pos, Visited, Neigbours, false) ->
     lists:sum([paths(N, Visited1, Neigbours, Repeat) || N <- maps:get(Pos, Neigbours)]).
 
 small_visited(Pos, Visited) ->
-    get(Pos) and lists:member(Pos, Visited).
+    erlang:get(Pos) and lists:member(Pos, Visited).
 
 small(Pos) when is_atom(Pos) ->
-    get(Pos);
+    erlang:get(Pos);
 small(Pos) ->
     string:to_lower(Pos) == Pos.
 
 visit(Pos, Visited) ->
-    case get(Pos) of
+    case erlang:get(Pos) of
         true ->
             [Pos | Visited];
         false ->

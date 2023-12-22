@@ -1,45 +1,27 @@
 -module(aoc2021_day13).
+-behaviour(aoc_solution).
 
--export([run/2, profile/3]).
+-export([run/0, run/2]).
 
-run(Star, File) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
 
-profile(Star, File, Times) ->
-    Data = read(File),
+info() ->
+    Examples = [
+        % {"2021/data/dayN_ex.txt", star1, unknown},
+        % {"2021/data/dayN_ex.txt", star2, unknown}
+    ],
 
-    case Star of
-        star1 ->
-            profile(fun() -> star1(Data) end, Times);
-        star2 ->
-            profile(fun() -> star2(Data) end, Times);
-        _ ->
-            Star1 = profile(fun() -> star1(Data) end, Times),
-            Star2 = profile(fun() -> star2(Data) end, Times),
-            {Star1, Star2}
-    end.
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2021, 13},
+        examples => Examples
+    }).
 
-profile(F, Times) ->
-    Expected = F(),
-    Results =
-        [
-            begin
-                {Time, Expected} = timer:tc(F),
-                Time
-            end
-         || _ <- lists:seq(1, Times)
-        ],
-    {Expected, lists:sum(Results) / Times / 1000}.
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1({Points, Folds}) ->
     Fold1 = lists:map(fold(hd(Folds)), Points),
@@ -49,7 +31,8 @@ star1({Points, Folds}) ->
 star2({Points, Folds}) ->
     Sort = folds(Points, Folds),
     Grid = maps:from_list([{P, $█} || P <- Sort]),
-    tools:print_grid(Grid).
+    tools:print_grid(Grid),
+    manual.
 
 read(File) ->
     [Points, Instructions] = tools:read_blocks(File),
