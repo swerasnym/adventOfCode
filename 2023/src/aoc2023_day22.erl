@@ -45,10 +45,7 @@ star2(Data) ->
     lists:sum(Counts).
 
 read(File) ->
-    lists:flatten([
-        tools:group(2, tools:group(3, L))
-     || L <- tools:read_format(File, "~d,~d,~d~~~d,~d,~d")
-    ]).
+    [erlang:list_to_tuple(tools:group(3, L)) || L <- tools:read_format(File, "~d,~d,~d~~~d,~d,~d")].
 
 size({X1, Y1, Z1}, {X2, Y2, Z2}) ->
     {X2 - X1 + 1, Y2 - Y1 + 1, Z2 - Z1 + 1}.

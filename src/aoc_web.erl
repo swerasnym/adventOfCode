@@ -15,7 +15,7 @@
 
 -define(BASE_URL, "https://adventofcode.com/").
 -define(PACING, 5000).
--define(RELEASE_TIME, {6, 0, 0}).
+-define(RELEASE_TIME, {5, 0, 0}).
 
 -record(state, {
     queue = queue:new() :: queue:queue(),
@@ -165,7 +165,7 @@ get_problem_path(Year, Day, Type) ->
     end.
 
 check_date(Year, Day) when Year >= 2015, Day >= 1, Day =< 25 ->
-    case calendar:local_time() > {{Year, 12, Day}, ?RELEASE_TIME} of
+    case calendar:universal_time() > {{Year, 12, Day}, ?RELEASE_TIME} of
         true ->
             ok;
         false ->
