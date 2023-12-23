@@ -15,8 +15,6 @@ run() ->
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
-%% TODO: Optimize by reducing to a graph with only nonzero nodes, with varrying distance on edges.
-
 read(File) ->
     tools:read_lines(File, fun parse_valves/1).
 
@@ -33,11 +31,22 @@ star2(Lines) ->
     {Pos, Zero} = lists:partition(fun non_zero_rate/1, Lines),
     PosN = [{P, S#{n => 1 bsl I}} || {I, {P, S}} <- lists:enumerate(0, Pos)],
     ALL = lists:sum([N || {_, #{n := N}} <- PosN]),
+
     State = maps:from_list(PosN ++ Zero),
     Start = "AA",
+
+    {PosK, _} = lists:unzip(PosN),
+    Interesting = [Start | PosK],
+    Compressed = [
+        {P, maps:get(P, State), simplify(P, Interesting, 0, [], State)}
+     || P <- Interesting
+    ],
+    StateC = #{P => S#{to := To} || {P, S, To} <- Compressed},
+
+    MaxN = 1 bsl (length(Pos) - 1),
     lists:max([
-        dfs(26, Start, State, ALL - Mask) + dfs(26, Start, State, Mask)
-     || Mask <- lists:seq(0, ALL)
+        dfs(26, Start, StateC, ALL - Mask) + dfs(26, Start, StateC, Mask)
+     || Mask <- lists:seq(MaxN, ALL)
     ]).
 
 parse_valves(L) ->
@@ -54,10 +63,10 @@ parse_valves(L) ->
     {Tunnel, #{
         n => 0,
         rate => Rate,
-        to => [T || T <- To]
+        to => [{T, 1} || T <- To]
     }}.
 
-dfs(0, _, _, _) ->
+dfs(N, _, _, _) when N =< 0 ->
     0;
 dfs(TimeLeft, Position, State, Open) ->
     case erlang:get({Position, TimeLeft, Open}) of
@@ -74,10 +83,10 @@ dfs(TimeLeft, Position, State, Open) ->
                         lists:max([
                             Rate * (TimeLeft - 1) +
                                 dfs(TimeLeft - 1, Position, State, Open + N)
-                            | [dfs(TimeLeft - 1, T, State, Open) || T <- To]
+                            | [dfs(TimeLeft - Dist, T, State, Open) || {T, Dist} <- To]
                         ]);
                     #{to := To} ->
-                        lists:max([dfs(TimeLeft - 1, T, State, Open) || T <- To])
+                        lists:max([dfs(TimeLeft - Dist, T, State, Open) || {T, Dist} <- To])
                 end,
             erlang:put({Position, TimeLeft, Open}, Value),
             Value;
@@ -87,3 +96,18 @@ dfs(TimeLeft, Position, State, Open) ->
 
 non_zero_rate({_, #{rate := Rate}}) ->
     Rate /= 0.
+
+simplify(Pos, Ends, 0, [], State) ->
+    #{to := Next} = maps:get(Pos, State),
+    lists:flatten([simplify(N, Ends, 1, [Pos], State) || {N, 1} <- Next]);
+simplify(Pos, Ends, Steps, Visited, State) ->
+    case lists:member(Pos, Ends) of
+        true ->
+            {Pos, Steps};
+        false ->
+            #{to := Next} = maps:get(Pos, State),
+            [
+                simplify(N, Ends, Steps + 1, [Pos | Visited], State)
+             || {N, 1} <- Next, not lists:member(N, Visited)
+            ]
+    end.

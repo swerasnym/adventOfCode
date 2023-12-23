@@ -26,7 +26,7 @@
 -export([get_all_released/2]).
 
 run() ->
-    run(get_all_released()).
+    run(all).
 
 run(?MODULE) ->
     run();
@@ -38,7 +38,8 @@ run(M, Opts) ->
 
 run(M, StarOrStars, FileOrData) ->
     run(M, StarOrStars, FileOrData, default_options()).
-
+run(all, StarOrStars, FileOrData, Opts) ->
+    run(get_all_released(), StarOrStars, FileOrData, Opts);
 run({Year, Day}, StarOrStars, FileOrData, Opts) when is_integer(Year), is_integer(Day) ->
     run(get_all_released(Year, Day), StarOrStars, FileOrData, Opts);
 run(Year, StarOrStars, FileOrData, Opts) when is_integer(Year) ->
@@ -106,6 +107,8 @@ run_file(M, StarOrStars, File) when is_list(File) ->
 run_data(M, all, Data) ->
     #{all := All} = M:info(),
     run_data(M, All, Data);
+run_data(M, both, Data) ->
+    run_data(M, [star1, star2], Data);
 run_data(M, Stars, Data) when is_list(Stars) ->
     [run_data(M, Star, Data) || Star <- Stars];
 run_data(M, Star, Data) ->
@@ -256,7 +259,7 @@ get_all_solutions() ->
     {ok, _} = application:ensure_all_started(aoc),
     {ok, aoc} = application:get_application(?MODULE),
     {ok, Modules} = application:get_key(aoc, modules),
-    lists:filter(fun is_aoc_solution/1, Modules).
+    lists:filter(fun implements_behaviour/1, Modules).
 
 get_all_released() ->
     SolutionModules = get_all_solutions(),
@@ -273,14 +276,14 @@ get_all_released(Year, Day) ->
     Sorted = lists:sort([{maps:get(problem, M:info(), missing), M} || M <- SolutionModules]),
     [M || {{Y, D}, M} <- Sorted, aoc_web:check_date(Y, Day) == ok, Y == Year, D == Day].
 
-is_aoc_solution(Module) ->
+implements_behaviour(Module) ->
     {module, Module} = code:ensure_loaded(Module),
     Attributes = erlang:get_module_info(Module, attributes),
     case proplists:get_value(behaviour, Attributes) of
         undefined ->
             false;
-        List ->
-            lists:member(aoc_solution, List)
+        Behaviours ->
+            lists:member(?MODULE, Behaviours)
     end.
 
 check_answers(false, List) ->
