@@ -28,6 +28,8 @@
 run() ->
     run(get_all_released()).
 
+run(?MODULE) ->
+    run();
 run(M) ->
     run(M, all, both, default_options()).
 
@@ -71,7 +73,15 @@ run_file(M, StarOrStars, input) ->
         {ok, File} ->
             {#{type => input, problem => {Year, Day}}, run_file(M, StarOrStars, File)};
         {error, Error} ->
-            {result, #{module => M, error => Error}, error}
+            {result,
+                #{
+                    type => input,
+                    source => file,
+                    path => "",
+                    star => error,
+                    error => Error
+                },
+                Error}
     end;
 run_file(M, StarOrStars, examples) ->
     %% Fetch examples
@@ -83,7 +93,8 @@ run_file(M, StarOrStars, File) when is_list(File) ->
     FilePath = filename:join(code:lib_dir(aoc), File),
     case filelib:is_file(FilePath) of
         false ->
-            {result, #{module => M, error => "File not found: " ++ FilePath}, error};
+            Error = "File not found",
+            {result, #{source => file, path => FilePath, star => error, error => Error}, Error};
         true ->
             {Time, Data} = timer:tc(M, read, [FilePath]),
             {
@@ -97,16 +108,27 @@ run_data(M, all, Data) ->
     run_data(M, All, Data);
 run_data(M, Stars, Data) when is_list(Stars) ->
     [run_data(M, Star, Data) || Star <- Stars];
-run_data(M, {Star, Parameters}, Data) ->
-    io:format("~p:~p ->~n", [M, Star]),
-    {Time, Res} = timer:tc(M, Star, [Data, Parameters]),
-    io:format("~p~n", [Res]),
-    {result, #{time => Time, star => Star, parameters => Parameters}, Res};
 run_data(M, Star, Data) ->
-    io:format("~p:~p ->~n", [M, Star]),
-    {Time, Res} = timer:tc(M, Star, [Data]),
-    io:format("~p~n", [Res]),
-    {result, #{time => Time, star => Star}, Res}.
+    try
+        case Star of
+            {S, Parameters} ->
+                io:format("~p:~p(~p) ->~n", [M, S, Parameters]),
+                Meta = #{star => S, parameters => Parameters},
+                {Time, Res} = timer:tc(M, S, [Data, Parameters]);
+            Star ->
+                io:format("~p:~p ->~n", [M, Star]),
+                Meta = #{star => Star},
+                {Time, Res} = timer:tc(M, Star, [Data])
+        end,
+        io:format("~p~n", [Res]),
+        {result, Meta#{time => Time}, Res}
+    catch
+        C:R:ST ->
+            Message = erl_error:format_exception(C, R, ST),
+            Error = vt100format([red], "~ts", [Message]),
+            io:format("~ts\n", [Error]),
+            {result, #{module => M, star => Star, error => {C, R, ST}}, {C, R}}
+    end.
 
 merge_meta({result, Meta1, Result}, Meta2) ->
     {Result, maps:merge(Meta2, Meta1)};
@@ -130,26 +152,13 @@ print([], PrevMeta) ->
 print([R | Rest], PrevMeta1) ->
     PrevMeta2 = print(R, PrevMeta1),
     print(Rest, PrevMeta2);
+print({_Result, Meta}, Meta) ->
+    ok;
 print({Result, Meta}, PrevMeta) ->
     print_input(Meta, PrevMeta),
     print_result(Result, Meta),
     Meta.
 
-print_input(#{module := M, error := Error}, #{module := M, error := Error}) ->
-    ok;
-print_input(#{module := M, error := Error}, PrevMeta) ->
-    case maps:is_key(error, PrevMeta) of
-        true ->
-            ok;
-        false ->
-            print_line(PrevMeta)
-    end,
-    case io_lib:deep_char_list(Error) of
-        true ->
-            io:format("~p error: ~s~n", [M, Error]);
-        false ->
-            io:format("~p error: ~p~n", [M, Error])
-    end;
 print_input(
     #{type := Type, source := data, data := Data},
     #{type := Type, source := data, data := Data}
@@ -172,8 +181,11 @@ print_line(Map) when map_size(Map) == 0 ->
 print_line(_) ->
     io:nl().
 
-print_result(error, #{error := _}) ->
-    ok;
+print_result({done, Res}, Meta) ->
+    print_result(Res, Meta);
+print_result({manual, F}, Meta) when is_function(F, 0) ->
+    print_result(manual, Meta),
+    F();
 print_result(Result, #{star := Star} = Meta) ->
     Check = format_check(Meta),
     Expected = format_expected(Meta),
@@ -212,16 +224,22 @@ format_time(_) ->
     "".
 
 format_check(#{check := ok}) ->
-    vt100format(green, "OK   ", []);
+    vt100format(green, "OK    ", []);
+format_check(#{check := done}) ->
+    vt100format([bright, green], "DONE  ", []);
 format_check(#{check := manual}) ->
-    vt100format(yellow, "MAN  ", []);
+    vt100format(yellow, "MAN   ", []);
 format_check(#{check := possibly}) ->
-    vt100format(cyan, "ANS? ", []);
+    vt100format(cyan, "ANS?  ", []);
+format_check(#{check := fail, error := _}) ->
+    vt100format([bright, red], "ERROR ", []);
 format_check(#{check := fail}) ->
-    vt100format(red, "FAIL ", []);
+    vt100format(red, "FAIL  ", []);
 format_check(#{}) ->
     "".
 
+format_expected(#{error := _}) ->
+    "";
 format_expected(#{check := Check, expected := Expected}) ->
     case lists:member(Check, [fail, manual]) of
         true ->
@@ -271,6 +289,8 @@ check_answers(true, List) ->
     check_answers(List, []);
 check_answers([], Acc) ->
     lists:reverse(Acc);
+check_answers([{Res, #{error := _} = Meta} | Rest], Acc) ->
+    check_answers(Rest, [{Res, Meta#{check => fail}} | Acc]);
 check_answers([{Res, #{expected := Answer} = Meta} | Rest], Acc) ->
     check_answers(Rest, [{Res, Meta#{expected => Answer, check => check(Res, Answer)}} | Acc]);
 check_answers([{Res, #{type := input, problem := {Year, Day}, star := Star} = Meta} | Rest], Acc) ->
@@ -281,7 +301,11 @@ check_answers([H | Rest], Acc) ->
 
 check(Result, Result) ->
     ok;
+check({done, _}, unknown) ->
+    done;
 check(manual, _Expected) ->
+    manual;
+check({manual, F}, _Expected) when is_function(F, 0) ->
     manual;
 check(_Result, unknown) ->
     possibly;

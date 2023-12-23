@@ -33,7 +33,7 @@ star1(Data) ->
     %% {Type, Message1} = lists:split(3, Message1),
     %% {Value} = lists:split(3, Message),
     {Parsed, _} = parse_message(lists:sublist("0000000", Padding) ++ Message),
-    io:format("~p~n~p~n", [Data, Parsed]),
+    %%  io:format("~p~n~p~n", [Data, Parsed]),
     sum_versions(Parsed).
 
 %% [V1,V2,V3, T1,T2,T3, A1,A2,A3,A4,A5, B1,B2,B3,B4,B5,   ]
@@ -50,7 +50,7 @@ star2(Data) ->
     %% {Type, Message1} = lists:split(3, Message1),
     %% {Value} = lists:split(3, Message),
     {Parsed, _} = parse_message(lists:sublist("0000000", Padding) ++ Message),
-    io:format("~p~n~p~n", [Data, Parsed]),
+    %% io:format("~p~n~p~n", [Data, Parsed]),
     compute(Parsed).
 
 read(File) ->

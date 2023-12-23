@@ -29,7 +29,7 @@ star2(Data) ->
     Values = [1] ++ lists:flatten(ValeLists),
     Display = [draw(E) || E <- lists:enumerate(0, Values)],
     tools:print_grid(maps:from_list(Display)),
-    manual.
+    {manual, fun() -> tools:print_grid(maps:from_list(Display)) end}.
 
 runi("noop", X) ->
     {[X], X};
@@ -44,11 +44,11 @@ draw({I, V}) ->
     Symbol =
         case V - P of
             -1 ->
-                $#;
+                $█;
             0 ->
-                $#;
+                $█;
             1 ->
-                $#;
+                $█;
             _ ->
                 $\s
         end,

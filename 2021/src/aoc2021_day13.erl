@@ -32,7 +32,7 @@ star2({Points, Folds}) ->
     Sort = folds(Points, Folds),
     Grid = maps:from_list([{P, $█} || P <- Sort]),
     tools:print_grid(Grid),
-    manual.
+    {manual, fun() -> tools:print_grid(Grid) end}.
 
 read(File) ->
     [Points, Instructions] = tools:read_blocks(File),

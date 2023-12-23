@@ -1,7 +1,7 @@
 -module(aoc2022_day15).
 -behaviour(aoc_solution).
 
--export([run/0, run/2, star2old/1]).
+-export([run/0, run/2, star2/2]).
 
 %% callbacks
 -export([info/0, star1/1, star2/1, read/1]).
@@ -11,7 +11,7 @@ info() ->
         aoc_solution:default_info(),
         #{
             problem => {2022, 15},
-            all => [star1, star2, star2old]
+            all => [star1, star2, {star2, old}]
         }
     ).
 
@@ -36,7 +36,7 @@ star1(Data) ->
     Endpoints = [E || E <- PossibleEndpoints, E /= none],
     sum_endpoints(Endpoints, 0).
 
-star2old(Data) ->
+star2(Data, old) ->
     SensorDist = [{S, distm(S, B)} || [S, B] <- Data],
     {X, Y} = check_y(SensorDist, 0),
     X * ?STAR2_Y + Y.

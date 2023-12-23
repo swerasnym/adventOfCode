@@ -6,7 +6,7 @@
 -export([run/0, run/2]).
 
 %% callbacks
--export([info/0, star1/1, star1old/1, star2/1, read/1]).
+-export([info/0, star1/1, star1/2, star2/1, read/1]).
 
 info() ->
     Examples = [
@@ -17,7 +17,7 @@ info() ->
     maps:merge(aoc_solution:default_info(), #{
         problem => {2021, 22},
         examples => Examples,
-        all => [star1old, star1, star2]
+        all => [star1, {star1, old}, star2]
     }).
 
 run() ->
@@ -26,7 +26,7 @@ run() ->
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
-star1old(Data) ->
+star1(Data, old) ->
     Init = lists:filter(fun is_init/1, Data),
     Steps = lists:map(fun discretre/1, Init),
     Reactor =

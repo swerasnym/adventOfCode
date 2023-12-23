@@ -27,7 +27,7 @@ star1(Data) ->
     step(Data, 1).
 
 star2(_Data) ->
-    "Got 50 stars: Remotly start slead".
+    {done, "Got 50 stars: Remotly start slead"}.
 
 read(File) ->
     tools:read_grid(

@@ -21,7 +21,7 @@ star1(Data) ->
     integer_to_snafu(lists:sum(Data)).
 
 star2(_) ->
-    "2022 Done!".
+    {done, "2022 Done!"}.
 
 snafu_to_integer(Str) ->
     snafu_to_integer(Str, 0).
