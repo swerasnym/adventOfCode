@@ -21,12 +21,12 @@
 -export([get_all_solutions/0]).
 -export([default_info/0]).
 -export([vt100code/1]).
+-export([get_all_released/0]).
+-export([get_all_released/1]).
+-export([get_all_released/2]).
 
 run() ->
-    SolutionModules = get_all_solutions(),
-    Sorted = lists:sort([{maps:get(problem, M:info(), missing), M} || M <- SolutionModules]),
-    Released = [M || {{Year, Day}, M} <- Sorted, aoc_web:check_date(Year, Day) == ok],
-    run(Released).
+    run(get_all_released()).
 
 run(M) ->
     run(M, all, both, default_options()).
@@ -37,6 +37,10 @@ run(M, Opts) ->
 run(M, StarOrStars, FileOrData) ->
     run(M, StarOrStars, FileOrData, default_options()).
 
+run({Year, Day}, StarOrStars, FileOrData, Opts) when is_integer(Year), is_integer(Day) ->
+    run(get_all_released(Year, Day), StarOrStars, FileOrData, Opts);
+run(Year, StarOrStars, FileOrData, Opts) when is_integer(Year) ->
+    run(get_all_released(Year), StarOrStars, FileOrData, Opts);
 run(M, StarOrStars, FileOrData, #{summary := true}) ->
     Results0 = merge_meta(run_file(M, StarOrStars, FileOrData), #{}),
     Results = check_answers(true, lists:flatten([Results0])),
@@ -171,7 +175,8 @@ print_line(_) ->
 print_result(error, #{error := _}) ->
     ok;
 print_result(Result, #{star := Star} = Meta) ->
-    {Response, Expected} = format_expected(Result, Meta),
+    Check = format_check(Meta),
+    Expected = format_expected(Meta),
     M = format_module(Meta),
     Parameters = format_parameters(Meta),
     Time = format_time(Meta),
@@ -179,7 +184,7 @@ print_result(Result, #{star := Star} = Meta) ->
 
     %% Using vt100 codes \e[s (Save Cursor) to save the start position of the result.
     %% This is used by the expected string to place the expected result directley below if needed.
-    io:format("~s~s~p~s -> \e[s~s \t~s~s~n", [Response, M, Star, Parameters, Res, Time, Expected]).
+    io:format("~s~s~p~s -> \e[s~s \t~s~s~n", [Check, M, Star, Parameters, Res, Time, Expected]).
 
 format_module(#{module := M}) ->
     io_lib:format("~p:", [M]);
@@ -200,32 +205,55 @@ format_time(Time) when is_integer(Time), Time < 10 * 1000 * 1000 ->
 format_time(Time) when is_integer(Time) ->
     vt100format(red, "~7.3f s ", [Time / (1000 * 1000)]);
 format_time(#{time := Time, read_time := ReadTime}) ->
-    ["\e[60G", format_time(ReadTime), "  ", format_time(Time), "  ", format_time(ReadTime + Time)];
+    ["\e[70G", format_time(ReadTime), "  ", format_time(Time), "  ", format_time(ReadTime + Time)];
 format_time(#{time := Time}) ->
-    ["\e[84G", format_time(Time)];
+    ["\e[94G", format_time(Time)];
 format_time(_) ->
     "".
 
-format_expected(Result, #{expected := Result}) ->
-    {vt100format(green, "OK   ", []), ""};
-format_expected(manual, #{expected := Expected}) ->
-    %% Using vt100 codes \e[u (Restore Cursor) \e[B (Cursor Down)
-    %% to place expected value in same column as the result.
-    {vt100format(yellow, "MAN  ", []), io_lib:format("~nexpected: \e[u\e[B~p", [Expected])};
-format_expected(_Result, #{expected := unknown}) ->
-    {"", ""};
-format_expected(_Result, #{expected := Other}) ->
-    %% Using vt100 codes \e[u (Restore Cursor) \e[B (Cursor Down)
-    %% to place expected value in same column as the result.
-    {vt100format(red, "FAIL ", []), io_lib:format("~nexpected: \e[u\e[B~p", [Other])};
-format_expected(_, _) ->
-    {"", ""}.
+format_check(#{check := ok}) ->
+    vt100format(green, "OK   ", []);
+format_check(#{check := manual}) ->
+    vt100format(yellow, "MAN  ", []);
+format_check(#{check := possibly}) ->
+    vt100format(cyan, "ANS? ", []);
+format_check(#{check := fail}) ->
+    vt100format(red, "FAIL ", []);
+format_check(#{}) ->
+    "".
+
+format_expected(#{check := Check, expected := Expected}) ->
+    case lists:member(Check, [fail, manual]) of
+        true ->
+            %% Using vt100 codes \e[u (Restore Cursor) \e[B (Cursor Down)
+            %% to place expected value in same column as the result.
+            io_lib:format("~nexpected: \e[u\e[B~p", [Expected]);
+        false ->
+            ""
+    end;
+format_expected(#{}) ->
+    "".
 
 get_all_solutions() ->
     {ok, _} = application:ensure_all_started(aoc),
     {ok, aoc} = application:get_application(?MODULE),
     {ok, Modules} = application:get_key(aoc, modules),
     lists:filter(fun is_aoc_solution/1, Modules).
+
+get_all_released() ->
+    SolutionModules = get_all_solutions(),
+    Sorted = lists:sort([{maps:get(problem, M:info(), missing), M} || M <- SolutionModules]),
+    [M || {{Year, Day}, M} <- Sorted, aoc_web:check_date(Year, Day) == ok].
+
+get_all_released(Year) ->
+    SolutionModules = get_all_solutions(),
+    Sorted = lists:sort([{maps:get(problem, M:info(), missing), M} || M <- SolutionModules]),
+    [M || {{Y, Day}, M} <- Sorted, aoc_web:check_date(Y, Day) == ok, Y == Year].
+
+get_all_released(Year, Day) ->
+    SolutionModules = get_all_solutions(),
+    Sorted = lists:sort([{maps:get(problem, M:info(), missing), M} || M <- SolutionModules]),
+    [M || {{Y, D}, M} <- Sorted, aoc_web:check_date(Y, Day) == ok, Y == Year, D == Day].
 
 is_aoc_solution(Module) ->
     {module, Module} = code:ensure_loaded(Module),
@@ -243,11 +271,22 @@ check_answers(true, List) ->
     check_answers(List, []);
 check_answers([], Acc) ->
     lists:reverse(Acc);
+check_answers([{Res, #{expected := Answer} = Meta} | Rest], Acc) ->
+    check_answers(Rest, [{Res, Meta#{expected => Answer, check => check(Res, Answer)}} | Acc]);
 check_answers([{Res, #{type := input, problem := {Year, Day}, star := Star} = Meta} | Rest], Acc) ->
     Answer = aoc_web:get_answer(Year, Day, Star),
-    check_answers(Rest, [{Res, Meta#{expected => Answer}} | Acc]);
+    check_answers(Rest, [{Res, Meta#{expected => Answer, check => check(Res, Answer)}} | Acc]);
 check_answers([H | Rest], Acc) ->
     check_answers(Rest, [H | Acc]).
+
+check(Result, Result) ->
+    ok;
+check(manual, _Expected) ->
+    manual;
+check(_Result, unknown) ->
+    possibly;
+check(_Result, _Other) ->
+    fail.
 
 attirs() ->
     #{
