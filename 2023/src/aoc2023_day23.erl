@@ -30,9 +30,11 @@ star2({Grid, Start, End}) ->
     Multiways = [{X, Y} || {X, Y} := V <- Grid, V /= $#, multiway({X, Y}, Grid)],
     Compressed = [
         {P, simplify(P, [Start, End | Multiways], 0, P, Grid)}
-     || P <- [Start | Multiways]
+     || P <- [Start, End | Multiways]
     ],
-    dfs2(Start, End, maps:from_list(Compressed), 0, []).
+    [{LastNode, Dist}] = proplists:get_value(End, Compressed),
+
+    dfs2(Start, LastNode, maps:from_list(Compressed), 0, []) + Dist.
 
 read(File) ->
     #{max := {Xmax, Ymax}} = Grid = tools:read_grid(File),
