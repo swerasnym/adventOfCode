@@ -63,6 +63,7 @@
 -export([overlap/2]).
 -export([chinese_multi_reminder/1]).
 -export([interval_length/1]).
+-export([intervall_inside/1]).
 
 -spec ws() -> string().
 ws() ->
@@ -606,6 +607,11 @@ interval_after({_, A2}, {_, B2}) ->
     {B2, A2};
 interval_after(A, _) ->
     A.
+
+intervall_inside([A]) ->
+    A;
+intervall_inside([A, B | Rest]) ->
+    intervall_inside([interval_inside(A, B) | Rest]).
 
 interval_inside(_, empty) ->
     empty;
