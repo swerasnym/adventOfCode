@@ -4,7 +4,7 @@
 -export([run/0, run/2]).
 
 %% callbacks
--export([info/0, star1/1, star2/1, read/1]).
+-export([info/0, star1/1, star2/1, read/1, print_graph/1]).
 
 info() ->
     Examples = [
@@ -100,3 +100,12 @@ split(G, E1, E2, [E3 | Rest]) ->
             E3 = digraph:add_edge(G, E3, V31, V32, []),
             split(G, E1, E2, Rest)
     end.
+
+print_graph(input) ->
+    {ok, File} = aoc_web:get_input_path(2023, 25),
+    print_graph(File);
+print_graph(File) ->
+    String0 = tools:read_string(File),
+    String1 = string:replace(String0, ": ", "->", all),
+    String2 = string:replace(String1, " ", ",", all),
+    io:format("digraph G{~n~s~n}~n", [String2]).

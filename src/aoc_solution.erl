@@ -45,7 +45,7 @@ run({Year, Day}, StarOrStars, FileOrData, Opts) when is_integer(Year), is_intege
 run(Year, StarOrStars, FileOrData, Opts) when is_integer(Year) ->
     run(get_all_released(Year), StarOrStars, FileOrData, Opts);
 run(M, StarOrStars, FileOrData, #{summary := true}) ->
-    Results0 = merge_meta(run_file(M, StarOrStars, FileOrData), #{}),
+    Results0 = merge_meta(run_file(M, StarOrStars, FileOrData), #{type => file}),
     Results = check_answers(true, lists:flatten([Results0])),
 
     io:format("~n~n~n~n~nResults:~n------------------------------~n"),

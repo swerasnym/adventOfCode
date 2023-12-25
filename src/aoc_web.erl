@@ -35,9 +35,8 @@ start_link() ->
 
 %% Returns the internal state.
 init(nothing) ->
-    {ok, _} = application:ensure_all_started([inets, ssl]),
+    {ok, _} = application:ensure_all_started([inets, ssl, htmerl]),
     ok = ensure_paths(),
-    io:format("Started!~n"),
     {ok, #state{}}.
 
 handle_call(
