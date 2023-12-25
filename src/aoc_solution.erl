@@ -55,6 +55,8 @@ run(M, StarOrStars, FileOrData, #{summary := true}) ->
 run(M, StarOrStars, FileOrData, _Opts) ->
     merge_meta(run_file(M, StarOrStars, FileOrData), #{}).
 
+run_file([M], StarOrStars, FileOrData) ->
+    run_file(M, StarOrStars, FileOrData);
 run_file(Modules, StarOrStars, FileOrData) when is_list(Modules) ->
     %% List of modules
     [{#{module => M}, run_file(M, StarOrStars, FileOrData)} || M <- Modules];
@@ -159,7 +161,6 @@ merge_meta({Meta1, Item}, Meta2) ->
 default_info() ->
     #{
         all => [star1, star2],
-        solved => [],
         examples => []
     }.
 
@@ -211,11 +212,11 @@ print_result(Result, #{star := Star} = Meta) ->
     M = format_module(Meta),
     Parameters = format_parameters(Meta),
     Time = format_time(Meta),
-    Res = vt100format([bright, cyan], "~p", [Result]),
+    Res = vt100format([bright, cyan], "~0p", [Result]),
 
     %% Using vt100 codes \e[s (Save Cursor) to save the start position of the result.
     %% This is used by the expected string to place the expected result directley below if needed.
-    io:format("~s~s~p~s -> \e[s~s \t~s~s~n", [Check, M, Star, Parameters, Res, Time, Expected]).
+    io:format("~s~s  ~s~p~s -> \e[s~s ~s~n", [Check, Time, M, Star, Parameters, Res, Expected]).
 
 format_module(#{module := M}) ->
     io_lib:format("~p:", [M]);
@@ -236,26 +237,26 @@ format_time(Time) when is_integer(Time), Time < 10 * 1000 * 1000 ->
 format_time(Time) when is_integer(Time) ->
     vt100format(red, "~7.3f s ", [Time / (1000 * 1000)]);
 format_time(#{time := Time, read_time := ReadTime}) ->
-    ["\e[70G", format_time(ReadTime), "  ", format_time(Time), "  ", format_time(ReadTime + Time)];
+    ["", format_time(ReadTime), "  ", format_time(Time), "  ", format_time(ReadTime + Time)];
 format_time(#{time := Time}) ->
-    ["\e[94G", format_time(Time)];
+    ["                        ", format_time(Time)];
 format_time(_) ->
-    "".
+    "                                  ".
 
 format_check(#{check := ok}) ->
-    vt100format(green, "OK    ", []);
+    vt100format([bright, green], "OK    ", []);
 format_check(#{check := done}) ->
     vt100format([bright, green], "DONE  ", []);
 format_check(#{check := manual}) ->
-    vt100format(yellow, "MAN   ", []);
+    vt100format([bright, yellow], "MAN   ", []);
 format_check(#{check := possibly}) ->
-    vt100format(cyan, "ANS?  ", []);
+    vt100format([bright, cyan], "ANS?  ", []);
 format_check(#{check := fail, error := _}) ->
     vt100format([bright, red], "ERROR ", []);
 format_check(#{check := fail}) ->
-    vt100format(red, "FAIL  ", []);
+    vt100format([bright, red], "FAIL  ", []);
 format_check(#{}) ->
-    "".
+    "       ".
 
 format_expected(#{error := _}) ->
     "";
