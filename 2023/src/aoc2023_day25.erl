@@ -62,7 +62,6 @@ parse_line(L) ->
 split(_, []) ->
     none;
 split(G, [E | Rest]) ->
-    io:format("A ~p~n", [length(Rest)]),
     case split(G, E, Rest) of
         none ->
             split(G, Rest);
