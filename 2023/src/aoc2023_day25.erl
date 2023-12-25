@@ -28,11 +28,36 @@ star1({G, Edges0}) ->
     %% My edges to cut. Found manually by modifying my input, plotting with Graphviz neato algorithm.
     %% By adding these as the first edges to try the cutting will succeed at once :)
     Cut = [{"sdv", "mxv"}, {"klj", "scr"}, {"gqr", "vbk"}],
-
     Extra = [Ee || {E, Ee} <- Edges0, lists:member(E, Cut)],
 
     [Ca, Cb] = split(G, Extra ++ Edges),
     length(Ca) * length(Cb).
+
+star2(_) ->
+    {done, "Press the button: Let it snow!"}.
+
+read(File) ->
+    Graph = digraph:new(),
+    Lines = tools:read_lines(File, fun parse_line/1),
+    Map = maps:from_list(Lines),
+
+    {From, To} = lists:unzip(Lines),
+    Vs = lists:usort(lists:concat(To) ++ From),
+    VertexMap = maps:from_list([{Key, digraph:add_vertex(Graph)} || Key <- Vs]),
+
+    Edges = [
+        [
+            {{Key, N}, digraph:add_edge(Graph, maps:get(Key, VertexMap), maps:get(N, VertexMap))}
+         || N <- maps:get(Key, Map)
+        ]
+     || Key <- maps:keys(Map)
+    ],
+    {Graph, lists:concat(Edges)}.
+
+parse_line(L) ->
+    [Label, Neigbours] = string:split(L, ": "),
+
+    {Label, string:split(Neigbours, " ", all)}.
 
 split(_, []) ->
     none;
@@ -75,29 +100,3 @@ split(G, E1, E2, [E3 | Rest]) ->
             E3 = digraph:add_edge(G, E3, V31, V32, []),
             split(G, E1, E2, Rest)
     end.
-
-star2(_) ->
-    {done, "Press button: Let it snow!"}.
-
-read(File) ->
-    Graph = digraph:new(),
-    Lines = tools:read_lines(File, fun parse_line/1),
-    Map = maps:from_list(Lines),
-
-    {From, To} = lists:unzip(Lines),
-    Vs = lists:usort(lists:concat(To) ++ From),
-    VertexMap = maps:from_list([{Key, digraph:add_vertex(Graph)} || Key <- Vs]),
-
-    Edges = [
-        [
-            {{Key, N}, digraph:add_edge(Graph, maps:get(Key, VertexMap), maps:get(N, VertexMap))}
-         || N <- maps:get(Key, Map)
-        ]
-     || Key <- maps:keys(Map)
-    ],
-    {Graph, lists:concat(Edges)}.
-
-parse_line(L) ->
-    [Label, Neigbours] = string:split(L, ": "),
-
-    {Label, string:split(Neigbours, " ", all)}.
