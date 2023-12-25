@@ -97,11 +97,27 @@ run_file(M, StarOrStars, File) when is_list(File) ->
             Error = "File not found",
             {result, #{source => file, path => FilePath, star => error, error => Error}, Error};
         true ->
-            {Time, Data} = timer:tc(M, read, [FilePath]),
-            {
-                #{source => file, path => FilePath, read_time => Time},
-                run_data(M, StarOrStars, Data)
-            }
+            try
+                io:format("~p:~p ->~n", [M, read]),
+                {Time, Data} = timer:tc(M, read, [FilePath]),
+                {
+                    #{source => file, path => FilePath, read_time => Time},
+                    run_data(M, StarOrStars, Data)
+                }
+            catch
+                C:R:ST ->
+                    Message = erl_error:format_exception(C, R, ST),
+                    Error = vt100format([red], "~ts", [Message]),
+                    io:format("~ts\n\n", [Error]),
+                    {result,
+                        #{
+                            source => file,
+                            path => FilePath,
+                            star => read,
+                            error => {C, R, ST}
+                        },
+                        {C, R}}
+            end
     end.
 
 run_data(M, all, Data) ->
@@ -129,8 +145,8 @@ run_data(M, Star, Data) ->
         C:R:ST ->
             Message = erl_error:format_exception(C, R, ST),
             Error = vt100format([red], "~ts", [Message]),
-            io:format("~ts\n", [Error]),
-            {result, #{module => M, star => Star, error => {C, R, ST}}, {C, R}}
+            io:format("~ts\n\n", [Error]),
+            {result, #{star => Star, error => {C, R, ST}}, {C, R}}
     end.
 
 merge_meta({result, Meta1, Result}, Meta2) ->
