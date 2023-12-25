@@ -11,5 +11,6 @@ rel/example_project
 *scratchpad.erl
 
 _build/
+artifacts/
 .#*
 *.TAGS
