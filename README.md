@@ -22,7 +22,7 @@ The project uses [Rebar3](https://rebar3.org/) so it can be built using the `reb
 
 
 ### Help functions
-Some days a few helpers that write their output to standard out have been crated. These can be run by givint the corresponding exptession to `run.sh` for example 
+Some days a few helpers that write their output to standard out have been crated. These can be run by givint the corresponding exptession to `run.sh` for example  
 `./run.sh 'aoc2023_day25:input_to_graphviz("priv/examples/2023/day25_ex.txt").'`.
 
 ### Shell

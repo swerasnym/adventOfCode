@@ -169,10 +169,12 @@ check_date(Year, Day) when Year >= 2015, Day >= 1, Day =< 25 ->
             ok;
         false ->
             {error,
-                lists:flatten(io_lib:format("Problem ~p for ~p is not released yet!", [Day, Year]))}
+                lists:flatten(
+                    io_lib:format("Problem ~p of year ~p is not released yet!", [Day, Year])
+                )}
     end;
 check_date(Year, Day) ->
-    {error, lists:flatten(io_lib:format("Problem ~p for ~p will never exist!", [Day, Year]))}.
+    {error, lists:flatten(io_lib:format("Problem ~p of year ~p will never exist!", [Day, Year]))}.
 
 get_aoc_page(LocalUrl, Path) ->
     get_aoc_page(LocalUrl, Path, cached).
