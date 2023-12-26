@@ -13,10 +13,6 @@ flush(N) ->
         N
     end.
 
-file(Name) ->
-    Src = filename:dirname(?FILE),
-    filename:join([Src, "data/", Name]).
-
 run_get_memory(List, Position) ->
     Result = intcode:run_list(List),
     intcode:get(Position, Result).

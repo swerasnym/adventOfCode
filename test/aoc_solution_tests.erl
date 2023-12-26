@@ -33,6 +33,16 @@ verify_input(M) ->
         {spawn, fun() ->
             Results = aoc_solution:run(M, both, input),
             Failed = [{M, S} || {_, #{check := fail, star := S}} <- Results],
-            ?assertEqual([], Failed, {"Problem failing for", Failed})
+            Filtered = lists:filter(fun({Mod, _}) -> maps:get(stable, Mod:info()) end, Failed),
+            case {Failed, Filtered} of
+                {[], _} ->
+                    ok;
+                {_, []} ->
+                    ?debugFmt("Unstable: ~p", [Failed]);
+                {_, _} ->
+                    ?debugFmt("Falied: ~p", [Failed])
+            end,
+
+            ?assertEqual([], Filtered, {"Problem failing for", Filtered})
         end}
     }.

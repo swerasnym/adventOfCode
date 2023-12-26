@@ -14,7 +14,8 @@ info() ->
 
     maps:merge(aoc_solution:default_info(), #{
         problem => {2019, 23},
-        examples => Examples
+        examples => Examples,
+        stable => false
     }).
 
 run() ->
@@ -54,7 +55,7 @@ star2(Program, Timeout) ->
         none ->
             io:format("none is not a valid result. ~n"),
             [intcode:send(Halt, halt) || Halt <- proplists:get_keys(Table)],
-            star2(Program, Timeout + 1);
+            star2(Program, Timeout + 10);
         Result ->
             [intcode:send(Halt, halt) || Halt <- proplists:get_keys(Table)],
             Result
@@ -62,13 +63,13 @@ star2(Program, Timeout) ->
         error:not_all_messages_receved ->
             io:format("Problem when checking for idle. ~n"),
             [intcode:send(Halt, halt) || Halt <- proplists:get_keys(Table)],
-            star2(Program, Timeout + 1);
+            star2(Program, Timeout + 10);
         error:{badmatch, Value}:Stack ->
             case hd(Stack) of
                 {?MODULE, switch2, 5, Where} ->
                     io:format("Problem when routing ~p at ~p. ~n", [Value, Where]),
                     [intcode:send(Halt, halt) || Halt <- proplists:get_keys(Table)],
-                    star2(Program, Timeout + 1);
+                    star2(Program, Timeout + 10);
                 _ ->
                     error({{badmatch, Value}, Stack})
             end

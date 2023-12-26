@@ -163,7 +163,8 @@ merge_meta({Meta1, Item}, Meta2) ->
 default_info() ->
     #{
         all => [star1, star2],
-        examples => []
+        examples => [],
+        stable => true
     }.
 
 default_options() ->
