@@ -1,20 +1,29 @@
 -module(aoc2019_day18).
+-behaviour(aoc_solution).
 
--export([run/2, memmory/1]).
+-export([memmory/1]).
 
-run(Star, File) ->
-    Data = read(File),
+-export([run/0, run/2]).
 
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
+
+info() ->
+    Examples = [
+        % {"examples/2019/dayN_ex.txt", star1, unknown},
+        % {"examples/2019/dayN_ex.txt", star2, unknown}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 18},
+        examples => Examples
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1({Maze, Start, Keys}) ->
     Paths = lists:flatten([reduce(lists:sort(search(Pos, Maze))) || Pos <- Keys]),
@@ -35,9 +44,9 @@ star1({Maze, Start, Keys}) ->
         Map ->
             Map
     end,
-
+    io:format("@~s~n", [Path]),
     %% Check how many possitions where stored
-    {Result, [$@ | Path]}.
+    Result.
 
 star2({Maze0, {X, Y}, Keys}) ->
     %% TODO make it pass day18_4.data, with 72 where the assumption that the
@@ -94,7 +103,8 @@ star2({Maze0, {X, Y}, Keys}) ->
         Map ->
             Map
     end,
-    {lists:sum(Result), lists:concat(lists:concat(SolutionPath))}.
+    io:format("~s~n", [lists:concat(lists:concat(SolutionPath))]),
+    lists:sum(Result).
 
 memmory(Map) ->
     receive

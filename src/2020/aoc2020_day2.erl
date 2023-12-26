@@ -22,6 +22,7 @@ run() ->
 
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
+
 star1(Data) ->
     length([Line || Line <- Data, check_pwd1(Line)]).
 

@@ -87,40 +87,6 @@ send_recv_test() ->
 
     ?assertEqual(0, flush()).
 
-day2_test() ->
-    ?assertEqual(4690667, aoc2019_day2:run(star1, file("day2.data"))),
-    ?assertEqual(6255, aoc2019_day2:run(star2, file("day2.data"))),
-    ?assertEqual(0, flush()).
-
-day5_test() ->
-    ?assertEqual(
-        {11933517, [0, 0, 0, 0, 0, 0, 0, 0, 0]},
-        aoc2019_day5:run(star1, file("day5.data"))
-    ),
-    ?assertEqual(10428568, aoc2019_day5:run(star2, file("day5.data"))),
-    ?assertEqual(0, flush()).
-
-day7_test() ->
-    ?assertEqual({21860, [0, 4, 2, 1, 3]}, aoc2019_day7:run(star1, file("day7.data"))),
-
-    ?assertEqual({2645740, [6, 5, 7, 8, 9]}, aoc2019_day7:run(star2, file("day7.data"))),
-    ?assertEqual(0, flush()).
-
-day9_test() ->
-    ?assertEqual(3380552333, aoc2019_day9:run(star1, file("day9.data"))),
-    ?assertEqual(78831, aoc2019_day9:run(star2, file("day9.data"))),
-    ?assertEqual(0, flush()).
-
-day11_test() ->
-    ?assertEqual(2064, aoc2019_day11:run(star1, file("day11.data"))),
-    ?assertEqual("LPZKLGHR", aoc2019_day11:run(star2, file("day11.data"))),
-    ?assertEqual(0, flush()).
-
-day13_test() ->
-    ?assertEqual(312, aoc2019_day13:run(star1, file("day13.data"))),
-    ?assertEqual(15909, aoc2019_day13:run(star2, file("day13.data"))),
-    ?assertEqual(0, flush()).
-
 day2_ex_test() ->
     ?assertEqual(2, run_get_memory([1, 0, 0, 0, 99], 0)),
     ?assertEqual(6, run_get_memory([2, 3, 0, 3, 99], 3)),
@@ -218,17 +184,6 @@ day5_ex_test() ->
 
     ?assertEqual([999, 999, 1000, 1001, 1001], [F(P7, Input) || Input <- lists:seq(6, 10)]),
 
-    ?assertEqual(0, flush()).
-
-day7_ex_test() ->
-    io:format("FILE ~p~n", [file("day7_1.data")]),
-    ?assertEqual({43210, [4, 3, 2, 1, 0]}, aoc2019_day7:run(star1, file("day7_1.data"))),
-
-    ?assertEqual({54321, [0, 1, 2, 3, 4]}, aoc2019_day7:run(star1, file("day7_2.data"))),
-    ?assertEqual({65210, [1, 0, 4, 3, 2]}, aoc2019_day7:run(star1, file("day7_3.data"))),
-
-    ?assertEqual({139629729, [9, 8, 7, 6, 5]}, aoc2019_day7:run(star2, file("day7_4.data"))),
-    ?assertEqual({18216, [9, 7, 8, 5, 6]}, aoc2019_day7:run(star2, file("day7_5.data"))),
     ?assertEqual(0, flush()).
 
 day9_ex_test() ->

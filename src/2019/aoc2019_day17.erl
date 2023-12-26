@@ -1,20 +1,27 @@
 -module(aoc2019_day17).
+-behaviour(aoc_solution).
 
--export([run/2]).
+-export([run/0, run/2]).
 
-run(Star, File) ->
-    Program = intcode:from_file(File),
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
 
-    case Star of
-        star1 ->
-            star1(Program);
-        star2 ->
-            star2(Program);
-        _ ->
-            Star1 = star1(Program),
-            Star2 = star2(Program),
-            {Star1, Star2}
-    end.
+info() ->
+    Examples = [
+        % {"examples/2019/dayN_ex.txt", star1, unknown},
+        % {"examples/2019/dayN_ex.txt", star2, unknown}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 17},
+        examples => Examples
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Program) ->
     Pid = intcode:spawn(Program, [{outputpid, self()}, {inputpid, self()}]),
@@ -28,8 +35,9 @@ star2(Program) ->
     Pid = intcode:spawn(Program, [{outputpid, self()}, {inputpid, self()}]),
     {halt, View} = intcode:recvn(Pid, all),
     Map = scan(View),
-    Path = path(Map),
+    path(Map),
 
+    %% TODO Extract input programatically.
     Result =
         intcode:run(
             Program,
@@ -42,6 +50,9 @@ star2(Program) ->
         ),
     Output = intcode:get_output(Result),
     lists:last(Output).
+
+read(File) ->
+    intcode:from_file(File).
 
 scan(View) ->
     io:format("~s", [View]),
@@ -136,21 +147,6 @@ find_end(Pos0, Dir, Map, N) ->
             find_end(Pos, Dir, Map, N + 1);
         _ ->
             {Pos0, N}
-    end.
-
-split(String) ->
-    split(string:split(String, ",", all), [], []).
-
-split([], String, Acc) ->
-    lists:reverse([lists:flatten(String ++ "\n") | Acc]);
-split([E | Es], [], Acc) ->
-    split(Es, E, Acc);
-split([E | Es], String, Acc) ->
-    case length(String) + length(E) + 1 of
-        Value when Value > 18 ->
-            split([E | Es], [], [lists:flatten(String ++ "\n") | Acc]);
-        _ ->
-            split(Es, String ++ "," ++ E, Acc)
     end.
 
 turn(north, $L) ->

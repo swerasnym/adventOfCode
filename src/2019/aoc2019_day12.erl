@@ -1,28 +1,31 @@
 -module(aoc2019_day12).
-
--export([run/2]).
+-behaviour(aoc_solution).
 
 -record(moon, {pos = {0, 0, 0}, vel = {0, 0, 0}}).
 
--hank([{unnecessary_function_arguments, [run, {step, 2}]}]).
-run(Star, _) ->
-    Data =
-        #{
-            1 => #moon{pos = {13, -13, -2}},
-            2 => #moon{pos = {16, 2, -15}},
-            3 => #moon{pos = {7, -18, -12}},
-            4 => #moon{pos = {-3, -8, -8}}
-        },
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+-hank([{unnecessary_function_arguments, [{step, 2}]}]).
+
+-export([run/0, run/2]).
+
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
+
+info() ->
+    Examples = [
+        % {"examples/2019/dayN_ex.txt", star1, unknown},
+        % {"examples/2019/dayN_ex.txt", star2, unknown}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 12},
+        examples => Examples
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Data) ->
     {Energy, _} = lists:foldl(fun step/2, {0, Data}, lists:seq(1, 1000)),
@@ -33,6 +36,14 @@ star2(Data) ->
     Y = step2(Data, y),
     Z = step2(Data, z),
     lcm(X, lcm(Y, Z)).
+
+read(File) ->
+    Moons = tools:read_lines(File, fun get_moon/1),
+    maps:from_list(lists:enumerate(Moons)).
+
+get_moon(Line) ->
+    [[X, Y, Z]] = tools:parse_format(Line, "<x=~d, y=~d, z=~d>"),
+    #moon{pos = {X, Y, Z}}.
 
 step(_Count, Value) ->
     step(Value).

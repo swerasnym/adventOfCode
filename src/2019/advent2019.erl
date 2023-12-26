@@ -1,20 +1,7 @@
 -module(advent2019).
 
 -export([run/0, run/1, run/2, run/3, average/0, average/1, average/2, average/3, average/4]).
-
-file(Name) when is_atom(Name) ->
-    file(atom_to_list(Name) ++ ".data");
-file("aoc2019_" ++ Name) ->
-    file(Name);
-file(["../" | _] = Name) ->
-    Name;
-file(["./" | _] = Name) ->
-    Name;
-file(["/" | _] = Name) ->
-    Name;
-file(Name) ->
-    Src = filename:dirname(?FILE),
-    filename:join([Src, "../data/", Name]).
+-export([parallel_average/2]).
 
 days() ->
     To =
@@ -49,14 +36,14 @@ run(Day) ->
 run(today, Star) ->
     run(lists:last(days()), Star);
 run(Day, Star) when is_atom(Star) ->
-    run(Day, Star, file(Day));
+    run(Day, Star, input);
 run(Day, File) ->
-    run(Day, all, file(File)).
+    run(Day, all, File).
 
 run(Day, all, File) ->
-    print([sep | [execute(Day, Star, file(File)) || Star <- [star1, star2]]]);
+    print([sep | [execute(Day, Star, File) || Star <- [star1, star2]]]);
 run(Day, Star, File) ->
-    print([sep, execute(Day, Star, file(File))]).
+    print([sep, execute(Day, Star, File)]).
 
 average() ->
     average(10).
@@ -75,17 +62,17 @@ average(Times, Day) ->
 average(Times, today, Star) ->
     average(Times, lists:last(days()), Star);
 average(Times, Day, Star) when is_atom(Star) ->
-    average(Times, Day, Star, file(Day));
+    average(Times, Day, Star, input);
 average(Times, Day, File) ->
-    average(Times, Day, all, file(File)).
+    average(Times, Day, all, File).
 
 average(Times, Day, all, File) ->
-    print([sep | [execute_average(Times, Day, Star, file(File)) || Star <- [star1, star2]]]);
+    print([sep | [execute_average(Times, Day, Star, File) || Star <- [star1, star2]]]);
 average(Times, Day, Star, File) ->
-    print([sep, execute_average(Times, Day, Star, file(File))]).
+    print([sep, execute_average(Times, Day, Star, File)]).
 
 execute_average(Times, Day) ->
-    Res = [execute_average(Times, Day, Star, file(Day)) || Star <- [star1, star2]],
+    Res = [execute_average(Times, Day, Star, input) || Star <- [star1, star2]],
     [sep | Res].
 
 execute_average(Times, Day, Star, File) when Times > 1 ->
@@ -97,7 +84,7 @@ execute_average(Times, Day, Star, File) when Times > 1 ->
     {Day, Star, Total div Times, Result}.
 
 parallel_average(Times, Day) ->
-    Res = [parallel_average(Times, Day, Star, file(Day)) || Star <- [star1, star2]],
+    Res = [parallel_average(Times, Day, Star, input) || Star <- [star1, star2]],
     [sep | Res].
 
 parallel_average(Times, Day, Star, File) ->
@@ -121,7 +108,7 @@ parallel_average(Times, Day, Star, File) ->
     {Day, Star, Total div Times, Result}.
 
 execute(Day) ->
-    Res = [execute(Day, Star, file(Day)) || Star <- [star1, star2]],
+    Res = [execute(Day, Star, input) || Star <- [star1, star2]],
     [sep | Res].
 
 execute(Day, Star, File) ->
@@ -150,7 +137,7 @@ print(head) ->
     io:format("Day           | Star  |      Time    | Result~n");
 print(sep) ->
     io:format("--------------+-------+--------------+----------------~n");
-print({Day, Star, Time, Answer} = Result) ->
+print({Day, Star, Time, [{Answer, _}]} = Result) ->
     io:format("~-13s | ~-5s | ~9.3f ms | ~p~n", [Day, Star, Time / 1000, Answer]),
     Result;
 print(List) ->

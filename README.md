@@ -64,8 +64,8 @@ info() ->
 star1(Values) ->
     lists:sum(Values).
 
-star2(Data) ->
-    star2(Data, 17).
+star2(Values) ->
+    star2(Values, 17).
 
 star2(Values, P) ->
     lists:sum([V rem P || V <- Values]).

@@ -1,20 +1,27 @@
 -module(aoc2019_day16).
+-behaviour(aoc_solution).
 
--export([run/2]).
+-export([run/0, run/2]).
 
-run(Star, File) ->
-    Data = read(File),
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
 
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+info() ->
+    Examples = [
+        % {"examples/2019/dayN_ex.txt", star1, unknown},
+        % {"examples/2019/dayN_ex.txt", star2, unknown}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 16},
+        examples => Examples
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Data) ->
     Result = phases(100, Data),
@@ -48,14 +55,6 @@ phases2(0, List) ->
 phases2(N, List) ->
     phases2(N - 1, phase3(List)).
 
-phase(List) ->
-    [phase(List, Position) || Position <- lists:seq(1, length(List))].
-
-phase(List, Position) ->
-    Didgit =
-        lists:sum(lists:zipwith(fun(A, B) -> A * B end, List, pattern(Position, length(List)))),
-    abs(Didgit) rem 10.
-
 phase2(List) ->
     [phase2(List, Position) || Position <- lists:seq(1, length(List))].
 
@@ -76,23 +75,6 @@ phase2(List, Position, Acc) ->
     {First4, Rest4} = split(Position, Rest3),
     phase2(Rest4, Position, Acc + lists:sum(First2) - lists:sum(First4)).
 
-pattern(Position, Length) ->
-    Base = [0, 1, 0, -1],
-    Rep = lists:flatten([lists:duplicate(Position, D) || D <- Base]),
-
-    case length(Rep) > Length of
-        true ->
-            [_ | Rest] = Rep,
-            {Pattern, _} = lists:split(Length, Rest),
-            Pattern;
-        false ->
-            Repititions = Length div length(Rep) + 1,
-
-            [_ | Rest] = lists:flatten(lists:duplicate(Repititions, Rep)),
-            {Pattern, _} = lists:split(Length, Rest),
-            Pattern
-    end.
-
 split(N, List) ->
     case N > length(List) of
         true ->
@@ -105,7 +87,7 @@ phase3(List) ->
     Reversed = lists:reverse(List),
     calculate(Reversed, 0, []).
 
-calculate([], Prev, Acc) ->
+calculate([], _Prev, Acc) ->
     Acc;
 calculate([N | Ns], Prev, Acc) ->
     Value = abs(N + Prev) rem 10,

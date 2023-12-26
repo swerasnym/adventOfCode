@@ -1,21 +1,27 @@
 -module(aoc2019_day4).
+-behaviour(aoc_solution).
 
--export([run/2]).
+-export([run/0, run/2]).
 
--hank([{unnecessary_function_arguments, [run]}]).
-run(Star, _) ->
-    Data = {183564, 657474},
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
 
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+info() ->
+    Examples = [
+        % {"examples/2019/dayN_ex.txt", star1, unknown},
+        % {"examples/2019/dayN_ex.txt", star2, unknown}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 4},
+        examples => Examples
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1({To, From}) ->
     Codes0 = lists:map(fun integer_to_list/1, lists:seq(To, From)),
@@ -28,6 +34,10 @@ star2({To, From}) ->
     Codes1 = lists:filter(fun same2/1, Codes0),
     Codes2 = lists:filter(fun nondec/1, Codes1),
     length(Codes2).
+
+read(File) ->
+    [[To, From]] = tools:read_format(File, "~d-~d"),
+    {To, From}.
 
 same([A, A, _, _, _, _]) ->
     true;

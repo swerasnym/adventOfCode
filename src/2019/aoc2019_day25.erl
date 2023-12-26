@@ -1,23 +1,30 @@
 -module(aoc2019_day25).
+-behaviour(aoc_solution).
 
--export([run/2]).
+-export([run/0, run/2]).
 
--hank([{unnecessary_function_arguments, [star2]}]).
-run(Star, File) ->
-    Program = intcode:from_file(File),
-    case Star of
-        star1 ->
-            star1(Program);
-        star2 ->
-            star2(Program);
-        int ->
-            intcode:interactive(Program),
-            ok;
-        _ ->
-            Star1 = star1(Program),
-            Star2 = star2(Program),
-            {Star1, Star2}
-    end.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
+
+info() ->
+    Examples = [
+        % {"examples/2019/dayN_ex.txt", star1, unknown},
+        % {"examples/2019/dayN_ex.txt", star2, unknown}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 25},
+        examples => Examples
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
+
+read(File) ->
+    intcode:from_file(File).
 
 star1(Program) ->
     Instructions =
@@ -84,7 +91,7 @@ star1(Program) ->
     list_to_integer(Code).
 
 star2(_Program) ->
-    "Press done since you got 49 stars!".
+    {done, "Align the warp drive!"}.
 
 find_weight(Pid) ->
     Items =

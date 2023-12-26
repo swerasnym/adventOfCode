@@ -1,30 +1,27 @@
 -module(aoc2019_day6).
+-behaviour(aoc_solution).
 
--export([run/2]).
+-export([run/0, run/2]).
 
-run(Star, File) ->
-    Edges = read(File),
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
 
-    G = digraph:new(),
-
-    [
-        begin
-            digraph:add_vertex(G, V1),
-            digraph:add_vertex(G, V2),
-            digraph:add_edge(G, V1, V2)
-        end
-     || {V1, V2} <- Edges
+info() ->
+    Examples = [
+        % {"examples/2019/dayN_ex.txt", star1, unknown},
+        % {"examples/2019/dayN_ex.txt", star2, unknown}
     ],
-    case Star of
-        star1 ->
-            star1(G);
-        star2 ->
-            star2(G);
-        _ ->
-            Star1 = star1(G),
-            Star2 = star2(G),
-            {Star1, Star2}
-    end.
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 6},
+        examples => Examples
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(G) ->
     depth(G, <<"COM">>).
@@ -47,10 +44,22 @@ read(File) ->
     {ok, Data} = file:read_file(File),
     List = string:split(string:trim(Data), "\n", all),
 
-    [
+    Edges = [
         begin
             [A, B] = string:split(Item, ")"),
             {A, B}
         end
      || Item <- List
-    ].
+    ],
+
+    G = digraph:new(),
+
+    [
+        begin
+            digraph:add_vertex(G, V1),
+            digraph:add_vertex(G, V2),
+            digraph:add_edge(G, V1, V2)
+        end
+     || {V1, V2} <- Edges
+    ],
+    G.

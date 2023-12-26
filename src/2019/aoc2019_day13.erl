@@ -1,21 +1,29 @@
 -module(aoc2019_day13).
-
--export([run/2]).
+-behaviour(aoc_solution).
 
 -record(state, {screen = #{}, ball = {0, 0}, paddle = 0, score = 0}).
 
-run(Star, File) ->
-    Program = intcode:from_file(File),
-    case Star of
-        star1 ->
-            star1(Program);
-        star2 ->
-            star2(Program);
-        _ ->
-            Star1 = star1(Program),
-            Star2 = star2(Program),
-            {Star1, Star2}
-    end.
+-export([run/0, run/2]).
+
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
+
+info() ->
+    Examples = [
+        % {"examples/2019/dayN_ex.txt", star1, unknown},
+        % {"examples/2019/dayN_ex.txt", star2, unknown}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 13},
+        examples => Examples
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Program) ->
     Options = [{outputpid, self()}],
@@ -30,6 +38,9 @@ star2(Program) ->
     #state{screen = Screen, score = Score} = arcade(#state{}, Pid),
     paint(Screen),
     Score.
+
+read(File) ->
+    intcode:from_file(File).
 
 arcade(State, Pid) ->
     case intcode:recvn(Pid, 3, 1000) of

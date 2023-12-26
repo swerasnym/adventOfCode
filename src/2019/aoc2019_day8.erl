@@ -1,20 +1,31 @@
 -module(aoc2019_day8).
+-behaviour(aoc_solution).
 
--export([run/2]).
+-export([run/0, run/2]).
 
-run(Star, File) ->
-    {ok, Bin} = file:read_file(File),
-    Data = string:trim(Bin),
-    case Star of
-        star1 ->
-            star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
+
+info() ->
+    Examples = [
+        % {"examples/2019/dayN_ex.txt", star1, unknown},
+        % {"examples/2019/dayN_ex.txt", star2, unknown}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 8},
+        examples => Examples
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
+
+
+
+
 
 star1(Data) ->
     Layers =
@@ -26,13 +37,20 @@ star2(Data) ->
     Layers =
         [string:slice(Data, Pos, 25 * 6) || Pos <- lists:seq(0, string:length(Data) - 1, 25 * 6)],
     Image = [pixel(Pos, Layers) || Pos <- lists:seq(0, 25 * 6 - 1)],
-    [
-        io:fwrite("~s~n", [string:slice(Image, Pos, 25)])
-     || Pos <- lists:seq(0, string:length(Image) - 1, 25)
-    ],
 
+    Print = fun() ->
+        [
+            io:fwrite("~ts~n", [string:slice(Image, Pos, 25)])
+         || Pos <- lists:seq(0, string:length(Image) - 1, 25)
+        ]
+    end,
+    Print(),
     % manual decode!
-    "ACKPZ".
+    {manual, Print}.
+
+read(File) ->
+    {ok, Bin} = file:read_file(File),
+    string:trim(Bin).
 
 count(Layer, String) ->
     length(string:split(Layer, String, all)) - 1.
@@ -42,7 +60,7 @@ pixel(Pos, [Top | Rest]) ->
         <<"2">> ->
             pixel(Pos, Rest);
         <<"1">> ->
-            "8";
+            "█";
         _ ->
             " "
     end.

@@ -1,21 +1,27 @@
 -module(aoc2019_day21).
+-behaviour(aoc_solution).
 
--export([run/2]).
+-export([run/0, run/2]).
 
-run(Star, File) ->
-    Program = intcode:from_file(File),
-    case Star of
-        star1 ->
-            star1(Program);
-        star2 ->
-            star2(Program);
-        interactive ->
-            intcode:interactive(Program);
-        _ ->
-            Star1 = star1(Program),
-            Star2 = star2(Program),
-            {Star1, Star2}
-    end.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
+
+info() ->
+    Examples = [
+        % {"examples/2019/dayN_ex.txt", star1, unknown},
+        % {"examples/2019/dayN_ex.txt", star2, unknown}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 21},
+        examples => Examples
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Program) ->
     Code = "OR A J\nAND B J\nAND C J\nNOT J J\nAND D J\nWALK\n",
@@ -34,3 +40,6 @@ star2(Program) ->
 
     io:format("~s~s", [Code, lists:droplast(Output)]),
     lists:last(Output).
+
+read(File) ->
+    intcode:from_file(File).

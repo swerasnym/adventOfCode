@@ -1,23 +1,30 @@
 -module(aoc2019_day22).
+-behaviour(aoc_solution).
 
--export([run/2]).
+-export([run/0, run/2]).
 
-run(Star, File) ->
-    Data = read(File),
-    case Star of
-        star1 ->
-            star1(Data);
-        original_star1 ->
-            original_star1(Data);
-        star2 ->
-            star2(Data);
-        _ ->
-            Star1 = star1(Data),
-            Star2 = star2(Data),
-            {Star1, Star2}
-    end.
+%% callbacks
+-export([info/0, star1/1, star1/2, star2/1, read/1]).
 
-original_star1(Data) ->
+info() ->
+    Examples = [
+        % {"examples/2019/dayN_ex.txt", star1, unknown},
+        % {"examples/2019/dayN_ex.txt", star2, unknown}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 22},
+        examples => Examples,
+        all => [star1, {star1, old}, star2]
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
+
+star1(Data, old) ->
     Shuffled = lists:foldl(fun instruction/2, lists:seq(0, 10006), Data),
 
     proplists:get_value(2019, lists:zip(Shuffled, lists:seq(0, 10006))).

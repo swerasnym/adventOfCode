@@ -1,19 +1,27 @@
 -module(aoc2019_day11).
+-behaviour(aoc_solution).
 
--export([run/2]).
+-export([run/0, run/2]).
 
-run(Star, File) ->
-    Program = intcode:from_file(File),
-    case Star of
-        star1 ->
-            star1(Program);
-        star2 ->
-            star2(Program);
-        _ ->
-            Star1 = star1(Program),
-            Star2 = star2(Program),
-            {Star1, Star2}
-    end.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
+
+info() ->
+    Examples = [
+        % {"examples/2019/dayN_ex.txt", star1, unknown},
+        % {"examples/2019/dayN_ex.txt", star2, unknown}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 11},
+        examples => Examples
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Program) ->
     Pid = intcode:spawn(Program, [{outputpid, self()}]),
@@ -26,7 +34,11 @@ star2(Program) ->
     {ok, Hull} = robot(Pid, white),
 
     paint(Hull),
-    "LPZKLGHR".
+
+    {manual, fun() -> paint(Hull) end}.
+
+read(File) ->
+    intcode:from_file(File).
 
 robot(Pid) ->
     robot(Pid, black).
@@ -105,12 +117,12 @@ paint({X, _} = Pos, Hull, X) ->
         black ->
             io:format(" ~n", []);
         white ->
-            io:format("#~n", [])
+            io:format("█~n", [])
     end;
 paint(Pos, Hull, _) ->
     case maps:get(Pos, Hull, black) of
         black ->
             io:format(" ", []);
         white ->
-            io:format("#", [])
+            io:format("█", [])
     end.

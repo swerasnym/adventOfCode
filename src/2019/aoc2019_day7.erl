@@ -1,25 +1,43 @@
 -module(aoc2019_day7).
+-behaviour(aoc_solution).
 
--export([run/2]).
+-export([run/0, run/2]).
 
-run(Star, File) ->
-    Program = intcode:from_file(File),
-    case Star of
-        star1 ->
-            star1(Program);
-        star2 ->
-            star2(Program);
-        _ ->
-            Star1 = star1(Program),
-            Star2 = star2(Program),
-            {Star1, Star2}
-    end.
+%% callbacks
+-export([info/0, star1/1, star2/1, read/1]).
+
+info() ->
+    Examples = [
+        {"examples/2019/day7_1.data", star1, 43210},
+        {"examples/2019/day7_2.data", star1, 54321},
+        {"examples/2019/day7_3.data", star1, 65210},
+        {"examples/2019/day7_4.data", star2, 139629729},
+        {"examples/2019/day7_5.data", star2, 18216}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2019, 7},
+        examples => Examples
+    }).
+
+run() ->
+    aoc_solution:run(?MODULE).
+
+run(StarOrStars, FileOrData) ->
+    aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Program) ->
-    lists:max([{pahses(Program, Phases), Phases} || Phases <- perms([0, 1, 2, 3, 4])]).
+    {Res, P} = lists:max([{pahses(Program, Phases), Phases} || Phases <- perms([0, 1, 2, 3, 4])]),
+    io:format("~p~n", [P]),
+    Res.
 
 star2(Program) ->
-    lists:max([{loop(Program, Phases), Phases} || Phases <- perms([5, 6, 7, 8, 9])]).
+    {Res, P} = lists:max([{loop(Program, Phases), Phases} || Phases <- perms([5, 6, 7, 8, 9])]),
+    io:format("~p~n", [P]),
+    Res.
+
+read(File) ->
+    intcode:from_file(File).
 
 pahses(Program, Phases) ->
     pahses(Program, Phases, 0).

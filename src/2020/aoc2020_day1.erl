@@ -22,6 +22,7 @@ run() ->
 
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
+
 star1(Data) ->
     hd([
         Value1 * Value2
