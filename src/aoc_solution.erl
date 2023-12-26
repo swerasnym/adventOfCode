@@ -93,14 +93,14 @@ run_file(M, StarOrStars, examples) ->
 run_file(M, _, {example, {File, Star, ExpectedResult}}) ->
     {#{type => example, expected => ExpectedResult}, run_file(M, Star, File)};
 run_file(M, StarOrStars, File) when is_list(File) ->
-    FilePath = filename:join(code:lib_dir(aoc), File),
+    FilePath = filename:join(code:priv_dir(aoc), File),
     case filelib:is_file(FilePath) of
         false ->
             Error = "File not found",
             {result, #{source => file, path => FilePath, star => error, error => Error}, Error};
         true ->
             try
-                io:format("~p:~p ->~n", [M, read]),
+                io:format("~p:read(~p)~n", [M, FilePath]),
                 {Time, Data} = timer:tc(M, read, [FilePath]),
                 {
                     #{source => file, path => FilePath, read_time => Time},
@@ -141,7 +141,8 @@ run_data(M, Star, Data) ->
                 Meta = #{star => Star},
                 {Time, Res} = timer:tc(M, Star, [Data])
         end,
-        io:format("~p~n", [Res]),
+        ResS = vt100format([bright, cyan], "~p", [Res]),
+        io:format("~ts~n", [ResS]),
         {result, Meta#{time => Time}, Res}
     catch
         C:R:ST ->
@@ -216,7 +217,7 @@ print_result(Result, #{star := Star} = Meta) ->
 
     %% Using vt100 codes \e[s (Save Cursor) to save the start position of the result.
     %% This is used by the expected string to place the expected result directley below if needed.
-    io:format("~s~s  ~s~p~s -> \e[s~s ~s~n", [Check, Time, M, Star, Parameters, Res, Expected]).
+    io:format("~s~s  ~s~p~s: \t\e[s~s ~s~n", [Check, Time, M, Star, Parameters, Res, Expected]).
 
 format_module(#{module := M}) ->
     io_lib:format("~p:", [M]);

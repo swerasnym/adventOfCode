@@ -8,8 +8,8 @@
 
 info() ->
     Examples = [
-        {"2023/data/day16_ex.txt", star1, 46},
-        {"2023/data/day16_ex.txt", star2, 51}
+        {"examples/2023/day16_ex.txt", star1, 46},
+        {"examples/2023/day16_ex.txt", star2, 51}
     ],
 
     maps:merge(aoc_solution:default_info(), #{

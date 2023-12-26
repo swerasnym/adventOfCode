@@ -24,6 +24,8 @@ info() ->
     ],
 
     Examples = [
+        {"examples/2023/day1_ex.txt", star1, 142},
+        {"examples/2023/day1_ex2.txt", star2, 281},
         {{data, ["7"]}, star1, 77},
         {{data, Data2}, star1, 142},
         {{data, Data2}, star2, 142},

@@ -8,8 +8,8 @@
 
 info() ->
     Examples = [
-        {"2023/data/day20_ex.txt", star1, 32000000},
-        {"2023/data/day20_ex2.txt", star1, 11687500}
+        {"examples/2023/day20_ex.txt", star1, 32000000},
+        {"examples/2023/day20_ex2.txt", star1, 11687500}
         %{"2023/data/day20_ex.txt", star2, unknown}
     ],
 

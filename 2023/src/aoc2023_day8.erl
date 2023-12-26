@@ -10,10 +10,14 @@
 
 info() ->
     Examples = [
-        {"2023/data/day8_bonus1.txt", star1, 276},
-        {"2023/data/day8_bonus1.txt", star3, 676},
-        {"2023/data/day8_bonus2.txt", star1, unreachable},
-        {"2023/data/day8_bonus2.txt", star3, 19}
+        {"examples/2023/day8_ex1.txt", star1, 2},
+        {"examples/2023/day8_ex2.txt", star1, 6},
+        {"examples/2023/day8_ex3.txt", star2, 6},
+        {"examples/2023/day8_bonus1.txt", star1, 276},
+        {"examples/2023/day8_bonus1.txt", star1, 276},
+        {"examples/2023/day8_bonus1.txt", star3, 676},
+        {"examples/2023/day8_bonus2.txt", star1, unreachable},
+        {"examples/2023/day8_bonus2.txt", star3, 19}
     ],
 
     maps:merge(aoc_solution:default_info(), #{
@@ -50,7 +54,7 @@ read(File) ->
     {Path, #{Dir => {L, R} || [Dir, L, R] <- Dirs1}}.
 
 combind(Paths) ->
-    io:format("~p", [Paths]),
+    io:format("~p~n", [Paths]),
     %% Add a -1 to take care of the case when all values are inside all cycles...
     LatsVisitOutsideCycle = lists:max(lists:flatten([-1] ++ [L || {_, L} <- Paths])),
     EarlyVisits = [

@@ -7,7 +7,16 @@
 -export([info/0, star1/1, star2/1, read/1]).
 
 info() ->
-    maps:merge(aoc_solution:default_info(), #{problem => {2023, 10}}).
+    Examples = [
+        {"examples/2023/day10_ex2.txt", star1, 8},
+        {"examples/2023/day10_ex3.txt", star2, 4},
+        {"examples/2023/day10_ex4.txt", star2, 10}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2023, 10},
+        examples => Examples
+    }).
 
 run() ->
     aoc_solution:run(?MODULE).
@@ -27,7 +36,7 @@ star2({Start, Map}) ->
 read(File) ->
     Map = tools:read_grid(File, #{
         $S => start,
-        $. => empty,
+        $. => [],
         $| => [north, south],
         $L => [north, east],
         $J => [north, west],
@@ -35,8 +44,8 @@ read(File) ->
         $F => [south, east],
         $- => [east, west],
         %% To be able to parse examples with inside/outside marked.
-        $I => empty,
-        $O => empty
+        $I => [],
+        $O => []
     }),
     [Start] = [P || P := start <- Map],
     StartDirs = [
@@ -49,7 +58,7 @@ read(File) ->
     {Start, Map#{Start := StartDirs}}.
 
 neigbours(Pos, Map) when is_map(Map) ->
-    [get_neigbour(Pos, Dir) || Dir <- maps:get(Pos, Map)];
+    [get_neigbour(Pos, Dir) || Dir <- maps:get(Pos, Map, [])];
 neigbours(Pos, Dirs) when is_list(Dirs) ->
     [get_neigbour(Pos, Dir) || Dir <- Dirs];
 neigbours(_, _) ->
@@ -68,7 +77,7 @@ move([Pos | Rest], Map, Count, NextLayer) ->
     case maps:get(Pos, Map) of
         {visited, _} ->
             move(Rest, Map, Count, NextLayer);
-        Dirs when Dirs /= empty ->
+        Dirs ->
             New = [N || N <- neigbours(Pos, Dirs), is_list(maps:get(N, Map))],
             move(Rest, Map#{Pos := {visited, Dirs}}, Count, New ++ NextLayer)
     end.

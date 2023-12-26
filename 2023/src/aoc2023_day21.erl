@@ -8,24 +8,25 @@
 
 info() ->
     Examples = [
-        {"2023/data/day21_ex.txt", {star1, 6}, 16},
-        {"2023/data/day21_ex.txt", {star1, 10}, 50},
-        {"2023/data/day21_ex.txt", {star1, 100}, 6536},
-        {"2023/data/day21_ex.txt", {star1, 500}, 167004},
-
-        {"2023/data/day21_ex2.txt", {star1, 6}, 36},
-        {"2023/data/day21_ex2.txt", {star1, 6 + 11}, 239},
-        {"2023/data/day21_ex2.txt", {star1, 6 + 22}, 624},
-        {"2023/data/day21_ex2.txt", {star1, 6 + 55}, 2871},
-        {"2023/data/day21_ex2.txt", {star1, 6 + 99}, 8415},
-        {"2023/data/day21_ex2.txt", {star2, 6}, 36},
-        {"2023/data/day21_ex2.txt", {star2, 6 + 11}, 239},
-        {"2023/data/day21_ex2.txt", {star2, 6 + 22}, 624},
-        {"2023/data/day21_ex2.txt", {star2, 6 + 55}, 2871},
-        {"2023/data/day21_ex2.txt", {star2, 6 + 99}, 8415},
-        {"2023/data/day21_ex2.txt", {star1, 6 + 100}, 8589},
-        {"2023/data/day21_ex2.txt", {star2, 6 + 100}, 8589},
-        {"2023/data/day21_ex2.txt", {star2, 6 + 1100}, 921236}
+        %% From problem description
+        {"examples/2023/day21_ex.txt", {star1, 6}, 16},
+        {"examples/2023/day21_ex.txt", {star1, 10}, 50},
+        {"examples/2023/day21_ex.txt", {star1, 100}, 6536},
+        {"examples/2023/day21_ex.txt", {star1, 500}, 167004},
+        %% Mofidied to have a path trought the center
+        {"examples/2023/day21_ex2.txt", {star1, 6}, 36},
+        {"examples/2023/day21_ex2.txt", {star1, 6 + 11}, 239},
+        {"examples/2023/day21_ex2.txt", {star1, 6 + 22}, 624},
+        {"examples/2023/day21_ex2.txt", {star1, 6 + 55}, 2871},
+        {"examples/2023/day21_ex2.txt", {star1, 6 + 99}, 8415},
+        {"examples/2023/day21_ex2.txt", {star2, 6}, 36},
+        {"examples/2023/day21_ex2.txt", {star2, 6 + 11}, 239},
+        {"examples/2023/day21_ex2.txt", {star2, 6 + 22}, 624},
+        {"examples/2023/day21_ex2.txt", {star2, 6 + 55}, 2871},
+        {"examples/2023/day21_ex2.txt", {star2, 6 + 99}, 8415},
+        {"examples/2023/day21_ex2.txt", {star1, 6 + 100}, 8589},
+        {"examples/2023/day21_ex2.txt", {star2, 6 + 100}, 8589},
+        {"examples/2023/day21_ex2.txt", {star2, 6 + 1100}, 921236}
     ],
 
     maps:merge(aoc_solution:default_info(), #{

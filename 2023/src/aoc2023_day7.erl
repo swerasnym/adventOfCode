@@ -7,7 +7,15 @@
 -export([info/0, star1/1, star2/1, read/1]).
 
 info() ->
-    maps:merge(aoc_solution:default_info(), #{problem => {2023, 7}}).
+    Examples = [
+        {"examples/2023/day7_ex.txt", star1, 6440},
+        {"examples/2023/day7_ex.txt", star2, 5905}
+    ],
+
+    maps:merge(aoc_solution:default_info(), #{
+        problem => {2023, 7},
+        examples => Examples
+    }).
 
 run() ->
     aoc_solution:run(?MODULE).
