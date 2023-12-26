@@ -6,7 +6,33 @@ problem_set_test() ->
     Missing = [M || M <- Solutions, maps:get(problem, M:info(), missing) == missing],
     ?assertEqual([], Missing, {"Problem not set", Missing}).
 
-verify_results_test() ->
-    Results = aoc_solution:run(aoc_solution:get_all_solutions(), all, examples),
-    Failed = [{M, S} || {_, #{check := fail, module := M, star := S}} <- Results],
-    ?assertEqual([], Failed, {"Problem failing for", Failed}).
+examples_test_() ->
+    {inparallel, [
+        {timeout, 300, verify_examples(M)}
+     || M <- aoc_solution:get_all_released()
+    ]}.
+input_test_() ->
+    {inparallel, [
+        {timeout, 300, verify_input(M)}
+     || M <- aoc_solution:get_all_released()
+    ]}.
+
+verify_examples(M) ->
+    {
+        "examples " ++ atom_to_list(M),
+        {spawn, fun() ->
+            Results = aoc_solution:run(M, all, examples),
+            Failed = [{M, S} || {_, #{check := fail, star := S}} <- Results],
+            ?assertEqual([], Failed, {"Problem failing for", Failed})
+        end}
+    }.
+
+verify_input(M) ->
+    {
+        "input " ++ atom_to_list(M),
+        {spawn, fun() ->
+            Results = aoc_solution:run(M, both, input),
+            Failed = [{M, S} || {_, #{check := fail, star := S}} <- Results],
+            ?assertEqual([], Failed, {"Problem failing for", Failed})
+        end}
+    }.

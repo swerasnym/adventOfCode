@@ -15,7 +15,7 @@ flush(N) ->
 
 file(Name) ->
     Src = filename:dirname(?FILE),
-    filename:join([Src, "../data/", Name]).
+    filename:join([Src, "data/", Name]).
 
 run_get_memory(List, Position) ->
     Result = intcode:run_list(List),
@@ -221,7 +221,9 @@ day5_ex_test() ->
     ?assertEqual(0, flush()).
 
 day7_ex_test() ->
+    io:format("FILE ~p~n", [file("day7_1.data")]),
     ?assertEqual({43210, [4, 3, 2, 1, 0]}, aoc2019_day7:run(star1, file("day7_1.data"))),
+
     ?assertEqual({54321, [0, 1, 2, 3, 4]}, aoc2019_day7:run(star1, file("day7_2.data"))),
     ?assertEqual({65210, [1, 0, 4, 3, 2]}, aoc2019_day7:run(star1, file("day7_3.data"))),
 

@@ -24,6 +24,7 @@
 -export([get_all_released/0]).
 -export([get_all_released/1]).
 -export([get_all_released/2]).
+-export([get_all_released_with_problem/0]).
 
 run() ->
     run(all).
@@ -278,6 +279,11 @@ get_all_solutions() ->
     {ok, aoc} = application:get_application(?MODULE),
     {ok, Modules} = application:get_key(aoc, modules),
     lists:filter(fun implements_behaviour/1, Modules).
+
+get_all_released_with_problem() ->
+    SolutionModules = get_all_solutions(),
+    Sorted = lists:sort([{maps:get(problem, M:info(), missing), M} || M <- SolutionModules]),
+    [{{Year, Day}, M} || {{Year, Day}, M} <- Sorted, aoc_web:check_date(Year, Day) == ok].
 
 get_all_released() ->
     SolutionModules = get_all_solutions(),
