@@ -4,7 +4,7 @@
 -export([run/0, run/2]).
 
 %% callbacks
--export([info/0, star1/1, star2/1, read/1, print_graph/1]).
+-export([info/0, star1/1, star2/1, read/1, input_to_graphviz/1]).
 
 info() ->
     Examples = [
@@ -100,10 +100,10 @@ split(G, E1, E2, [E3 | Rest]) ->
             split(G, E1, E2, Rest)
     end.
 
-print_graph(input) ->
+input_to_graphviz(input) ->
     {ok, File} = aoc_web:get_input_path(2023, 25),
-    print_graph(File);
-print_graph(File) ->
+    input_to_graphviz(File);
+input_to_graphviz(File) ->
     String0 = tools:read_string(File),
     String1 = string:replace(String0, ": ", "->", all),
     String2 = string:replace(String1, " ", ",", all),
