@@ -32,12 +32,13 @@ To get access to the full functionallty a shell can be started using `rebar3 she
 ## The Solution structure
 All solutions are implemented and run using the [custom behaviour](https://www.erlang.org/doc/design_principles/spec_proc#user-defined-behaviours) `aoc_solution` that requires each solution to export the four functions `info/0`, `read/1`, `star1/1`, and `star2/1`. Where `read/1` is responsible for converting the input to an internal format. This internal format is then passed on to `star1/1` and `star2/1` which solves the actuall problem. The `info/0` function provides information about the year and day of the problem and a way to provide example inputs.
 
+### Providing example inputs
+Examples that can be checked automatcally are provided as a list of tuples `{FileOrData, Star, Result}` where star is either a single atom `star1`/`star2` or a tuple `{Star, Parameter}` to allow for examples that use a differerent patameter than the main input. For the parameterized example the module has to export one of the optional callbacks `star1/2`, and `star2/2` taking the parameter as the second parameter.
 
+The examples can be provided by giving the relative path from the `priv` folder. Alternativly the tuple `{data, Data}`, this bypasses the call to `read/1` and provides the data directly.
 
-### Providing examples
-Examples that can be checked automatcally are provided as a list of tuples `{File, Star, Result}` where star is either a single atom `star1`/`star2` or a tuple `{Star, Parameter}` to allow for examples that use a differerent patameter than the main input. For the parameterized example the one of the corresponding functions  
-
-An example :
+### Example solution
+Below is an example of the simple problem of: Calculate the sum of the values in the file in star1. Calculate the sum of the reminders mod N (with N = 17 for the real input, but N = 2 and N = 3 for the examples) for star 2.
 
 ```erlang
 -module(example).
@@ -49,24 +50,22 @@ info() ->
     Data = [1, 2, 3, 4, 5, 6],
 
     Examples = [
-        {{data, Data}, star1, 21}
-        {"examples/2023/example.txt", star1, 21},
-        {"examples/2023/example.txt", {star2, 2}, 3},
-        {"examples/2023/example.txt", {star2, 3}, 6}
+        {{data, Data}, star1, 21},
+        {"examples/example.txt", star1, 21},
+        {"examples/example.txt", {star2, 2}, 3},
+        {"examples/example.txt", {star2, 3}, 6}
     ],
 
     maps:merge(aoc_solution:default_info(), #{
-        problem => {2023, 11},
+        problem => {0, 0},
         examples => Examples
     }).
-
-
 
 star1(Values) ->
     lists:sum(Values).
 
 star2(Data) ->
-    star2(Data, 1000000).
+    star2(Data, 17).
 
 star2(Values, P) ->
     lists:sum([V rem P || V <- Values]).
