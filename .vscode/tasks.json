@@ -28,7 +28,7 @@
       "label": "aoc",
       "type": "shell",
       "options": {},
-      "command": "rebar3 shell --eval 'aoc_solution:run(${fileBasenameNoExtension}).' --eval 'halt().'",
+      "command": "./run.sh 'aoc_solution:run(${fileBasenameNoExtension}).'",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -39,7 +39,7 @@
       "label": "aoc input",
       "type": "shell",
       "options": {},
-      "command": "rebar3 shell --eval 'aoc_solution:run(${fileBasenameNoExtension},all,input).' --eval 'halt().'",
+      "command": "./run.sh 'aoc_solution:run(${fileBasenameNoExtension},all,input).'",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -50,7 +50,7 @@
       "label": "aoc examples",
       "type": "shell",
       "options": {},
-      "command": "rebar3 shell --eval 'aoc_solution:run(${fileBasenameNoExtension},all,examples).' --eval 'halt().'",
+      "command": "./run.sh 'aoc_solution:run(${fileBasenameNoExtension},all,examples).'",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -61,7 +61,7 @@
       "label": "aoc star1",
       "type": "shell",
       "options": {},
-      "command": "rebar3 shell --eval 'aoc_solution:run(${fileBasenameNoExtension},star1,input).' --eval 'halt().'",
+      "command": "./run.sh 'aoc_solution:run(${fileBasenameNoExtension},star1,input).'",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -72,7 +72,7 @@
       "label": "aoc star2",
       "type": "shell",
       "options": {},
-      "command": "rebar3 shell --eval 'aoc_solution:run(${fileBasenameNoExtension},star2,input).' --eval 'halt().'",
+      "command": "./run.sh 'aoc_solution:run(${fileBasenameNoExtension},star2,input).'",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -83,7 +83,7 @@
       "label": "aoc update problem",
       "type": "shell",
       "options": {},
-      "command": "rebar3 shell --eval '#{problem := {Year, Day}} =${fileBasenameNoExtension}:info(), aoc_web:get_problem_path(Year, Day, remote).' --eval 'halt().'",
+      "command": "./run.sh '#{problem := {Year, Day}} =${fileBasenameNoExtension}:info(), aoc_web:get_problem_path(Year, Day, remote).'",
       "group": {
         "kind": "build",
         "isDefault": true
