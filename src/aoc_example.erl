@@ -1,4 +1,4 @@
--module(example).
+-module(aoc_example).
 -behaviour(aoc_solution).
 
 -export([info/0, star1/1, star2/1, star2/2, read/1]).
