@@ -52,7 +52,7 @@
     chinese_remainder/1
 ]).
 -export([interval_from_length/2]).
--export([intervals_overlapp/2]).
+-export([intervals_overlap/2]).
 -export([interval_sort/1]).
 -export([interval_split/2]).
 -export([interval_inside/2]).
@@ -524,7 +524,7 @@ chinese_remainder([{R1, M1}, {R2, M2} | Rest]) ->
 -spec chinese_multi_reminder(Congruences) -> Result when
     Congruences :: [{[Ri :: integer()], Mi :: integer()}],
     Result :: {[X :: integer()], M :: integer()} | undefined.
-%% @doc Solves a system of linear congruences with multiple valid resudies:
+%% @doc Solves a system of linear congruences with multiple valid residues:
 chinese_multi_reminder([A]) ->
     A;
 chinese_multi_reminder([{As, Ma}, {Bs, Mb} | Rest]) ->
@@ -541,7 +541,7 @@ chinese_multi_reminder([{As, Ma}, {Bs, Mb} | Rest]) ->
             chinese_multi_reminder([{lists:usort(Xs), Lcm} | Rest])
     end.
 
-%% Intervalls
+%% Intervals
 interval_from_length(Start, 0) ->
     {Start, Start};
 interval_from_length(Start, N) when N > 0 ->
@@ -553,9 +553,9 @@ interval_length(empty) ->
     0;
 interval_length({Start, End}) when is_number(Start), is_number(End) ->
     End - Start.
-intervals_overlapp({A1, A2}, {B1, B2}) ->
+intervals_overlap({A1, A2}, {B1, B2}) ->
     A1 =< B2 andalso B1 =< A2;
-intervals_overlapp(_, _) ->
+intervals_overlap(_, _) ->
     false.
 
 interval_sort({A, B}) when A > B ->
@@ -564,7 +564,7 @@ interval_sort(I) ->
     I.
 
 interval_split({A1, A2} = A, {B1, B2} = B) ->
-    case intervals_overlapp(A, B) of
+    case intervals_overlap(A, B) of
         false ->
             [A];
         true when A1 < B1, A2 > B2 ->

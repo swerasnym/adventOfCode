@@ -37,7 +37,7 @@ star2(Program) ->
     Map = scan(View),
     path(Map),
 
-    %% TODO Extract input programatically.
+    %% TODO Extract input programmatically.
     Result =
         intcode:run(
             Program,
@@ -81,7 +81,7 @@ scan([First | Rest], X, Y, Acc) ->
     scan(Rest, X + 1, Y, Acc#{{X, Y} => Term}).
 
 intersection(Pos, Map) ->
-    case neigbours(Pos, Map) of
+    case neighbours(Pos, Map) of
         {scaffold, scaffold, scaffold, scaffold} ->
             alignment(Pos);
         _ ->
@@ -91,7 +91,7 @@ intersection(Pos, Map) ->
 alignment({X, Y}) ->
     X * Y.
 
-neigbours({X, Y}, Map) ->
+neighbours({X, Y}, Map) ->
     {
         maps:get({X, Y + 1}, Map, empty),
         maps:get({X, Y - 1}, Map, empty),

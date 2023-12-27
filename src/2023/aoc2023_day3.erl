@@ -41,23 +41,23 @@ tokens($*) ->
 tokens(S) ->
     {symbol, S}.
 
-neigbours({X0, Y0}) ->
+neighbours({X0, Y0}) ->
     [{X0 + X, Y0 + Y} || X <- [-1, 0, 1], Y <- [-1, 0, 1], {X, Y} /= {0, 0}].
 
-get_neigbours(Grid, Pos) ->
-    [{P, V} || P <- neigbours(Pos), (V = maps:get(P, Grid, empty)) /= empty].
+get_neighbours(Grid, Pos) ->
+    [{P, V} || P <- neighbours(Pos), (V = maps:get(P, Grid, empty)) /= empty].
 
 cmp({{X1, Y1}, _}, {{X2, Y2}, _}) ->
     {Y1, X1} =< {Y2, X2}.
 
 find_numbers(Grid) ->
-    Dn = [N || Pos := {symbol, _} <- Grid, N <- get_neigbours(Grid, Pos)],
+    Dn = [N || Pos := {symbol, _} <- Grid, N <- get_neighbours(Grid, Pos)],
     Ext = [L || {Pos, _} <- Dn, L <- extend(Pos, Grid)],
     Sorted = lists:usort(fun cmp/2, Dn ++ Ext),
     numbers(Sorted).
 
 find_gears(Grid) ->
-    PG = [get_neigbours(Grid, Pos) || Pos := {symbol, gear} <- Grid],
+    PG = [get_neighbours(Grid, Pos) || Pos := {symbol, gear} <- Grid],
     EPG = [[L || {Pos, _} <- Dn, L <- extend(Pos, Grid)] ++ Dn || Dn <- PG],
     NPG = [numbers(lists:usort(fun cmp/2, E)) || E <- EPG],
     [A * B || [A, B] <- NPG].

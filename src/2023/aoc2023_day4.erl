@@ -49,8 +49,8 @@ points(N) -> tools:pow(2, N - 1).
 play2([], Winnings) ->
     Winnings;
 play2([{Card, WinNo, Your} | Rest], Winnings) ->
-    Multiplyer = maps:get(Card, Winnings),
+    Multiplier = maps:get(Card, Winnings),
     Wins = count_wins(WinNo, Your),
-    NewWin = #{C => maps:get(C, Winnings) + Multiplyer || C <- lists:seq(Card + 1, Card + Wins)},
+    NewWin = #{C => maps:get(C, Winnings) + Multiplier || C <- lists:seq(Card + 1, Card + Wins)},
 
     play2(Rest, maps:merge(Winnings, NewWin)).

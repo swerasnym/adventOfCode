@@ -1,3 +1,8 @@
 {
     "explorer.excludeGitIgnore": true,
+    "cSpell.language": "en,en-GB",
+    "cSpell.words": [
+        "fread",
+        "intcode"
+    ],
 }

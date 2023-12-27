@@ -75,7 +75,7 @@ map2(empty, _) ->
 map2(V, []) ->
     [V];
 map2(V, [{Range, Diff} | Rest]) ->
-    case tools:intervals_overlapp(V, Range) of
+    case tools:intervals_overlap(V, Range) of
         false ->
             map2(V, Rest);
         true ->
