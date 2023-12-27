@@ -10,7 +10,7 @@
         htmerl
     ]},
     {mod, {aoc_app, []}},
-    {env, []},
+    {env, [{base_path, "aoc_storage"}]},
     {modules, []},
     {links, []}
 ]}.

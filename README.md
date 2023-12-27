@@ -2,32 +2,45 @@
 This is the place where I keep my [Advent of Code](https://adventofcode.com/) solutions written in [Erlang.](https://www.erlang.org/) It currently contains solutions for the years 2019 to 2023.
 
 
-## Cofiguration
-There exists support to automatically download inputs and check the correct results for solved puzzles. 
+## Configuration
+There exists support to automatically download inputs and check the correct results for solved puzzles, this requires the configuration file `aoc.config` to be created; this can be achieved simply by running:  
+`./init.sh`.  
+ Doing so should also trigger a first build.
 
-This requires a bit of configuration with instructions yet to be written.
+To enable automatic downloads of inputs, edit update the `{session_id, ""}` tuple in `aoc.config` with the value of your session cookie from the [Advent of Code](https://adventofcode.com/) website after you logged in.
 
+If you wish to store the inputs somewhere outside of the repo you can! Just edit the `{base_path, "aoc_storage"}` tuple to match your desired path.
 
 ## Building
 The project uses [Rebar3](https://rebar3.org/) so it can be built using the `rebar3 compile` command.
 
 ## Running
+There exists a few things to run in this repo, but some of the more probably things to do is layed out below.
 
-### Both stars  
+
+### Run solutions
+The tool `./solve.sh` is used to download all inputs and solve all problems by just running it! If you fancy to just run a specific year this is done with `./solve.sh <year>`. If you want a particular day use `./solve.sh <year> <day>`.
+
+
+To solve both stars with a **custom input file**, just run  
 `./solve.sh <year> <day> both <file>`.
 
-### Single star
-`./solve.sh <year> <day> star1 <file>` or 
-`./solve.sh <year> <day> star2 <file>`.
+To do the same for a single star use  
+`./solve.sh <year> <day> star1 <file>` or  
+`./solve.sh <year> <day> star2 <file>`   
+instead. Note that these are the only cases that does not require the setup to be done. 
 
 
-### Help functions
+### Run help functions
 Some days a few helpers that write their output to standard out have been crated. These can be run by giving the corresponding expression to `run.sh` for example  
 `./run.sh 'aoc2023_day25:input_to_graphviz("priv/examples/2023/day25_ex.txt").'`.
 
-### Shell
-To get access to the full functionality a shell can be started using `rebar3 shell`. Where you as an example can run all examples from 2023 using the command `aoc_solution:run(2023, all, examples).`.
+Note that this requires the project to be built first.
 
+### Start a shell
+To get access to the full functionality a shell can be started using `rebar3 shell`. 
+
+Where you as an example can run all examples from 2023 using the command `aoc_solution:run(2023, all, examples).` to  just run the examples! Just be ware of the long list of the long list the internal result format that will show up at the end.
 
 ## The Solution structure
 All solutions are implemented and run using the [custom behaviour](https://www.erlang.org/doc/design_principles/spec_proc#user-defined-behaviours) `aoc_solution` that requires each solution to export the four functions `info/0`, `read/1`, `star1/1`, and `star2/1`. Where `read/1` is responsible for converting the input to an internal format. This internal format is then passed on to `star1/1` and `star2/1` which solves the actual problem. The `info/0` function provides information about the year and day of the problem and a way to provide example inputs.

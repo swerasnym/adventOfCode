@@ -88,7 +88,7 @@ handle_info(
             erlang:send_after(?PACING, self(), process_downloads),
             {noreply, State#state{queue = Queue1, requesters = maps:remove(UP, Requesters)}};
         {{value, {Url, Path} = UP}, Queue1} ->
-            Result = store_remore_aoc_page(Url, Path),
+            Result = store_remote_aoc_page(Url, Path),
             [gen_statem:reply(From, Result) || From <- maps:get(UP, Requesters, [])],
 
             erlang:send_after(?PACING, self(), process_downloads),
@@ -96,36 +96,30 @@ handle_info(
             {noreply, State#state{queue = Queue1, requesters = maps:remove(UP, Requesters)}}
     end.
 
-session_coockie() ->
-    Path = iolist_to_binary([base_dir(), "SESSION"]),
-    case filelib:is_file(Path) of
-        true ->
-            % {ok, Data} = file:read_file(Path),
-            % tools:read_grid(File, Fun),
-            case tools:read_string(Path) of
-                ["session=" | _] = Session ->
-                    {ok, {"Cookie", Session}};
-                Session ->
-                    {ok, {"Cookie", "session=" ++ Session}}
-            end;
-        false ->
-            {error, {nofile, Path}}
+session_cookie() ->
+    case application:get_env(aoc, session_id) of
+        undefined ->
+            {error, "session_id is not configured!"};
+        {ok, ""} ->
+            {error, "session_id is empty!"};
+        {ok, ["session=" | _]} = Session ->
+            {ok, {"Cookie", Session}};
+        {ok, Session} ->
+            {ok, {"Cookie", "session=" ++ Session}}
     end.
 
 ensure_paths() ->
-    [ok = filelib:ensure_path(get_dir(D)) || D <- [inputs, problems, results]],
+    [ok = filelib:ensure_path(get_dir(D)) || D <- [inputs, problems]],
     ok.
 
-base_dir() ->
-    {ok, [[Home]]} = init:get_argument(home),
-    application:get_env(aoc_web, storage_path, Home ++ "/aoc_storage/").
+base_path() ->
+    {ok, Path} = application:get_env(aoc, base_path),
+    filename:absname(Path).
 
 get_dir(inputs) ->
-    base_dir() ++ "inputs/";
+    filename:join(base_path(), "inputs");
 get_dir(problems) ->
-    base_dir() ++ "problems/";
-get_dir(results) ->
-    base_dir() ++ "results/".
+    filename:join(base_path(), "problems").
 
 get_input_path(Year, Day) ->
     get_input_path(Year, Day, cached).
@@ -133,9 +127,9 @@ get_input_path(Year, Day) ->
 get_input_path(Year, Day, Type) ->
     maybe
         ok ?= check_date(Year, Day),
-        Dir = get_dir(inputs) ++ integer_to_list(Year),
+        Dir = filename:join(get_dir(inputs), integer_to_list(Year)),
         File = "day" ++ integer_to_list(Day) ++ ".txt",
-        Path = Dir ++ "/" ++ File,
+        Path = filename:join(Dir, File),
         LocalUrl = integer_to_list(Year) ++ "/day/" ++ integer_to_list(Day) ++ "/input",
         {ok, _InputPath} ?= get_aoc_page(LocalUrl, Path, Type)
     else
@@ -151,9 +145,9 @@ get_problem_path(Year, Day) ->
 get_problem_path(Year, Day, Type) ->
     maybe
         ok ?= check_date(Year, Day),
-        Dir = get_dir(problems) ++ integer_to_list(Year),
+        Dir = filename:join(get_dir(problems), integer_to_list(Year)),
         File = "day" ++ integer_to_list(Day) ++ ".html",
-        Path = Dir ++ "/" ++ File,
+        Path = filename:join(Dir, File),
         LocalUrl = integer_to_list(Year) ++ "/day/" ++ integer_to_list(Day),
         {ok, _Path} ?= get_aoc_page(LocalUrl, Path, Type)
     else
@@ -194,7 +188,7 @@ get_aoc_page(LocalUrl, Path, remote) ->
 base_url() ->
     ?BASE_URL.
 
-store_remore_aoc_page(LocalUrl, Path) ->
+store_remote_aoc_page(LocalUrl, Path) ->
     maybe
         {ok, Page} ?= get_url(?BASE_URL ++ LocalUrl, [cookie]),
         ok = filelib:ensure_path(filename:dirname(Path)),
@@ -212,9 +206,9 @@ store_remore_aoc_page(LocalUrl, Path) ->
     end.
 
 get_url(Url, [cookie]) ->
-    case session_coockie() of
-        {ok, SessionCoockie} ->
-            get_url(Url, [SessionCoockie]);
+    case session_cookie() of
+        {ok, SessionCookie} ->
+            get_url(Url, [SessionCookie]);
         {error, Error} ->
             {error, Error}
     end;
@@ -223,10 +217,10 @@ get_url(Url, Options) ->
     case httpc:request(get, {Url, Options}, [], [{full_result, false}]) of
         {ok, {200, Page}} ->
             {ok, Page};
-        {ok, {404, Error}} ->
-            {error, {forbidden, Error}};
+        {ok, {Code, Error}} ->
+            {error, "Url: " ++ Url ++ " Code: " ++ integer_to_list(Code) ++ " Error: " ++ Error};
         {error, _} = Error ->
-            Error
+            {error, Error}
     end.
 
 get_answer(Year, Day, star1) ->
@@ -266,12 +260,12 @@ find_answers([_ | Rest], Answers) ->
     find_answers(Rest, Answers).
 
 binary_to_answer(B) ->
-    Funs = [
+    Functions = [
         fun erlang:binary_to_float/1,
         fun erlang:binary_to_integer/1,
         fun erlang:binary_to_list/1
     ],
-    try_fun(Funs, B).
+    try_fun(Functions, B).
 
 try_fun([Fun | Rest], B) ->
     try

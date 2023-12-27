@@ -6,6 +6,9 @@ set -e
 trap 'echo >&2 "Error - exited with status $? at line $LINENO:";
          pr -tn $0 | tail -n+$((LINENO - 3)) | head -n7' ERR
 
+
+QUIET=1 rebar3 compile
+
 if  [ "$#" -eq 0 ] ; then
     ./run.sh "aoc_solution:run()."
 elif [ "$#" -eq 1 ] ; then 

@@ -10,7 +10,9 @@ rel/example_project
 .rebar
 *scratchpad.erl
 
-_build/
-artifacts/
+/_build/
+/artifacts/
+/aoc_storage/
+/aoc.config
 .#*
 *.TAGS
