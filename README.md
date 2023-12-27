@@ -1,4 +1,4 @@
-# Advent Of Code (In Erlang)
+# Advent Of Code — Using Erlang!
 This is the place where I keep my [Advent of Code](https://adventofcode.com/) solutions written in [Erlang.](https://www.erlang.org/) It currently contains solutions for the years 2019 to 2023.
 
 
