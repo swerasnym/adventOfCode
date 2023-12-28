@@ -4,6 +4,7 @@
     "cSpell.words": [
         "absname",
         "addx",
+        "concat",
         "droplast",
         "egcd",
         "filelib",
@@ -21,6 +22,7 @@
         "setelement",
         "splitwith",
         "statem",
+        "topsort",
         "usort",
         "Xmax",
         "Xmin",

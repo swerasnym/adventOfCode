@@ -12,6 +12,7 @@
 -export([get_problem_path/2, get_problem_path/3, check_date/2]).
 -export([get_answers/2]).
 -export([get_answer/3]).
+-export([get_input_path/1]).
 
 -define(BASE_URL, "https://adventofcode.com/").
 -define(PACING, 5000).
@@ -120,6 +121,9 @@ get_dir(inputs) ->
     filename:join(base_path(), "inputs");
 get_dir(problems) ->
     filename:join(base_path(), "problems").
+
+get_input_path({Year, Day}) ->
+    get_input_path(Year, Day, cached).
 
 get_input_path(Year, Day) ->
     get_input_path(Year, Day, cached).
