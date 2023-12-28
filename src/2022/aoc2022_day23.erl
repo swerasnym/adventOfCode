@@ -20,7 +20,7 @@ read(File) ->
 
 star1(Map) ->
     Map10 = tools:repeat(10, fun step/2, Map),
-    {{MinX, MaxX}, {MinY, MaxY}} = tools:minmax_grid(Map10),
+    {{MinX, MaxX}, {MinY, MaxY}} = tools:min_max_grid(Map10),
     (MaxX - MinX + 1) * (MaxY - MinY + 1) - tools:count($#, Map10).
 
 star2(Map) ->
@@ -38,18 +38,18 @@ same(N, Map) ->
 
 step(N, Map) ->
     Prop = lists:sort([{decide(N, P, Map), P} || {P, $#} <- maps:to_list(Map)]),
-    Move = avoid_colitions(Prop, []),
+    Move = avoid_coitions(Prop, []),
     maps:from_keys(Move, $#).
 
-avoid_colitions([{P, A}, {P, B} | Rest], Acc) ->
-    avoid_colitions(Rest, [A, B | Acc]);
-avoid_colitions([{P, _} | Rest], Acc) ->
-    avoid_colitions(Rest, [P | Acc]);
-avoid_colitions([], Acc) ->
+avoid_coitions([{P, A}, {P, B} | Rest], Acc) ->
+    avoid_coitions(Rest, [A, B | Acc]);
+avoid_coitions([{P, _} | Rest], Acc) ->
+    avoid_coitions(Rest, [P | Acc]);
+avoid_coitions([], Acc) ->
     Acc.
 
 decide(Step, {X, Y} = P, Map) ->
-    case [maps:get(N, Map, $.) || N <- neigbours(P)] of
+    case [maps:get(N, Map, $.) || N <- neighbours(P)] of
         "........" ->
             P;
         [NW, N, NE, W, E, SW, S, SE] ->
@@ -74,7 +74,7 @@ move(_P, [{"...", To} | _]) ->
 move(P, L) ->
     move(P, tl(L)).
 
-neigbours({X, Y}) ->
+neighbours({X, Y}) ->
     [
         {X - 1, Y - 1},
         {X, Y - 1},

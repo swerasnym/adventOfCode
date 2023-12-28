@@ -19,7 +19,7 @@ star1(Data) ->
     lists:max([lists:sum(X) || X <- Data]).
 
 star2(Data) ->
-    Sums = tools:dsort([lists:sum(X) || X <- Data]),
+    Sums = tools:reverse_sort([lists:sum(X) || X <- Data]),
     lists:sum(lists:sublist(Sums, 3)).
 
 read(File) ->

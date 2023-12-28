@@ -22,7 +22,7 @@ read(File) ->
     Lists = tools:grid_to_lists(RG),
     Stacks1 = lists:filter(fun(L) -> hd(L) /= $\s end, Lists),
     Stacks = [string:trim(tl(S)) || S <- Stacks1],
-    Moves = tools:parse_format(B2, "move ~d from ~d to ~d\n"),
+    Moves = tools:parse_multiple_formats(B2, "move ~d from ~d to ~d\n"),
 
     {maps:from_list(lists:enumerate(Stacks)), Moves}.
 

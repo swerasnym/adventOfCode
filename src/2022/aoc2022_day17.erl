@@ -25,8 +25,8 @@ star1([Movements]) ->
     erlang:erase(),
     Well = tools:drop_max(tools:lists_to_grid(["FFFFFFF"])),
     End = simulate(0, ?STOP1, Well, Movements, Movements),
-    %%ools:print_grid(End),
-    {{0, 6}, {NegHeight, _}} = tools:minmax_grid(End),
+    %%tools:print_grid(End),
+    {{0, 6}, {NegHeight, _}} = tools:min_max_grid(End),
     -NegHeight.
 
 star2([Movements]) ->
@@ -34,10 +34,10 @@ star2([Movements]) ->
     Well = tools:drop_max(tools:lists_to_grid(["FFFFFFF"])),
     End = simulate(0, ?STOP2, Well, Movements, Movements),
     %%tools:print_grid(End),
-    {{0, 6}, {NegHeight, _}} = tools:minmax_grid(End),
+    {{0, 6}, {NegHeight, _}} = tools:min_max_grid(End),
     -NegHeight.
 
-%% Ponints to form a rock in starting configuration with its lowest point at 0,
+%% Points to form a rock in starting configuration with its lowest point at 0,
 %% A point closest to the left edge first, A point closest to the right edge last.
 rock(0) ->
     [{2, 0}, {3, 0}, {4, 0}, {5, 0}];
@@ -56,7 +56,7 @@ rock(N) ->
 %% is three units above the highest rock in the room
 
 start(Rock, Well) ->
-    {_, {Ymin, _}} = tools:minmax_grid(Well),
+    {_, {Ymin, _}} = tools:min_max_grid(Well),
     Dy = Ymin - 4,
     [{X, Y + Dy} || {X, Y} <- rock(Rock)].
 
@@ -69,17 +69,17 @@ stopped(Points, N) ->
 falling(Points) ->
     maps:from_list([{P, $@} || P <- Points]).
 
-overlapps(Points, Well) ->
+overlaps(Points, Well) ->
     lists:min([maps:get(P, Well, empty) || P <- Points]) /= empty.
 
-move_horisontally(Points, $>) ->
+move_horizontally(Points, $>) ->
     case lists:last(Points) of
         {6, _} ->
             Points;
         _ ->
             [{X + 1, Y} || {X, Y} <- Points]
     end;
-move_horisontally(Points, $<) ->
+move_horizontally(Points, $<) ->
     case hd(Points) of
         {0, _} ->
             Points;
@@ -88,11 +88,11 @@ move_horisontally(Points, $<) ->
     end.
 
 move(Points, Well, Dir) ->
-    MovedH = move_horisontally(Points, Dir),
+    MovedH = move_horizontally(Points, Dir),
     MovedV = [{X, Y + 1} || {X, Y} <- Points],
     MovedHV = [{X, Y + 1} || {X, Y} <- MovedH],
 
-    case {overlapps(MovedH, Well), overlapps(MovedV, Well), overlapps(MovedHV, Well)} of
+    case {overlaps(MovedH, Well), overlaps(MovedV, Well), overlaps(MovedHV, Well)} of
         {true, true, _} ->
             {stopped, Points};
         {true, false, _} ->
@@ -168,14 +168,14 @@ find_floor([P | Rest], Well) ->
             Floor
     end;
 find_floor(P, Well) ->
-    find_floor(neigbours(P, Well), Well, [P], [P]).
+    find_floor(neighbours(P, Well), Well, [P], [P]).
 
 find_floor([], _Well, _Floor, _) ->
     none;
 find_floor([P = {6, _} | _], _Well, Floor, _Tested) ->
     [P | Floor];
 find_floor([P | Rest], Well, Floor, Tested) ->
-    case find_floor(neigbours(P, Well) -- Tested, Well, [P | Floor], [P | Tested]) of
+    case find_floor(neighbours(P, Well) -- Tested, Well, [P | Floor], [P | Tested]) of
         none ->
             find_floor(Rest, Well, Floor, [P | Tested]);
         Floor1 ->
@@ -185,10 +185,10 @@ find_floor([P | Rest], Well, Floor, Tested) ->
 above({X, Y}, Floor) ->
     Y < lists:min([Yf || {Xf, Yf} <- Floor, Xf == X]).
 
-neigbours(P, Well) ->
-    [N || N <- neigbours(P), maps:is_key(N, Well)].
+neighbours(P, Well) ->
+    [N || N <- neighbours(P), maps:is_key(N, Well)].
 
-neigbours({X, Y}) ->
+neighbours({X, Y}) ->
     [
         {X + Dx, Y + Dy}
      || Dx <- [1, 0, -1], Dy <- [-1, 0, 1], {Dx, Dy} /= {0, 0}, Dx * Dy == 0

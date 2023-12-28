@@ -16,7 +16,7 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 read(File) ->
     Read =
-        tools:read_format(
+        tools:read_multiple_formats(
             File,
             "Blueprint ~d: Each ore robot costs ~d ore. Each clay robot "
             "costs ~d ore. Each obsidian robot costs ~d ore and ~d clay. "
@@ -130,26 +130,26 @@ buy(
         ore := Ore,
         clay := Clay,
         obsidian := Obsidian
-    } = Resourses,
+    } = Recourses,
     Robots
 ) ->
     case {Type, maps:get(Type, Costs)} of
         {ore, [{OOre, ore}]} when OOre =< Ore ->
-            {Resourses#{ore => Ore - OOre}, Robots#{Type => maps:get(Type, Robots) + 1}};
+            {Recourses#{ore => Ore - OOre}, Robots#{Type => maps:get(Type, Robots) + 1}};
         {clay, [{OClay, ore}]} when OClay =< Ore ->
-            {Resourses#{ore => Ore - OClay}, Robots#{Type => maps:get(Type, Robots) + 1}};
+            {Recourses#{ore => Ore - OClay}, Robots#{Type => maps:get(Type, Robots) + 1}};
         {obsidian, [{OObsidian, ore}, {CObsidian, clay}]} when
             OObsidian =< Ore, CObsidian =< Clay
         ->
-            {Resourses#{ore => Ore - OObsidian, clay => Clay - CObsidian}, Robots#{
+            {Recourses#{ore => Ore - OObsidian, clay => Clay - CObsidian}, Robots#{
                 Type => maps:get(Type, Robots) + 1
             }};
         {geode, [{OGeode, ore}, {ObGeode, obsidian}]} when OGeode =< Ore, ObGeode =< Obsidian ->
-            {Resourses#{ore => Ore - OGeode, obsidian => Obsidian - ObGeode}, Robots#{
+            {Recourses#{ore => Ore - OGeode, obsidian => Obsidian - ObGeode}, Robots#{
                 Type => maps:get(Type, Robots) + 1
             }};
         _ ->
-            {Resourses, Robots}
+            {Recourses, Robots}
     end.
 
 collect(
@@ -174,18 +174,18 @@ collect(
     }.
 
 bfs(0, {_, _Costs}, L) ->
-    lists:max([maps:get(geode, Resourses) || {Resourses, _} <- L]);
+    lists:max([maps:get(geode, Recourses) || {Recourses, _} <- L]);
 bfs(Time, {_, Costs} = Bp, L) ->
     H = lists:usort([{heuristic(Time + 10, State), State} || State <- L]),
     New = [
         begin
             Buy = [
-                buy(Type, Costs, ResoursesIn, Robots)
+                buy(Type, Costs, RecoursesIn, Robots)
              || Type <- [ore, clay, obsidian, geode]
             ],
             [{collect(ResOut, Robots), RobOut} || {ResOut, RobOut} <- Buy]
         end
-     || {_, {ResoursesIn, Robots}} <- lists:sublist(lists:reverse(H), 1500)
+     || {_, {RecoursesIn, Robots}} <- lists:sublist(lists:reverse(H), 1500)
     ],
 
     bfs(Time - 1, Bp, lists:flatten(New)).

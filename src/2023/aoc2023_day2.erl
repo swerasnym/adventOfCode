@@ -35,7 +35,7 @@ read(File) ->
 parse_game("Game " ++ Line) ->
     {ok, [Game], Rest} = io_lib:fread("~d: ", Line),
 
-    {Game, [parse_color(V) || V <- tools:parse_format(Rest, "~d ~s")]}.
+    {Game, [parse_color(V) || V <- tools:parse_multiple_formats(Rest, "~d ~s")]}.
 
 parse_color([N, "red" ++ _]) ->
     {red, N};

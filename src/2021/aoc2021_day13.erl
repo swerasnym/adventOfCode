@@ -39,22 +39,22 @@ read(File) ->
 
     {P, I} =
         {
-            tools:parse_format(Points, "~d,~d"),
-            tools:parse_format(Instructions, "fold along ~c=~d\n")
+            tools:parse_multiple_formats(Points, "~d,~d"),
+            tools:parse_multiple_formats(Instructions, "fold along ~c=~d\n")
         },
     {[{X, Y} || [X, Y] <- P], I}.
 
-fold(["x", Xline]) ->
+fold(["x", XLine]) ->
     fun
-        ({X, Y}) when X > Xline ->
-            {2 * Xline - X, Y};
+        ({X, Y}) when X > XLine ->
+            {2 * XLine - X, Y};
         (Point) ->
             Point
     end;
-fold(["y", Yline]) ->
+fold(["y", YLine]) ->
     fun
-        ({X, Y}) when Y > Yline ->
-            {X, 2 * Yline - Y};
+        ({X, Y}) when Y > YLine ->
+            {X, 2 * YLine - Y};
         (Point) ->
             Point
     end.

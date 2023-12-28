@@ -24,11 +24,11 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1([Xmin, Xmax, _Ymin, _Ymax] = Target) ->
-    Vxmin = find_inital_vx_range(Xmin, 0),
-    Vxmax = find_inital_vx_range(Xmax, 0),
+    VXmin = find_initial_vx_range(Xmin, 0),
+    VXmax = find_initial_vx_range(Xmax, 0),
     lists:max([
         step({0, 0}, {Vx, Vy}, Target, [])
-     || Vx <- lists:seq(Vxmin - 1, Vxmax + 1), Vy <- lists:seq(0, 10000)
+     || Vx <- lists:seq(VXmin - 1, VXmax + 1), Vy <- lists:seq(0, 10000)
     ]).
 
 star2([_Xmin, Xmax, Ymin, _Ymax] = Target) ->
@@ -42,7 +42,7 @@ star2([_Xmin, Xmax, Ymin, _Ymax] = Target) ->
     length(Hits).
 
 read(File) ->
-    [Tuple] = tools:read_format(File, "target area: x=~d..~d, y=~d..~d"),
+    [Tuple] = tools:read_multiple_formats(File, "target area: x=~d..~d, y=~d..~d"),
     Tuple.
 
 step({X, Y}, {_Vx, _Vy}, [Xmin, Xmax, Ymin, Ymax], Ys) when
@@ -61,9 +61,7 @@ u_vx(Vx) when Vx < 0 ->
 u_vx(0) ->
     0.
 
-%% find_inital_vx_range(X, 0) when X < 0 ->
-%%     -find_inital_vx_range(-X, 0);
-find_inital_vx_range(X, Vx) when X > 0 ->
-    find_inital_vx_range(X - Vx - 1, Vx + 1);
-find_inital_vx_range(_X, Vx) ->
+find_initial_vx_range(X, Vx) when X > 0 ->
+    find_initial_vx_range(X - Vx - 1, Vx + 1);
+find_initial_vx_range(_X, Vx) ->
     Vx.

@@ -29,14 +29,14 @@ star1({Program, other}) ->
 star1({Program, AocData}) ->
     Input = find_serial(AocData, max),
     {_, 0, 0, 0, []} = alu_run(Program, Input),
-    combind(Input, 0).
+    combine(Input, 0).
 
 star2({Program, other}) ->
     alu_run(Program, []);
 star2({Program, AocData}) ->
     Input = find_serial(AocData, min),
     {_, 0, 0, 0, []} = alu_run(Program, Input),
-    combind(Input, 0).
+    combine(Input, 0).
 
 read(File) ->
     Lines = tools:read_lines(File, fun(L) -> string:split(L, " ", all) end),
@@ -49,17 +49,17 @@ read(File) ->
 
     AocData =
         try
-            tools:read_format(File, AocFormat)
+            tools:read_multiple_formats(File, AocFormat)
         catch
             error:_ ->
                 other
         end,
     {Program, AocData}.
 
-combind([], Acc) ->
+combine([], Acc) ->
     Acc;
-combind([Hd | Rest], Acc) ->
-    combind(Rest, Acc * 10 + Hd).
+combine([Hd | Rest], Acc) ->
+    combine(Rest, Acc * 10 + Hd).
 
 find_serial(AocData, MinMax) ->
     F = fun
@@ -107,9 +107,9 @@ alu_get(Int, _Reg) ->
     list_to_integer(Int).
 
 alu_set(5, Reg, Value) ->
-    setelement(5, Reg, Value);
+    erlang:setelement(5, Reg, Value);
 alu_set([P], Reg, Value) when P >= $w, P =< $z ->
-    setelement(P - $w + 1, Reg, Value).
+    erlang:setelement(P - $w + 1, Reg, Value).
 
 alu_inp([A] = Par, Reg) ->
     {X, Value} =

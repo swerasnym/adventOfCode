@@ -28,12 +28,12 @@ star1(Hails) ->
     star1(Hails, ?LIMITS).
 
 star1(Hails, {Min, Max}) ->
-    Coll = [colide_xy(H1, H2) || H1 <- Hails, H2 <- Hails, H2 < H1],
+    Coll = [collide_xy(H1, H2) || H1 <- Hails, H2 <- Hails, H2 < H1],
     Inside = [{X, Y} || {_, {X, Y}} <- Coll, Min =< X, X =< Max, Min =< Y, Y =< Max],
     length(Inside).
 
 star2([{P1, V1} = H1, {P2, V2} = H2, H3 | _]) ->
-    %% Oringinally used a Computer Algebra sytem to solve:
+    %% Originally used a Computer Algebra system to solve:
     %%
     %% X + V*t_1 = X_1 + V_1 * t_1
     %% X + V*t_2 = X_2 + V_2 * t_2
@@ -50,7 +50,7 @@ star2([{P1, V1} = H1, {P2, V2} = H2, H3 | _]) ->
     ]),
 
     T = dot(Ca, cross(Cb, Cc)),
-    W = idiv(W0, T),
+    W = i_div(W0, T),
 
     W1 = sub(V1, W),
     W2 = sub(V2, W),
@@ -68,11 +68,12 @@ star2([{P1, V1} = H1, {P2, V2} = H2, H3 | _]) ->
         mul(G, WW)
     ]),
 
-    sum(idiv(Rock, S)).
+    sum(i_div(Rock, S)).
 
 read(File) ->
     tools:group(
-        2, tools:group(3, lists:flatten(tools:read_format(File, "~d, ~d, ~d @ ~d, ~d, ~d")))
+        2,
+        tools:group(3, lists:flatten(tools:read_multiple_formats(File, "~d, ~d, ~d @ ~d, ~d, ~d")))
     ).
 
 get_plane({P1, V1}, {P2, V2}) ->
@@ -81,14 +82,14 @@ get_plane({P1, V1}, {P2, V2}) ->
     Cv = cross(V1, V2),
     {cross(Dp, Dv), dot(Dp, Cv)}.
 
-colide_xy(H1, H2) ->
+collide_xy(H1, H2) ->
     collide({1, 2}, H1, H2).
 
 collide({N, M}, H1, H2) ->
     {Pn1, Vn1} = get_pair(N, H1),
     {Pn2, Vn2} = get_pair(N, H2),
 
-    case find_crossing(tokxpm({N, M}, H1), tokxpm({N, M}, H2)) of
+    case find_crossing('to_kx+m'({N, M}, H1), 'to_kx+m'({N, M}, H2)) of
         {X, Y} ->
             T1 = (X - Pn1) / Vn1,
             T2 = (X - Pn2) / Vn2,
@@ -118,13 +119,13 @@ find_crossing({K1, M1} = A, {K2, M2} = B) ->
             none
     end.
 
-tokpm({P1, D1}, {P2, D2}) ->
+'kx+m'({P1, D1}, {P2, D2}) ->
     K = D2 / D1,
     M = P2 - K * P1,
     {K, M}.
 
-tokxpm({M, N}, Hail) ->
-    tokpm(get_pair(M, Hail), get_pair(N, Hail)).
+'to_kx+m'({M, N}, Hail) ->
+    'kx+m'(get_pair(M, Hail), get_pair(N, Hail)).
 
 get_pair(N, {P, V}) ->
     {element(N, P), element(N, V)}.
@@ -146,7 +147,7 @@ dot(A, B) when is_tuple(A), is_tuple(B), tuple_size(A) == tuple_size(B) ->
 mul(K, V) when is_number(K), is_tuple(V) ->
     erlang:list_to_tuple([K * element(N, V) || N <- lists:seq(1, tuple_size(V))]).
 
-idiv(V, K) when is_integer(K), is_tuple(V) ->
+i_div(V, K) when is_integer(K), is_tuple(V) ->
     erlang:list_to_tuple([element(N, V) div K || N <- lists:seq(1, tuple_size(V))]).
 
 cross({X1, Y1, Z1}, {X2, Y2, Z2}) ->

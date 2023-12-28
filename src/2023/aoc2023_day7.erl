@@ -53,7 +53,7 @@ parse_card2(C) ->
 
 strength(Cards) ->
     Counts = tools:count(Cards),
-    case (tools:dsort(maps:values(Counts))) of
+    case (tools:reverse_sort(maps:values(Counts))) of
         [5] ->
             10;
         [4, 1] ->

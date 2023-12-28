@@ -39,7 +39,7 @@ star2(Claims) ->
     NonOverlappingId.
 
 read(File) ->
-    Lines = tools:read_format(File, "#~d @ ~d,~d: ~dx~d"),
+    Lines = tools:read_multiple_formats(File, "#~d @ ~d,~d: ~dx~d"),
     [{Claim, {Left, Top}, {With, Height}} || [Claim, Left, Top, With, Height] <- Lines].
 
 no_overlaps([Claim | Rest], All) ->

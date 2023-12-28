@@ -36,7 +36,7 @@ star2(Instructions) ->
     proplists:get_value(maps:size(Instructions) + 1, Results).
 
 read(File) ->
-    Ops = [{Op, Int} || [Op, Int] <- tools:read_format(File, "~3a ~d")],
+    Ops = [{Op, Int} || [Op, Int] <- tools:read_multiple_formats(File, "~3a ~d")],
     maps:from_list(lists:zip(lists:seq(1, length(Ops)), Ops)).
 
 run(Instructions) ->

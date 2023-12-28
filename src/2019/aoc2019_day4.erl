@@ -26,17 +26,17 @@ run(StarOrStars, FileOrData) ->
 star1({To, From}) ->
     Codes0 = lists:map(fun integer_to_list/1, lists:seq(To, From)),
     Codes1 = lists:filter(fun same/1, Codes0),
-    Codes2 = lists:filter(fun nondec/1, Codes1),
+    Codes2 = lists:filter(fun non_dec/1, Codes1),
     length(Codes2).
 
 star2({To, From}) ->
     Codes0 = lists:map(fun integer_to_list/1, lists:seq(To, From)),
     Codes1 = lists:filter(fun same2/1, Codes0),
-    Codes2 = lists:filter(fun nondec/1, Codes1),
+    Codes2 = lists:filter(fun non_dec/1, Codes1),
     length(Codes2).
 
 read(File) ->
-    [[To, From]] = tools:read_format(File, "~d-~d"),
+    [[To, From]] = tools:read_multiple_formats(File, "~d-~d"),
     {To, From}.
 
 same([A, A, _, _, _, _]) ->
@@ -65,12 +65,12 @@ same2([_, _, _, C, A, A]) when C /= A ->
 same2(_) ->
     false.
 
-nondec([A | As]) ->
-    nondec(As, A).
+non_dec([A | As]) ->
+    non_dec(As, A).
 
-nondec([], _) ->
+non_dec([], _) ->
     true;
-nondec([A | _], Prev) when A < Prev ->
+non_dec([A | _], Prev) when A < Prev ->
     false;
-nondec([A | As], _) ->
-    nondec(As, A).
+non_dec([A | As], _) ->
+    non_dec(As, A).

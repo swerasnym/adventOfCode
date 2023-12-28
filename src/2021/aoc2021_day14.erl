@@ -31,14 +31,15 @@ star1({Init, Map}) ->
 star2({Init, Map}) ->
     Pairs = maps:keys(Map),
     Counts0 = maps:from_list([{K, tools:count(K)} || K <- Pairs]),
-    Counts40 = combind_n(Pairs, Map, Counts0, 40),
+    Counts40 = combine_n(Pairs, Map, Counts0, 40),
     Result = maps:values(insert_c(Counts40, Init, #{})),
     lists:max(Result) - lists:min(Result).
 
 read(File) ->
     [First, Rest] = tools:read_blocks(File),
 
-    {First, maps:from_list([list_to_tuple(L) || L <- tools:parse_format(Rest, "~s -> ~c")])}.
+    {First,
+        maps:from_list([list_to_tuple(L) || L <- tools:parse_multiple_formats(Rest, "~s -> ~c")])}.
 
 insert_n(_Map, Val, 0) ->
     Val;
@@ -51,13 +52,13 @@ insert(Map, [A, B | Rest], Res) ->
     [C] = maps:get([A, B], Map),
     insert(Map, [B | Rest], [C, A | Res]).
 
-combind_n(_Pairs, _Map, Counts, 0) ->
+combine_n(_Pairs, _Map, Counts, 0) ->
     Counts;
-combind_n(Pairs, Map, Counts, N) ->
-    Counts1 = maps:from_list([{Pair, combind(Pair, Map, Counts)} || Pair <- Pairs]),
-    combind_n(Pairs, Map, Counts1, N - 1).
+combine_n(Pairs, Map, Counts, N) ->
+    Counts1 = maps:from_list([{Pair, combine(Pair, Map, Counts)} || Pair <- Pairs]),
+    combine_n(Pairs, Map, Counts1, N - 1).
 
-combind([A, B] = Pair, Map, Counts) ->
+combine([A, B] = Pair, Map, Counts) ->
     [C] = maps:get(Pair, Map),
     M1 = add(maps:get([A, C], Counts), maps:get([C, B], Counts)),
     add(M1, #{C => -1}).

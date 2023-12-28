@@ -58,7 +58,7 @@ parse_valves(L) ->
                 {First, Second}
         end,
 
-    [[Tunnel, Rate]] = tools:parse_format(F, "Valve ~s has flow rate=~d"),
+    [Tunnel, Rate] = tools:parse_format(F, "Valve ~s has flow rate=~d"),
     To = string:split(S, ", ", all),
     {Tunnel, #{
         n => 0,

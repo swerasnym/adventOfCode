@@ -27,22 +27,24 @@ run(StarOrStars, FileOrData) ->
 read(File) ->
     [
         tools:group(2, L)
-     || L <- tools:read_format(File, "Sensor at x=~d, y=~d: closest beacon is at x=~d, y=~d")
+     || L <- tools:read_multiple_formats(
+            File, "Sensor at x=~d, y=~d: closest beacon is at x=~d, y=~d"
+        )
     ].
 
 star1(Data) ->
-    SensorDist = [{S, distm(S, B)} || [S, B] <- Data],
+    SensorDist = [{S, manhattan_dist(S, B)} || [S, B] <- Data],
     PossibleEndpoints = lists:sort([no_beacons_at_y(SD, ?STAR1_Y) || SD <- SensorDist]),
     Endpoints = [E || E <- PossibleEndpoints, E /= none],
     sum_endpoints(Endpoints, 0).
 
 star2(Data, old) ->
-    SensorDist = [{S, distm(S, B)} || [S, B] <- Data],
+    SensorDist = [{S, manhattan_dist(S, B)} || [S, B] <- Data],
     {X, Y} = check_y(SensorDist, 0),
     X * ?STAR2_Y + Y.
 
 star2(Data) ->
-    SensorDist = [{S, distm(S, B)} || [S, B] <- Data],
+    SensorDist = [{S, manhattan_dist(S, B)} || [S, B] <- Data],
     {PosXS, NegXS} = lists:unzip([lines(SD) || SD <- SensorDist]),
     PosX = lists:sort(lists:flatten(PosXS)),
 
@@ -62,7 +64,7 @@ star2(Data) ->
     [{X, Y}] = lists:filter(fun(P) -> test(SensorDist, P) end, Points),
     X * ?STAR2_Y + Y.
 
-distm({X1, Y1}, {X2, Y2}) ->
+manhattan_dist({X1, Y1}, {X2, Y2}) ->
     abs(X1 - X2) + abs(Y1 - Y2).
 
 no_beacons_at_y({{SX, SY}, D}, Y) ->
@@ -125,7 +127,7 @@ repeated([], Acc) ->
 test([], _) ->
     true;
 test([{S, D} | Rest], P) ->
-    case distm(S, P) > D of
+    case manhattan_dist(S, P) > D of
         true ->
             test(Rest, P);
         false ->

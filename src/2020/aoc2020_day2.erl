@@ -30,7 +30,7 @@ star2(Data) ->
     length([Line || Line <- Data, check_pwd2(Line)]).
 
 read(File) ->
-    tools:read_format(File, "~d-~d ~c:~s").
+    tools:read_multiple_formats(File, "~d-~d ~c:~s").
 
 check_pwd1([Min, Max, [Char], Password]) ->
     Len = length([P || P <- Password, P == Char]),

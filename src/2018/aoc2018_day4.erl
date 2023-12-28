@@ -46,7 +46,7 @@ star2(Events) ->
     Guard * Minute.
 
 read(File) ->
-    Lines = tools:read_lines(File, {fun tools:parse_line/3, ["[~d-~d-~d ~d:~d] ", rest]}),
+    Lines = tools:read_lines(File, {fun tools:parse_format/3, ["[~d-~d-~d ~d:~d] ", rest]}),
     Events = [{{Y, M, D}, {H, Min}, Action} || {[Y, M, D, H, Min], Action} <- Lines],
     lists:sort(Events).
 
@@ -59,7 +59,7 @@ process_events([{_, {0, To}, "wakes up"} | Rest], Guard, {sleep, From}, Map) ->
     Asleep = maps:get(Guard, Map, []),
     process_events(Rest, Guard, awake, Map#{Guard => Asleep ++ lists:seq(From, To - 1)});
 process_events([{_, _, "Guard" ++ _ = Begins} | Rest], _Guard, awake, Map) ->
-    [NewGuard] = tools:parse_line(Begins, "Guard #~d begins shift"),
+    [NewGuard] = tools:parse_format(Begins, "Guard #~d begins shift"),
     process_events(Rest, NewGuard, awake, Map);
 process_events([], _Guard, awake, Map) ->
     Map.

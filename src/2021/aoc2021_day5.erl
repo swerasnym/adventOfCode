@@ -37,7 +37,7 @@ star2(Data) ->
     maps:size(Intersections).
 
 read(File) ->
-    tools:read_format(File, "~d,~d -> ~d,~d").
+    tools:read_multiple_formats(File, "~d,~d -> ~d,~d").
 
 v_or_h([X, _, X, _]) ->
     true;

@@ -16,16 +16,16 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 read(File) ->
-    tools:read_format(File, "~c ~d").
+    tools:read_multiple_formats(File, "~c ~d").
 
 star1(Data) ->
-    {Hpath, _} = lists:mapfoldl(fun move_head/2, {0, 0}, Data),
-    {Tpath, _} = lists:mapfoldl(fun move_tail/2, {0, 0}, lists:flatten(Hpath)),
-    length(lists:uniq(Tpath)).
+    {HPath, _} = lists:mapfoldl(fun move_head/2, {0, 0}, Data),
+    {TPath, _} = lists:mapfoldl(fun move_tail/2, {0, 0}, lists:flatten(HPath)),
+    length(lists:uniq(TPath)).
 
 star2(Data) ->
-    {Hpath, _} = lists:mapfoldl(fun move_head/2, {0, 0}, Data),
-    {Path1, _} = lists:mapfoldl(fun move_tail/2, {0, 0}, lists:flatten(Hpath)),
+    {HPath, _} = lists:mapfoldl(fun move_head/2, {0, 0}, Data),
+    {Path1, _} = lists:mapfoldl(fun move_tail/2, {0, 0}, lists:flatten(HPath)),
     {Path2, _} = lists:mapfoldl(fun move_tail/2, {0, 0}, Path1),
     {Path3, _} = lists:mapfoldl(fun move_tail/2, {0, 0}, Path2),
     {Path4, _} = lists:mapfoldl(fun move_tail/2, {0, 0}, Path3),
@@ -46,10 +46,10 @@ move_tail({Hx, Hy} = H, {Tx, Ty} = T) ->
             {0, 2} ->
                 {Tx, Ty + Dy div 2};
             {2, _} ->
-                [P] = [P1 || P1 <- neigbours(H), P2 <- neigbours_diag(T), P1 == P2],
+                [P] = [P1 || P1 <- neighbours(H), P2 <- neighbours_diag(T), P1 == P2],
                 P;
             {_, 2} ->
-                [P] = [P1 || P1 <- neigbours(H), P2 <- neigbours_diag(T), P1 == P2],
+                [P] = [P1 || P1 <- neighbours(H), P2 <- neighbours_diag(T), P1 == P2],
                 P;
             _ ->
                 T
@@ -65,8 +65,8 @@ move_head(["R", R], {X, Y}) ->
 move_head(["L", L], {X, Y}) ->
     {[{X - Dx, Y} || Dx <- lists:seq(1, L, 1)], {X - L, Y}}.
 
-neigbours({X, Y}) ->
+neighbours({X, Y}) ->
     [{X + Dx, Y + Dy} || Dx <- [-1, 0, 1], Dy <- [-1, 0, 1], {Dx, Dy} /= {0, 0}].
 
-neigbours_diag({X, Y}) ->
+neighbours_diag({X, Y}) ->
     [{X + Dx, Y + Dy} || Dx <- [-1, 1], Dy <- [-1, 1]].

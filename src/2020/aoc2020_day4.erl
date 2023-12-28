@@ -30,7 +30,7 @@ star2(Data) ->
     length([Passport || Passport <- Data, valid1(Passport), valid2(Passport)]).
 
 read(File) ->
-    [to_map(tools:parse_format(Pass, " ~3a:~s")) || Pass <- tools:read_blocks(File)].
+    [to_map(tools:parse_multiple_formats(Pass, " ~3a:~s")) || Pass <- tools:read_blocks(File)].
 
 to_map(List) ->
     to_map(List, #{}).

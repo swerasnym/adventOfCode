@@ -23,7 +23,7 @@ star1(Data) ->
     Walls = [{{500, 0}, $+}] ++ [wall(D, []) || D <- Data],
     Grid = maps:from_list(lists:flatten(Walls)),
     % tools:print_grid(Grid),
-    {{Xmin, Xmax}, {Ymin, Ymax}} = tools:minmax_grid(Grid),
+    {{Xmin, Xmax}, {Ymin, Ymax}} = tools:min_max_grid(Grid),
     L = [{{Xmin - 1, Y}, $A} || Y <- lists:seq(Ymin, Ymax)],
     R = [{{Xmax + 1, Y}, $A} || Y <- lists:seq(Ymin, Ymax)],
     B = [{{X, Ymax + 1}, $A} || X <- lists:seq(Xmin - 1, Xmax + 1)],
@@ -36,7 +36,7 @@ star1(Data) ->
 star2(Data) ->
     Walls = [{{500, 0}, $+}] ++ [wall(D, []) || D <- Data],
     Grid = maps:from_list(lists:flatten(Walls)),
-    {{_Xmin, _Xmax}, {_Ymin, Ymax}} = tools:minmax_grid(Grid),
+    {{_Xmin, _Xmax}, {_Ymin, Ymax}} = tools:min_max_grid(Grid),
     Grid2 = fall(Grid, Ymax + 1),
     %    tools:print_grid(Grid3),
     tools:count($O, Grid2).

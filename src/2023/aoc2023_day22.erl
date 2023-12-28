@@ -24,7 +24,7 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Data) ->
-    % Verrify the assumption that the points are sorted in each dimention.
+    % Verify the assumption that the points are sorted in each dimension.
     true = lists:all(fun ordered/1, Data),
 
     Bricks = [make_brick(N, B) || {N, B} <- lists:enumerate(Data)],
@@ -41,7 +41,7 @@ star2(Data) ->
     lists:sum(Counts).
 
 read(File) ->
-    [erlang:list_to_tuple(L) || L <- tools:read_format(File, "~d,~d,~d~~~d,~d,~d")].
+    [erlang:list_to_tuple(L) || L <- tools:read_multiple_formats(File, "~d,~d,~d~~~d,~d,~d")].
 
 ordered({X1, Y1, Z1, X2, Y2, Z2}) when X1 =< X2, Y1 =< Y2, Z1 =< Z2 ->
     true;

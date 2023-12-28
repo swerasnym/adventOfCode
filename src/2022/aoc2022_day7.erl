@@ -74,7 +74,7 @@ ls(["$" ++ _ | _] = Commands, Path, Files, Size) ->
 ls(["dir" ++ _ | Rest], Path, Files, Size) ->
     ls(Rest, Path, Files, Size);
 ls([L | Rest], Path, Files, TotalSize) ->
-    [[Size, Name]] = tools:parse_format(L, "~d ~s"),
+    [Size, Name] = tools:parse_format(L, "~d ~s"),
     ls(Rest, Path, Files#{lists:reverse(Path, Name) => Size}, TotalSize + Size).
 
 sum_dir({dir, Path}, Directories) ->

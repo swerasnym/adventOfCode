@@ -32,11 +32,11 @@ star1(Data) ->
 star2(Data) ->
     Dirs = lists:map(fun change/1, Data),
     {Dug, {{0, 0}, P}} = lists:mapfoldl(fun dig2/2, {{0, 0}, 0}, Dirs),
-    %% Asume non intersecting i.e. winding number 1.
+    %% Assume non intersecting i.e. winding number 1.
     area([{0, 0} | Dug], 0) + P div 2 + 1.
 
 read(File) ->
-    [{{Dir, N}, Color} || [Dir, N, Color] <- tools:read_format(File, "~c ~d~s")].
+    [{{Dir, N}, Color} || [Dir, N, Color] <- tools:read_multiple_formats(File, "~c ~d~s")].
 
 dig({"R", N}, {X, Y}) -> {[{{Xd, Y}, $R} || Xd <- lists:seq(X + 1, X + N)], {X + N, Y}};
 dig({"L", N}, {X, Y}) -> {[{{Xd, Y}, $L} || Xd <- lists:seq(X - N, X - 1)], {X - N, Y}};

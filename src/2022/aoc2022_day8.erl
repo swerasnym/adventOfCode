@@ -30,18 +30,18 @@ star1(Grid0) ->
 
     Dirs = Dir0 ++ Dir1 ++ Dir2 ++ Dir3,
 
-    Vis = lists:flatten([vissible(Line, -1, []) || Line <- Dirs]),
+    Vis = lists:flatten([visible(Line, -1, []) || Line <- Dirs]),
     length(lists:uniq(Vis)).
 
 star2(Grid0) ->
     Scores = [score(P, Grid0) || P = {_, _} <- maps:keys(Grid0)],
     lists:max(Scores).
 
-vissible([{P, H} | Rest], Max, Acc) when H > Max ->
-    vissible(Rest, H, [P | Acc]);
-vissible([_ | Rest], Max, Acc) ->
-    vissible(Rest, Max, Acc);
-vissible([], _, Acc) ->
+visible([{P, H} | Rest], Max, Acc) when H > Max ->
+    visible(Rest, H, [P | Acc]);
+visible([_ | Rest], Max, Acc) ->
+    visible(Rest, Max, Acc);
+visible([], _, Acc) ->
     Acc.
 
 distance([{_, H} | Rest], Height, Acc) when H < Height ->
@@ -58,7 +58,7 @@ get_lines({PX, PY}, Grid) ->
     D2 = [V || {{X, Y}, V} <- List, X == PX, Y > PY],
     D3 = [V || {{X, Y}, V} <- List, X < PX, Y == PY],
     D4 = [V || {{X, Y}, V} <- List, X > PX, Y == PY],
-    [tools:dsort(D1), lists:sort(D2), tools:dsort(D3), lists:sort(D4)].
+    [tools:reverse_sort(D1), lists:sort(D2), tools:reverse_sort(D3), lists:sort(D4)].
 
 score(Pos, Grid) ->
     {_, H} = maps:get(Pos, Grid),

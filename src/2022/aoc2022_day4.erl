@@ -20,7 +20,7 @@ read(File) ->
     tools:read_lines(
         File,
         fun(L) ->
-            [[A, B, C, D]] = tools:parse_format(L, "~d-~d,~d-~d"),
+            [A, B, C, D] = tools:parse_format(L, "~d-~d,~d-~d"),
             {{A, B}, {C, D}}
         end
     ).
@@ -29,7 +29,7 @@ star1(Data) ->
     length(lists:filter(fun contained/1, Data)).
 
 star2(Data) ->
-    length(lists:filter(fun overlapps/1, Data)).
+    length(lists:filter(fun overlaps/1, Data)).
 
 contained({{A, B}, {C, D}}) when A >= C, B =< D ->
     true;
@@ -38,13 +38,13 @@ contained({{A, B}, {C, D}}) when C >= A, D =< B ->
 contained(_) ->
     false.
 
-overlapps({{_, B}, {C, D}}) when C =< B, B =< D ->
+overlaps({{_, B}, {C, D}}) when C =< B, B =< D ->
     true;
-overlapps({{A, _}, {C, D}}) when C =< A, A =< D ->
+overlaps({{A, _}, {C, D}}) when C =< A, A =< D ->
     true;
-overlapps({{A, B}, {_, D}}) when A =< D, D =< B ->
+overlaps({{A, B}, {_, D}}) when A =< D, D =< B ->
     true;
-overlapps({{A, B}, {C, _}}) when A =< C, C =< B ->
+overlaps({{A, B}, {C, _}}) when A =< C, C =< B ->
     true;
-overlapps(_) ->
+overlaps(_) ->
     false.

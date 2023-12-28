@@ -2,26 +2,26 @@
 -module(tools).
 
 -export([
-    ws/0,
+    whitespace/0,
     count/1, count/2,
     product/1,
-    dsort/1,
+    reverse_sort/1,
     rotate/2,
-    rotatewhile/2,
+    rotate_while/2,
     repeat/3,
     group/2,
     replace/2, replace/3, replace/4
 ]).
 -export([read_string/1, read_tokens/2]).
 -export([
-    read_format/2,
+    read_multiple_formats/2,
     read_integers/1, read_integers/2, read_integers/3,
     read_lines/1,
     read_lines/2,
     read_blocks/1, read_blocks/2
 ]).
 -export([
-    parse_format/2,
+    parse_multiple_formats/2,
     parse_lines/1, parse_lines/2,
     parse_integers/1, parse_integers/2, parse_integers/3,
     parse_blocks/1, parse_blocks/2
@@ -39,7 +39,7 @@
     lists_to_grid/1,
     grid_to_lists/1, grid_to_lists/2,
     translate_grid/2,
-    minmax_grid/1
+    min_max_grid/1
 ]).
 -export([
     sign/1,
@@ -63,15 +63,16 @@
 -export([overlap/2]).
 -export([chinese_multi_reminder/1]).
 -export([interval_length/1]).
--export([intervall_inside/1]).
--export([parse_line/3]).
--export([parse_line/2]).
+-export([interval_inside/1]).
+-export([parse_format/3]).
+-export([parse_format/2]).
+-export([parse_multiple_formats/3]).
 
--spec ws() -> string().
-ws() ->
-    " \t\n\r\v".
+-spec whitespace() -> string().
+whitespace() ->
+    "\s\t\n\r\v".
 
-%% @doc Generates a map of counnts of the terims in the collection.
+%% @doc Generates a map of counts of the terms in the collection.
 
 -spec count
     (Map) -> #{Value => integer()} when Map :: #{_ => Value};
@@ -82,7 +83,7 @@ count(List) when is_list(List) ->
     Fun = fun(V) -> V + 1 end,
     lists:foldl(fun(Value, Map) -> maps:update_with(Value, Fun, 1, Map) end, #{}, List).
 
-%% @doc Counts the number of occurances of 'Value' in the Collection.
+%% @doc Counts the number of occurrences of 'Value' in the Collection.
 -spec count(Value, [Value | any()] | map()) -> integer().
 count(Value, List) when is_list(List) ->
     count(Value, List, 0);
@@ -96,22 +97,22 @@ count(V, [V | Rest], Count) ->
 count(V, List, Count) ->
     count(V, tl(List), Count).
 
-%% @doc Calculates the procuct of a list of numbers.
+%% @doc Calculates the product of a list of numbers.
 
 -spec product([number()]) -> number().
 product(List) ->
     lists:foldl(fun(Term, Product) -> Term * Product end, 1, List).
 
-%% @doc Sorts in decending (reverse) order
--spec dsort([any()]) -> [any()].
-dsort(List) ->
+%% @doc Sorts in reverse order
+-spec reverse_sort([any()]) -> [any()].
+reverse_sort(List) ->
     lists:sort(fun erlang:'>'/2, List).
 
 rotate(N, List) ->
     {H, T} = lists:split(mod(N, length(List)), List),
     T ++ H.
 
-rotatewhile(Pred, List) ->
+rotate_while(Pred, List) ->
     {H, T} = lists:splitwith(Pred, List),
     T ++ H.
 
@@ -148,31 +149,31 @@ replace(Map, Replacements, all) when is_map(Map), is_map(Replacements) ->
     maps:map(fun(_Key, Value) -> maps:get(Value, Replacements, Value) end, Map);
 %% N for list
 replace(List, Replacements, N) when is_list(List), is_map(Replacements), is_integer(N) ->
-    replace_n(List, Replacements, N, []);
+    replace_(List, Replacements, N, []);
 %% No count at end, replace all...
 replace(Values, Replace, With) ->
     replace(Values, #{Replace => With}, all).
 
-%% @doc Relace up to Count occurances off Replace with With in a list
+%% @doc Replace up to Count occurrences off Replace with With in a list
 replace(Values, Replace, With, Count) ->
     replace(Values, #{Replace => With}, Count).
 
 %% internal
-replace_n([], _Replacements, _N, Acc) ->
+replace_([], _Replacements, _N, Acc) ->
     lists:reverse(Acc);
-replace_n(List, Replacements, N, []) when N < 0 ->
-    lists:reverse(replace_n(lists:reverse(List), Replacements, -N, []));
-replace_n(List, _Replacements, 0, Acc) ->
+replace_(List, Replacements, N, []) when N < 0 ->
+    lists:reverse(replace_(lists:reverse(List), Replacements, -N, []));
+replace_(List, _Replacements, 0, Acc) ->
     lists:reverse(Acc, List);
-replace_n([Head | Rest], Replacements, N, Acc) when is_map_key(Head, Replacements) ->
-    replace_n(Rest, Replacements, N - 1, [maps:get(Head, Replacements) | Acc]);
-replace_n([Head | Rest], Replacements, N, Acc) ->
-    replace_n(Rest, Replacements, N, [Head | Acc]).
+replace_([Head | Rest], Replacements, N, Acc) when is_map_key(Head, Replacements) ->
+    replace_(Rest, Replacements, N - 1, [maps:get(Head, Replacements) | Acc]);
+replace_([Head | Rest], Replacements, N, Acc) ->
+    replace_(Rest, Replacements, N, [Head | Acc]).
 
 %% ------------------------
 %% read
 
-%% @doc Reads a whole file into a string, wihout any trailing whitespace.
+%% @doc Reads a whole file into a string, without any trailing whitespace.
 read_string(File) ->
     case file:read_file(File) of
         {ok, Bin} ->
@@ -181,15 +182,15 @@ read_string(File) ->
             erlang:error(Error, [File])
     end.
 
-%% @doc Tokenizes a whole file using string:tokens/2 ignoring any trailing whitespaces.
+%% @doc Tokenizes a whole file using string:tokens/2 ignoring any trailing whitespace.
 read_tokens(File, Separators) ->
     string:tokens(read_string(File), Separators).
 
-%% @doc Reads a whole file into a list of lines without trailing linebreaks.
+%% @doc Reads a whole file into a list of lines without trailing line breaks.
 read_lines(File) ->
     string:split(read_string(File), "\n", all).
 
-%% @doc Reads a whole file into a list of lines without trailing linebreaks and applies function
+%% @doc Reads a whole file into a list of lines without trailing line breaks and applies function
 read_lines(File, Fun) when is_function(Fun, 1) ->
     [Fun(Line) || Line <- read_lines(File)];
 read_lines(File, {Fun, Params}) when is_function(Fun), is_list(Params) ->
@@ -209,7 +210,7 @@ read_blocks(File, {Fun, Params}) when is_function(Fun), is_list(Params) ->
 
 %% @doc Reads a file of whitespace separated integers to a list.
 read_integers(File) ->
-    read_integers(File, "\n\r\t\v ").
+    read_integers(File, whitespace()).
 
 %% @doc Reads a file of whitespace separated integers to a list and sort them.
 read_integers(File, sort) ->
@@ -223,18 +224,18 @@ read_integers(File, Separators, sort) ->
 %% @doc Reads a file of repeated formats ino a list of lits of terms.
 %% @see io:format().
 %% for format specification
-read_format(File, Format) ->
+read_multiple_formats(File, Format) ->
     {ok, Device} = file:open(File, [read]),
-    read_format(Device, Format, []).
+    read_multiple_formats_(Device, Format, []).
 
 %% internal implementation
-read_format(Device, Format, Acc) ->
+read_multiple_formats_(Device, Format, Acc) ->
     case io:fread(Device, [], Format) of
         eof ->
             ok = file:close(Device),
             lists:reverse(Acc);
         {ok, Terms} ->
-            read_format(Device, Format, [Terms | Acc]);
+            read_multiple_formats_(Device, Format, [Terms | Acc]);
         {error, What} ->
             error({What, Format, Acc})
     end.
@@ -260,8 +261,8 @@ parse_blocks(String, {Fun, Params}) when is_function(Fun), is_list(Params) ->
 
 %% @doc Reads a string of whitespace separated integers to a list.
 parse_integers(String) ->
-    parse_integers(String, ws()),
-    lists:flatten(parse_format(String, "~d")).
+    parse_integers(String, whitespace()),
+    lists:flatten(parse_multiple_formats(String, "~d")).
 
 %% @doc Reads a file of whitespace separated integers to a list and sort them.
 parse_integers(String, sort) ->
@@ -272,44 +273,55 @@ parse_integers(String, Separators) ->
 parse_integers(String, Separators, sort) ->
     lists:sort(parse_integers(String, Separators)).
 
-parse_format(String, Format) ->
-    parse_format(String, Format, []).
+parse_multiple_formats(String, Format) ->
+    parse_multiple_formats_(String, Format, []).
+
+parse_multiple_formats(String, _Format, 0) ->
+    {[], String};
+parse_multiple_formats(String, Format, N) when N > 0 ->
+    parse_multiple_formats_(String, Format, N, []).
+
+parse_multiple_formats_(String, _Format, 0, Acc) ->
+    {lists:reverse(Acc), String};
+parse_multiple_formats_(String, Format, N, Acc) ->
+    {Terms, Rest} = parse_format(String, Format),
+    parse_multiple_formats_(Rest, Format, N - 1, [Terms | Acc]).
 
 %% internal implementation
-parse_format([], _Format, Acc) ->
+parse_multiple_formats_([], _Format, Acc) ->
     lists:reverse(Acc);
-parse_format(String, Format, Acc) ->
+parse_multiple_formats_(String, Format, Acc) ->
     case io_lib:fread(Format, String) of
         {ok, Terms, Rest} ->
-            parse_format(Rest, Format, [Terms | Acc]);
-        {more, RestFormat, _Nchars, InputStack} ->
+            parse_multiple_formats_(Rest, Format, [Terms | Acc]);
+        {more, RestFormat, _NChars, InputStack} ->
             error({partial_match, RestFormat, [InputStack | Acc]});
         {error, What} ->
             error({What, Format, String, Acc})
     end.
 
-parse_line(Line, Format) ->
-    parse_line(Line, Format, empty).
+parse_format(String, Format) ->
+    parse_format(String, Format, empty).
 
-parse_line(Line, Format, empty) ->
-    case io_lib:fread(Format, Line) of
+parse_format(String, Format, empty) ->
+    case io_lib:fread(Format, String) of
         {ok, Terms, []} ->
             Terms;
         {ok, Terms, Rest} ->
-            error({more_terms, Terms, Rest});
-        {more, RestFormat, _Nchars, InputStack} ->
+            error({parts_left_after_format, Terms, Rest});
+        {more, RestFormat, _NChars, InputStack} ->
             error({partial_match, RestFormat, InputStack});
         {error, What} ->
-            error({What, Format, Line})
+            error({What, Format, String})
     end;
-parse_line(Line, Format, rest) ->
-    case io_lib:fread(Format, Line) of
+parse_format(String, Format, rest) ->
+    case io_lib:fread(Format, String) of
         {ok, Terms, Rest} ->
             {Terms, Rest};
-        {more, RestFormat, _Nchars, InputStack} ->
+        {more, RestFormat, _NChars, InputStack} ->
             error({partial_match, RestFormat, InputStack});
         {error, What} ->
-            error({What, Format, Line})
+            error({What, Format, String})
     end.
 
 %% ------------------------
@@ -431,19 +443,19 @@ sub_grid(Grid, {Xmin, Ymin}, {Xmax, Ymax}) ->
     SubGrid#{max => {Xmax - Xmin, Ymax - Ymin}}.
 
 grid_from_2d(Map) ->
-    {{Xmin, Xmax}, {Ymin, Ymax}} = minmax_grid(Map),
+    {{Xmin, Xmax}, {Ymin, Ymax}} = min_max_grid(Map),
     Grid = translate_grid(Map, {-Xmin, -Ymin}),
     Grid#{max => {Xmax - Xmin, Ymax - Ymin}}.
 
 max_grid(#{max := {Xmax, Ymax}}) ->
     {Xmax, Ymax};
 max_grid(Grid) ->
-    {{_, Xmax}, {_, Ymax}} = minmax_grid(Grid),
+    {{_, Xmax}, {_, Ymax}} = min_max_grid(Grid),
     {Xmax, Ymax}.
 
-minmax_grid(Grid) ->
-    {Xlist, Ylist} = lists:unzip(maps:keys(maps:without([max], Grid))),
-    {{lists:min(Xlist), lists:max(Xlist)}, {lists:min(Ylist), lists:max(Ylist)}}.
+min_max_grid(Grid) ->
+    {XList, YList} = lists:unzip(maps:keys(maps:without([max], Grid))),
+    {{lists:min(XList), lists:max(XList)}, {lists:min(YList), lists:max(YList)}}.
 
 translate_grid(#{max := {Mx, My}} = Grid, {Dx, Dy}) ->
     M2 = maps:from_list([{{X + Dx, Y + Dy}, Value} || {{X, Y}, Value} <- maps:to_list(Grid)]),
@@ -493,7 +505,7 @@ mod_inv(A, B) ->
         true ->
             X;
         false ->
-            %% TODO: check what hapens for negative modulii
+            %% TODO: check what happens for negative moduli
             %% io:format("~p~n", [_R]),
             undefined
     end.
@@ -594,16 +606,16 @@ interval_split({A1, A2} = A, {B1, B2} = B) ->
         false ->
             [A];
         true when A1 < B1, A2 > B2 ->
-            %% ABBA
+            %% A,B,B,A
             [{A1, B1}, B, {B2, A2}];
         true when A1 < B1 ->
-            %% ABAB
+            %% A,B,A,B
             [{A1, B1}, {B1, A2}];
         true when A2 > B2 ->
-            %% BABA
+            %% B,A,B,A
             [{A1, B2}, {B2, A2}];
         true ->
-            %% BAAB
+            %% B,A,A,B
             [A]
     end;
 interval_split(A, _) ->
@@ -634,10 +646,10 @@ interval_after({_, A2}, {_, B2}) ->
 interval_after(A, _) ->
     A.
 
-intervall_inside([A]) ->
+interval_inside([A]) ->
     A;
-intervall_inside([A, B | Rest]) ->
-    intervall_inside([interval_inside(A, B) | Rest]).
+interval_inside([A, B | Rest]) ->
+    interval_inside([interval_inside(A, B) | Rest]).
 
 interval_inside(_, empty) ->
     empty;

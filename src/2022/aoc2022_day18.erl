@@ -16,12 +16,12 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 read(File) ->
-    maps:from_list([{list_to_tuple(L), $#} || L <- tools:read_format(File, "~d,~d,~d")]).
+    maps:from_list([{list_to_tuple(L), $#} || L <- tools:read_multiple_formats(File, "~d,~d,~d")]).
 
 star1(Data) ->
     maps:fold(
         fun(P, _, Acc) ->
-            Acc + 6 - length([N || N <- neigbours(P), maps:get(N, Data, none) /= none])
+            Acc + 6 - length([N || N <- neighbours(P), maps:get(N, Data, none) /= none])
         end,
         0,
         Data
@@ -33,7 +33,7 @@ star2(Data) ->
     maps:fold(
         fun
             (P, $#, Acc) ->
-                Acc + length([N || N <- neigbours(P), maps:get(N, Marked, none) == outside]);
+                Acc + length([N || N <- neighbours(P), maps:get(N, Marked, none) == outside]);
             (_, _, Acc) ->
                 Acc
         end,
@@ -41,7 +41,7 @@ star2(Data) ->
         Marked
     ).
 
-neigbours({X, Y, Z}) ->
+neighbours({X, Y, Z}) ->
     [
         {X + 1, Y, Z},
         {X - 1, Y, Z},
@@ -62,10 +62,10 @@ mark_outside([], Map, _, _) ->
 mark_outside([P | Rest], Map, {{Xmin, Xmax}, {Ymin, Ymax}, {Zmin, Zmax}} = Bounds, V) ->
     case maps:get(P, Map, unmarked) of
         unmarked ->
-            NewNeigbours =
+            NewNeighbours =
                 [
                     N
-                 || N = {X, Y, Z} <- neigbours(P),
+                 || N = {X, Y, Z} <- neighbours(P),
                     X >= Xmin,
                     X =< Xmax,
                     Y >= Ymin,
@@ -75,7 +75,7 @@ mark_outside([P | Rest], Map, {{Xmin, Xmax}, {Ymin, Ymax}, {Zmin, Zmax}} = Bound
                 ] --
                     V,
 
-            mark_outside(Rest ++ NewNeigbours, Map#{P => outside}, Bounds, V ++ NewNeigbours);
+            mark_outside(Rest ++ NewNeighbours, Map#{P => outside}, Bounds, V ++ NewNeighbours);
         _ ->
             mark_outside(Rest, Map, Bounds, V)
     end.

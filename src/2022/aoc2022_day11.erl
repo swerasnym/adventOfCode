@@ -25,12 +25,12 @@ read(File) ->
 
 star1(Monkeys) ->
     End = lists:foldl(fun(_, M) -> process(M) end, Monkeys, lists:seq(1, 20)),
-    [A, B | _] = tools:dsort([count(M) || M <- maps:values(End)]),
+    [A, B | _] = tools:reverse_sort([count(M) || M <- maps:values(End)]),
     A * B.
 
 star2(Monkeys) ->
     End = lists:foldl(fun(_, M) -> process2(M) end, Monkeys, lists:seq(1, 10000)),
-    [A, B | _] = tools:dsort([count(M) || M <- maps:values(End)]),
+    [A, B | _] = tools:reverse_sort([count(M) || M <- maps:values(End)]),
     A * B.
 
 parse_monkey([
@@ -64,14 +64,14 @@ new("old * " ++ Ds, Old) ->
     [D] = tools:parse_integers(Ds),
     Old * D.
 
-releaf(Worry) ->
+relief(Worry) ->
     Worry div 3.
 
 rems(Worry) ->
     Worry rem erlang:get(lcm).
 
 process(Monkeys) ->
-    lists:foldl(fun(I, M) -> process(I, M, fun releaf/1) end, Monkeys, erlang:get(ids)).
+    lists:foldl(fun(I, M) -> process(I, M, fun relief/1) end, Monkeys, erlang:get(ids)).
 
 process2(Monkeys) ->
     lists:foldl(fun(I, M) -> process(I, M, fun rems/1) end, Monkeys, erlang:get(ids)).

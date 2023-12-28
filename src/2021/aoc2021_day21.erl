@@ -34,7 +34,10 @@ star2([{1, Pos1, Score1}, {2, Pos2, Score2}]) ->
     max(W1, W2).
 
 read(File) ->
-    [{Pl, Pos, 0} || [Pl, Pos] <- tools:read_format(File, "Player ~d starting position: ~d")].
+    [
+        {Pl, Pos, 0}
+     || [Pl, Pos] <- tools:read_multiple_formats(File, "Player ~d starting position: ~d")
+    ].
 
 play([{Player, Pos, Score}, NextPlayer], Die, Turn) ->
     {Move, NextDie} = roll(Die),

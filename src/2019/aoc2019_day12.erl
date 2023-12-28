@@ -42,7 +42,7 @@ read(File) ->
     maps:from_list(lists:enumerate(Moons)).
 
 get_moon(Line) ->
-    [[X, Y, Z]] = tools:parse_format(Line, "<x=~d, y=~d, z=~d>"),
+    [X, Y, Z] = tools:parse_format(Line, "<x=~d, y=~d, z=~d>"),
     #moon{pos = {X, Y, Z}}.
 
 step(_Count, Value) ->

@@ -71,14 +71,14 @@ check_rating2(WFs, Workflows) ->
     Accepted ++ check_rating2(Next, Workflows).
 
 check2([{Part, "<", Val, True} | Rest], Rating) ->
-    Intervall = maps:get(Part, Rating),
-    Before = tools:interval_before(Intervall, {Val}),
-    After = tools:interval_after(Intervall, {Val}),
+    Interval = maps:get(Part, Rating),
+    Before = tools:interval_before(Interval, {Val}),
+    After = tools:interval_after(Interval, {Val}),
     [{True, Rating#{Part := Before}} | check2(Rest, Rating#{Part := After})];
 check2([{Part, ">", Val, True} | Rest], Rating) ->
-    Intervall = maps:get(Part, Rating),
-    Before = tools:interval_before(Intervall, {Val + 1}),
-    After = tools:interval_after(Intervall, {Val + 1}),
+    Interval = maps:get(Part, Rating),
+    Before = tools:interval_before(Interval, {Val + 1}),
+    After = tools:interval_after(Interval, {Val + 1}),
     [{True, Rating#{Part := After}} | check2(Rest, Rating#{Part := Before})];
 check2([Else], Rating) ->
     [{Else, Rating}].
@@ -91,9 +91,9 @@ workflow(W) ->
 rule([R], Acc) ->
     lists:reverse(Acc, [accept_reject(R)]);
 rule([R | Rest], Acc) ->
-    [[Part, Oper, Val, WF]] = tools:parse_format(R, "~c~c~d:~s"),
+    [Part, Operator, Val, WF] = tools:parse_format(R, "~c~c~d:~s"),
 
-    rule(Rest, [{erlang:list_to_existing_atom(Part), Oper, Val, accept_reject(WF)} | Acc]).
+    rule(Rest, [{erlang:list_to_existing_atom(Part), Operator, Val, accept_reject(WF)} | Acc]).
 
 accept_reject("A") ->
     accept;
@@ -105,8 +105,8 @@ accept_reject(V) ->
 ratings(R) ->
     [
         #{x => X, m => M, a => A, s => S, sum => X + M + A + S}
-     || [X, M, A, S] <- tools:parse_format(R, "{x=~d,m=~d,a=~d,s=~d}\n")
+     || [X, M, A, S] <- tools:parse_multiple_formats(R, "{x=~d,m=~d,a=~d,s=~d}\n")
     ].
 
 sum2(Map) ->
-    tools:product([tools:interval_length(Intervall) || Intervall <- maps:values(Map)]).
+    tools:product([tools:interval_length(Interval) || Interval <- maps:values(Map)]).

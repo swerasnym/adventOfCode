@@ -30,22 +30,22 @@ star2(Data) ->
     move_aim(Data, 0, 0, 0).
 
 read(File) ->
-    tools:read_format(File, "~a ~d").
+    tools:read_multiple_formats(File, "~a ~d").
 
-move([[forward, F] | Rest], Horisontal, Depth) ->
-    move(Rest, Horisontal + F, Depth);
-move([[down, D] | Rest], Horisontal, Depth) ->
-    move(Rest, Horisontal, Depth + D);
-move([[up, U] | Rest], Horisontal, Depth) ->
-    move(Rest, Horisontal, Depth - U);
-move([], Horisontal, Depth) ->
-    Horisontal * Depth.
+move([[forward, F] | Rest], Horizontal, Depth) ->
+    move(Rest, Horizontal + F, Depth);
+move([[down, D] | Rest], Horizontal, Depth) ->
+    move(Rest, Horizontal, Depth + D);
+move([[up, U] | Rest], Horizontal, Depth) ->
+    move(Rest, Horizontal, Depth - U);
+move([], Horizontal, Depth) ->
+    Horizontal * Depth.
 
-move_aim([[forward, F] | Rest], Horisontal, Depth, Aim) ->
-    move_aim(Rest, Horisontal + F, Depth + Aim * F, Aim);
-move_aim([[down, D] | Rest], Horisontal, Depth, Aim) ->
-    move_aim(Rest, Horisontal, Depth, Aim + D);
-move_aim([[up, U] | Rest], Horisontal, Depth, Aim) ->
-    move_aim(Rest, Horisontal, Depth, Aim - U);
-move_aim([], Horisontal, Depth, _Aim) ->
-    Horisontal * Depth.
+move_aim([[forward, F] | Rest], Horizontal, Depth, Aim) ->
+    move_aim(Rest, Horizontal + F, Depth + Aim * F, Aim);
+move_aim([[down, D] | Rest], Horizontal, Depth, Aim) ->
+    move_aim(Rest, Horizontal, Depth, Aim + D);
+move_aim([[up, U] | Rest], Horizontal, Depth, Aim) ->
+    move_aim(Rest, Horizontal, Depth, Aim - U);
+move_aim([], Horizontal, Depth, _Aim) ->
+    Horizontal * Depth.

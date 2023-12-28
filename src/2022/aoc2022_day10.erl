@@ -19,22 +19,22 @@ read(File) ->
     tools:read_lines(File).
 
 star1(Data) ->
-    {ValeLists, _} = lists:mapfoldl(fun runi/2, 1, Data),
+    {ValeLists, _} = lists:mapfoldl(fun run_instruction/2, 1, Data),
     Values = [1] ++ lists:flatten(ValeLists),
     Strengths = [V * I || {I, V} <- lists:enumerate(Values), I rem 40 == 20, I =< 220],
     lists:sum(Strengths).
 
 star2(Data) ->
-    {ValeLists, _} = lists:mapfoldl(fun runi/2, 1, Data),
+    {ValeLists, _} = lists:mapfoldl(fun run_instruction/2, 1, Data),
     Values = [1] ++ lists:flatten(ValeLists),
     Display = [draw(E) || E <- lists:enumerate(0, Values)],
     tools:print_grid(maps:from_list(Display)),
     {manual, fun() -> tools:print_grid(maps:from_list(Display)) end}.
 
-runi("noop", X) ->
+run_instruction("noop", X) ->
     {[X], X};
-runi("addx " ++ N, X) ->
-    [[V]] = tools:parse_format(N, "~d"),
+run_instruction("addx " ++ N, X) ->
+    V = erlang:list_to_integer(N),
     {[X, X + V], X + V}.
 
 draw({I, V}) ->

@@ -28,20 +28,20 @@ run(StarOrStars, FileOrData) ->
 
 star1(Data, old) ->
     Init = lists:filter(fun is_init/1, Data),
-    Steps = lists:map(fun discretre/1, Init),
+    Steps = lists:map(fun discrete/1, Init),
     Reactor =
         lists:foldl(fun({K, V}, Map) -> maps:put(K, V, Map) end, #{}, lists:flatten(Steps)),
     tools:count(on, Reactor).
 
 star1(Data) ->
     Init = lists:filter(fun is_init/1, Data),
-    Pices = remove_overlaps(Init),
-    On = on(Pices),
+    Pisces = remove_overlaps(Init),
+    On = on(Pisces),
     lists:sum(lists:map(fun volume/1, On)).
 
 star2(Data) ->
-    Pices = remove_overlaps(Data),
-    On = on(Pices),
+    Pisces = remove_overlaps(Data),
+    On = on(Pisces),
     lists:sum(lists:map(fun volume/1, On)).
 
 read(File) ->
@@ -53,7 +53,7 @@ read(File) ->
             z = {Zmin, Zmax + 1}
         }
      || [S, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax] <-
-            tools:read_format(File, "~a x=~d..~d,y=~d..~d,z=~d..~d")
+            tools:read_multiple_formats(File, "~a x=~d..~d,y=~d..~d,z=~d..~d")
     ].
 
 is_init(#cube{
@@ -67,7 +67,7 @@ is_init(#cube{
 is_init(#cube{}) ->
     false.
 
-discretre(#cube{
+discrete(#cube{
     state = S,
     x = {Xmin, Xmax},
     y = {Ymin, Ymax},
@@ -98,7 +98,7 @@ overlaps(#cube{z = {Min1, Max1}}, #cube{z = {Min2, Max2}}) when
 overlaps(_, _) ->
     true.
 
-%% Rettunrs {[Overlapp], [NonOverlap]} parts of the second cube is always last.
+%% Returns {[Overlap], [NonOverlap]} parts of the second cube is always last.
 split(Dir, C1, C2) ->
     L1 = {Min1, Max1} = element(Dir, C1),
     L2 = {Min2, Max2} = element(Dir, C2),
@@ -106,20 +106,36 @@ split(Dir, C1, C2) ->
         {L, L} ->
             {[C1, C2], []};
         _ when Min1 =< Min2, Min2 < Max1, Max1 =< Max2 ->
-            {[setelement(Dir, C1, {Min2, Max1}), setelement(Dir, C2, {Min2, Max1})], [
-                setelement(Dir, C1, {Min1, Min2}), setelement(Dir, C2, {Max1, Max2})
-            ]};
+            {
+                [
+                    erlang:setelement(Dir, C1, {Min2, Max1}),
+                    erlang:setelement(Dir, C2, {Min2, Max1})
+                ],
+                [
+                    erlang:setelement(Dir, C1, {Min1, Min2}),
+                    erlang:setelement(Dir, C2, {Max1, Max2})
+                ]
+            };
         _ when Min1 =< Min2, Max1 >= Max2 ->
-            {[setelement(Dir, C1, L2), C2], [
-                setelement(Dir, C1, {Min1, Min2}), setelement(Dir, C1, {Max2, Max1})
+            {[erlang:setelement(Dir, C1, L2), C2], [
+                erlang:setelement(Dir, C1, {Min1, Min2}),
+                erlang:setelement(Dir, C1, {Max2, Max1})
             ]};
         _ when Min2 =< Min1, Min1 < Max2, Max2 =< Max1 ->
-            {[setelement(Dir, C1, {Min1, Max2}), setelement(Dir, C2, {Min1, Max2})], [
-                setelement(Dir, C1, {Max2, Max1}), setelement(Dir, C2, {Min2, Min1})
-            ]};
+            {
+                [
+                    erlang:setelement(Dir, C1, {Min1, Max2}),
+                    erlang:setelement(Dir, C2, {Min1, Max2})
+                ],
+                [
+                    erlang:setelement(Dir, C1, {Max2, Max1}),
+                    erlang:setelement(Dir, C2, {Min2, Min1})
+                ]
+            };
         _ when Min2 =< Min1, Max2 >= Max1 ->
-            {[C1, setelement(Dir, C2, L1)], [
-                setelement(Dir, C2, {Min2, Min1}), setelement(Dir, C2, {Max1, Max2})
+            {[C1, erlang:setelement(Dir, C2, L1)], [
+                erlang:setelement(Dir, C2, {Min2, Min1}),
+                erlang:setelement(Dir, C2, {Max1, Max2})
             ]}
     end.
 
@@ -128,7 +144,7 @@ split(C1, C2) ->
     {[Y1, Y2], Yn} = split(#cube.y, X1, X2),
     {[_Z1, Z2], Zn} = split(#cube.z, Y1, Y2),
 
-    % Z1 discarded since that contains the overlappng part in C1 that we are replaceing.
+    % Z1 discarded since that contains the overlapping part in C1 that we are replacing.
     lists:filter(fun(V) -> volume(V) /= 0 end, Xn ++ Yn ++ Zn ++ [Z2]).
 
 volume(#cube{
@@ -146,8 +162,8 @@ remove_overlaps(Done, []) ->
 remove_overlaps(Done, [C2 | Rest]) ->
     case lists:partition(fun(C) -> overlaps(C, C2) end, Done) of
         {[Hd | Overlaps], NoOverlaps} ->
-            Pices = split(Hd, C2),
-            remove_overlaps(NoOverlaps ++ on(remove_overlaps(Overlaps, Pices)), Rest);
+            Pisces = split(Hd, C2),
+            remove_overlaps(NoOverlaps ++ on(remove_overlaps(Overlaps, Pisces)), Rest);
         {[], Done} ->
             remove_overlaps([C2 | Done], Rest)
     end.

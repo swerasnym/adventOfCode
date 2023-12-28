@@ -36,7 +36,7 @@ star2(Data) ->
     abs(X) + abs(Y).
 
 read(File) ->
-    [action(Dir, Amount) || [Dir, Amount] <- tools:read_format(File, "~c~d")].
+    [action(Dir, Amount) || [Dir, Amount] <- tools:read_multiple_formats(File, "~c~d")].
 
 action("N", Amount) ->
     {Amount, 0, 0};
