@@ -35,8 +35,8 @@ star1(Claims) ->
     length([C || C <- maps:values(Counts), C > 1]).
 
 star2(Claims) ->
-    {NonOverlappingClaim, _, _} = no_overlaps(Claims, Claims),
-    NonOverlappingClaim.
+    {NonOverlappingId, _, _} = no_overlaps(Claims, Claims),
+    NonOverlappingId.
 
 read(File) ->
     Lines = tools:read_format(File, "#~d @ ~d,~d: ~dx~d"),

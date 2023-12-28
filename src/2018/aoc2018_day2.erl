@@ -23,14 +23,14 @@ run() ->
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
-star1(Data) ->
-    Counts = [{L, tools:count(L)} || L <- Data],
+star1(BoxIds) ->
+    Counts = [{L, tools:count(L)} || L <- BoxIds],
     TwoTimes = [L || {L, C} <- Counts, check(2, C)],
     ThreeTimes = [L || {L, C} <- Counts, check(3, C)],
     length(TwoTimes) * length(ThreeTimes).
 
-star2(Data) ->
-    [Common] = [C || A <- Data, B <- Data, A < B, {C, true} <- common(A, B, [], 0)],
+star2(BoxIds) ->
+    [Common] = [C || A <- BoxIds, B <- BoxIds, A < B, {C, true} <- common(A, B, [], 0)],
     Common.
 
 read(File) ->
