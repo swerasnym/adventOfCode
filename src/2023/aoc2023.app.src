@@ -1,0 +1,16 @@
+{application, aoc2023, [
+    {description, "A collection of Advent of Code solutions."},
+    {vsn, git},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib,
+        inets,
+        ssl,
+        htmerl
+    ]},
+    %{mod, {aoc_app, []}},
+    {env, []},
+    {modules, []},
+    {links, []}
+]}.

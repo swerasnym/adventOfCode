@@ -64,6 +64,8 @@
 -export([chinese_multi_reminder/1]).
 -export([interval_length/1]).
 -export([intervall_inside/1]).
+-export([parse_line/3]).
+-export([parse_line/2]).
 
 -spec ws() -> string().
 ws() ->
@@ -190,6 +192,8 @@ read_lines(File) ->
 %% @doc Reads a whole file into a list of lines without trailing linebreaks and applies function
 read_lines(File, Fun) when is_function(Fun, 1) ->
     [Fun(Line) || Line <- read_lines(File)];
+read_lines(File, {Fun, Params}) when is_function(Fun), is_list(Params) ->
+    [erlang:apply(Fun, [Line | Params]) || Line <- read_lines(File)];
 read_lines(File, Fun) when is_atom(Fun) ->
     read_lines(File, fun ?MODULE:Fun/1).
 
@@ -201,7 +205,9 @@ read_blocks(File) ->
 %% @doc Reads a whole file into a lists of blocks that where separated by a
 %% single empty line and applies function.
 read_blocks(File, Fun) when is_function(Fun, 1) ->
-    [Fun(Line) || Line <- read_blocks(File)];
+    [Fun(Block) || Block <- read_blocks(File)];
+read_blocks(File, {Fun, Params}) when is_function(Fun), is_list(Params) ->
+    [erlang:apply(Fun, [Block | Params]) || Block <- read_blocks(File)];
 read_blocks(File, Fun) when is_atom(Fun) ->
     read_blocks(File, fun ?MODULE:Fun/1).
 
@@ -245,6 +251,8 @@ parse_lines(String) ->
 
 parse_lines(String, Fun) when is_function(Fun, 1) ->
     [Fun(Line) || Line <- parse_lines(String)];
+parse_lines(String, {Fun, Params}) when is_function(Fun), is_list(Params) ->
+    [erlang:apply(Fun, [Line | Params]) || Line <- parse_lines(String)];
 parse_lines(String, Fun) when is_atom(Fun) ->
     parse_lines(String, fun ?MODULE:Fun/1).
 
@@ -252,7 +260,9 @@ parse_blocks(String) ->
     string:split(String, "\n\n", all).
 
 parse_blocks(String, Fun) when is_function(Fun, 1) ->
-    [Fun(Line) || Line <- parse_blocks(String)];
+    [Fun(Block) || Block <- parse_blocks(String)];
+parse_blocks(String, {Fun, Params}) when is_function(Fun), is_list(Params) ->
+    [erlang:apply(Fun, [Block | Params]) || Block <- parse_blocks(String)];
 parse_blocks(String, Fun) when is_atom(Fun) ->
     parse_blocks(String, fun ?MODULE:Fun/1).
 
@@ -284,6 +294,30 @@ parse_format(String, Format, Acc) ->
             error({partial_match, RestFormat, [InputStack | Acc]});
         {error, What} ->
             error({What, Format, String, Acc})
+    end.
+
+parse_line(Line, Format) ->
+    parse_line(Line, Format, empty).
+
+parse_line(Line, Format, empty) ->
+    case io_lib:fread(Format, Line) of
+        {ok, Terms, []} ->
+            Terms;
+        {ok, Terms, Rest} ->
+            error({more_terms, Terms, Rest});
+        {more, RestFormat, _Nchars, InputStack} ->
+            error({partial_match, RestFormat, InputStack});
+        {error, What} ->
+            error({What, Format, Line})
+    end;
+parse_line(Line, Format, rest) ->
+    case io_lib:fread(Format, Line) of
+        {ok, Terms, Rest} ->
+            {Terms, Rest};
+        {more, RestFormat, _Nchars, InputStack} ->
+            error({partial_match, RestFormat, InputStack});
+        {error, What} ->
+            error({What, Format, Line})
     end.
 
 %% ------------------------
