@@ -554,7 +554,7 @@ interval_length(empty) ->
 interval_length({Start, End}) when is_number(Start), is_number(End) ->
     End - Start.
 intervals_overlap({A1, A2}, {B1, B2}) ->
-    A1 =< B2 andalso B1 =< A2;
+    A1 < B2 andalso B1 < A2;
 intervals_overlap(_, _) ->
     false.
 
