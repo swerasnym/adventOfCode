@@ -193,9 +193,7 @@ read_lines(File) ->
 read_lines(File, Fun) when is_function(Fun, 1) ->
     [Fun(Line) || Line <- read_lines(File)];
 read_lines(File, {Fun, Params}) when is_function(Fun), is_list(Params) ->
-    [erlang:apply(Fun, [Line | Params]) || Line <- read_lines(File)];
-read_lines(File, Fun) when is_atom(Fun) ->
-    read_lines(File, fun ?MODULE:Fun/1).
+    [erlang:apply(Fun, [Line | Params]) || Line <- read_lines(File)].
 
 %% @doc Reads a whole file into a lists of blocks that where separated by a
 %% single empty line.
@@ -207,9 +205,7 @@ read_blocks(File) ->
 read_blocks(File, Fun) when is_function(Fun, 1) ->
     [Fun(Block) || Block <- read_blocks(File)];
 read_blocks(File, {Fun, Params}) when is_function(Fun), is_list(Params) ->
-    [erlang:apply(Fun, [Block | Params]) || Block <- read_blocks(File)];
-read_blocks(File, Fun) when is_atom(Fun) ->
-    read_blocks(File, fun ?MODULE:Fun/1).
+    [erlang:apply(Fun, [Block | Params]) || Block <- read_blocks(File)].
 
 %% @doc Reads a file of whitespace separated integers to a list.
 read_integers(File) ->
@@ -252,9 +248,7 @@ parse_lines(String) ->
 parse_lines(String, Fun) when is_function(Fun, 1) ->
     [Fun(Line) || Line <- parse_lines(String)];
 parse_lines(String, {Fun, Params}) when is_function(Fun), is_list(Params) ->
-    [erlang:apply(Fun, [Line | Params]) || Line <- parse_lines(String)];
-parse_lines(String, Fun) when is_atom(Fun) ->
-    parse_lines(String, fun ?MODULE:Fun/1).
+    [erlang:apply(Fun, [Line | Params]) || Line <- parse_lines(String)].
 
 parse_blocks(String) ->
     string:split(String, "\n\n", all).
@@ -262,9 +256,7 @@ parse_blocks(String) ->
 parse_blocks(String, Fun) when is_function(Fun, 1) ->
     [Fun(Block) || Block <- parse_blocks(String)];
 parse_blocks(String, {Fun, Params}) when is_function(Fun), is_list(Params) ->
-    [erlang:apply(Fun, [Block | Params]) || Block <- parse_blocks(String)];
-parse_blocks(String, Fun) when is_atom(Fun) ->
-    parse_blocks(String, fun ?MODULE:Fun/1).
+    [erlang:apply(Fun, [Block | Params]) || Block <- parse_blocks(String)].
 
 %% @doc Reads a string of whitespace separated integers to a list.
 parse_integers(String) ->

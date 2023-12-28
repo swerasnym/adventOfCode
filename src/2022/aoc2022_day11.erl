@@ -17,7 +17,7 @@ run(StarOrStars, FileOrData) ->
 
 read(File) ->
     erlang:erase(),
-    Blocks = tools:read_blocks(File, parse_lines),
+    Blocks = tools:read_blocks(File, fun tools:parse_lines/1),
     Monkeys = maps:from_list([parse_monkey(M) || M <- Blocks]),
     erlang:put(ids, lists:sort(maps:keys(Monkeys))),
     erlang:put(lcm, tools:lcm([test(M) || M <- maps:values(Monkeys)])),

@@ -23,4 +23,4 @@ star2(Data) ->
     lists:sum(lists:sublist(Sums, 3)).
 
 read(File) ->
-    tools:read_blocks(File, parse_integers).
+    tools:read_blocks(File, fun tools:parse_integers/1).

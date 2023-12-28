@@ -49,7 +49,7 @@ star3({Path, Map}) ->
     combind([steps(A, Path, fun ends_in_z/1, Map) || A <- As]).
 
 read(File) ->
-    [[Path], Dirs0] = tools:read_blocks(File, parse_lines),
+    [[Path], Dirs0] = tools:read_blocks(File, fun tools:parse_lines/1),
     Dirs1 = [string:tokens(D, " =,()") || D <- Dirs0],
     {Path, #{Dir => {L, R} || [Dir, L, R] <- Dirs1}}.
 

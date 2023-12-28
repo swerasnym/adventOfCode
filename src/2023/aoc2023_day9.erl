@@ -30,7 +30,7 @@ star2(Data) ->
     lists:sum([extrrapolate(D, rev) || D <- Data]).
 
 read(File) ->
-    tools:read_lines(File, parse_integers).
+    tools:read_lines(File, fun tools:parse_integers/1).
 
 extrrapolate(List, Dir) ->
     case all_zero(List) of

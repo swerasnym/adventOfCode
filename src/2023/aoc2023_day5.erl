@@ -42,7 +42,7 @@ parse_maps(Map) ->
     [_Text, Numbers] = string:split(Map, "\n"),
     Maps = [
         {tools:interval_from_length(Rs, Range), Ds - Rs}
-     || [Ds, Rs, Range] <- tools:parse_lines(Numbers, parse_integers)
+     || [Ds, Rs, Range] <- tools:parse_lines(Numbers, fun tools:parse_integers/1)
     ],
 
     lists:sort(Maps).

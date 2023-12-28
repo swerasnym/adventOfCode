@@ -30,7 +30,7 @@ star2(Grids) ->
     lists:sum([value_smudge(smudge(G), find_reflections(G)) || G <- Grids]).
 
 read(File) ->
-    tools:read_blocks(File, parse_grid).
+    tools:read_blocks(File, fun tools:parse_grid/1).
 
 value_smudge(S, {A, B}) ->
     lists:max([value_ref({Sa -- A, Sb -- B}) || {Sa, Sb} <- S]).

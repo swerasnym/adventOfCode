@@ -16,7 +16,7 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 read(File) ->
-    tools:read_blocks(File, parse_lines).
+    tools:read_blocks(File, fun tools:parse_lines/1).
 
 star1(Data) ->
     Comparasons = [compare(D) || D <- Data],
