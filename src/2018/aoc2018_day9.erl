@@ -34,9 +34,7 @@ star1({NoPlayers, LastMarble}) ->
     game(Players, Marbles, [0], #{}).
 
 star2({NoPlayers, LastMarble}) ->
-    Players = queue:from_list(lists:seq(1, NoPlayers)),
-    Marbles = lists:seq(1, LastMarble * 100),
-    game(Players, Marbles, [0], #{}).
+    star1({NoPlayers, LastMarble * 100}).
 
 read(File) ->
     String = tools:read_string(File),
@@ -63,7 +61,6 @@ game(Players0, [M | Marbles], Ring0, Score) ->
             {{value, C}, Ring3} = queue:out(Ring2),
             Ring = queue:in(C, Ring3),
             PSscore = maps:get(P, Score, 0) + M + K,
-
             game(queue:in(P, Players1), Marbles, Ring, Score#{P => PSscore});
         _ ->
             {{value, L}, Ring1} = queue:out(Ring0),

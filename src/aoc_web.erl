@@ -265,7 +265,6 @@ find_answers([_ | Rest], Answers) ->
 
 binary_to_answer(B) ->
     Functions = [
-        fun erlang:binary_to_float/1,
         fun erlang:binary_to_integer/1,
         fun erlang:binary_to_list/1
     ],
