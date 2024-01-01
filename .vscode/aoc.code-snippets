@@ -32,7 +32,7 @@
 			"",
 			"info() ->",
 			"    Examples = [",
-			"        {\"examples/$1/day$2_ex.txt\", star1, unknown},",
+			"        {\"examples/${1:2018}/day${2:1}_ex.txt\", star1, unknown},",
 			"        {\"examples/$1/day$2_ex.txt\", star2, unknown}",
 			"    ],",
 			"",

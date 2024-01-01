@@ -67,6 +67,11 @@
 -export([parse_format/3]).
 -export([parse_format/2]).
 -export([parse_multiple_formats/3]).
+-export([insert_if_smaller/3]).
+-export([insert_if_larger/3]).
+-export([insert_if/4]).
+-export([insert_if_larger/2]).
+-export([insert_if_smaller/2]).
 
 -spec whitespace() -> string().
 whitespace() ->
@@ -686,3 +691,39 @@ overlap([A | Rest], B, Overlap) when A < hd(B) ->
     overlap(Rest, B, Overlap);
 overlap(A, [B | Rest], Overlap) when B < hd(A) ->
     overlap(A, Rest, Overlap).
+
+insert_if_smaller({K, V}, Map) ->
+    insert_if_smaller(K, V, Map).
+
+insert_if_smaller(K, V, Map) when is_map_key(K, Map) ->
+    case V < maps:get(K, Map) of
+        true ->
+            Map#{K := V};
+        false ->
+            Map
+    end;
+insert_if_smaller(K, V, Map) ->
+    Map#{K => V}.
+
+insert_if_larger({K, V}, Map) ->
+    insert_if_larger(K, V, Map).
+
+insert_if_larger(K, V, Map) when is_map_key(K, Map) ->
+    case V > maps:get(K, Map) of
+        true ->
+            Map#{K := V};
+        false ->
+            Map
+    end;
+insert_if_larger(K, V, Map) ->
+    Map#{K => V}.
+
+insert_if(Pred, K, V, Map) when is_function(Pred, 2), is_map_key(K, Map) ->
+    case Pred(V, maps:get(K, Map)) of
+        true ->
+            Map#{K := V};
+        false ->
+            Map
+    end;
+insert_if(Pred, K, V, Map) when is_function(Pred, 2) ->
+    Map#{K => V}.
