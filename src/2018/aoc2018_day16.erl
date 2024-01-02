@@ -29,9 +29,9 @@ star2({Tests, Program}) ->
     OptMap = find_opt_codes(Tests),
     io:format("~p~n", [OptMap]),
     P = [[maps:get(Opt, OptMap), A, B, C] || [Opt, A, B, C] <- Program],
-    S0 = aoc_watch_code:new(),
-    StateE = aoc_watch_code:run(aoc_watch_code:load_program(S0, P)),
-    aoc_watch_code:get_reg(StateE, 0).
+    S = aoc_watch_code:new(),
+    End = aoc_watch_code:run(aoc_watch_code:load_program(S, P)),
+    aoc_watch_code:get_reg(End, 0).
 
 read(File) ->
     [Program, [] | Tests] = lists:reverse(tools:read_blocks(File)),
@@ -52,9 +52,9 @@ test({B, [Opt | Test], A}) ->
     {Opt, [I || I := Fun <- aoc_watch_code:instructions_map(), test(Fun, {B, Test, A})]}.
 
 test(I, {Before, [A, B, C], After}) ->
-    State0 = aoc_watch_code:new(Before),
-    State1 = I(State0, A, B, C),
-    After == aoc_watch_code:get_registers(State1).
+    S = aoc_watch_code:new(Before),
+    I(S, A, B, C),
+    After == aoc_watch_code:get_registers(S).
 
 find_opt_codes(Tests) ->
     AllValid = maps:groups_from_list(fun({K, _}) -> K end, fun({_, V}) -> V end, [

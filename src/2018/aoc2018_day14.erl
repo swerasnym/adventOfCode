@@ -1,6 +1,8 @@
 -module(aoc2018_day14).
 -behaviour(aoc_solution).
 
+-compile({inline, [get_value/2, set_value/3]}).
+
 -export([run/0, run/2]).
 
 %% callbacks

@@ -25,6 +25,22 @@
 -export([get_all_released/1]).
 -export([get_all_released/2]).
 -export([get_all_released_with_problem/0]).
+-export([profile/3]).
+
+profile(M, Star, Inputs) ->
+    eprof:start(),
+    eprof:start_profiling([self()]),
+    Results0 = run(M, Star, Inputs, #{summary => false}),
+    eprof:stop_profiling(),
+    eprof:analyze(),
+    eprof:stop(),
+
+    Results = check_answers(true, lists:flatten([Results0])),
+
+    io:format("~n~n~n~n~nResults:~n------------------------------~n"),
+    print(Results, #{}),
+    io:format("------------------------------~n"),
+    Results.
 
 run() ->
     run(all).

@@ -23,21 +23,25 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1({IpReg, Program}) ->
-    io:format("~p, ~p~n", [IpReg, Program]),
     S0 = aoc_watch_code:new(),
     S1 = aoc_watch_code:set_ip_reg(S0, IpReg),
     End = aoc_watch_code:run(aoc_watch_code:load_program(S1, Program)),
     aoc_watch_code:get_reg(End, 0).
 
 star2({IpReg, Program}) ->
+    %% Peek at instructions 13 to get our special register!
+    [eqrr, _, RN, _] = lists:nth(4 + 1, Program),
+
     S0 = aoc_watch_code:new(),
     S1 = aoc_watch_code:set_ip_reg(S0, IpReg),
     S2 = aoc_watch_code:set_reg(S1, 0, 1),
-    EndDbg = aoc_watch_code:run_dbg(aoc_watch_code:load_program(S2, Program), 45),
+
+    %% Run 23 instructions
+    End = aoc_watch_code:run_dbg(aoc_watch_code:load_program(S2, Program), 23),
 
     %% Assume that we are given a program that calculates the sum of divisors of
     %% the value in register 4 at this point.
-    [0, 0, 4, 3, N, 1] = aoc_watch_code:get_registers(EndDbg),
+    N = aoc_watch_code:get_reg(End, RN),
     Divisors = divisors(N),
     io:format("~p~n", [Divisors]),
 
