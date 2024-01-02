@@ -29,7 +29,7 @@ star1({IpReg, Program}) ->
     aoc_watch_code:get_reg(End, 0).
 
 star2({IpReg, Program}) ->
-    %% Peek at instructions 13 to get our special register!
+    %% Peek at instruction 4 to get our special register!
     [eqrr, _, RN, _] = lists:nth(4 + 1, Program),
 
     S0 = aoc_watch_code:new(),
