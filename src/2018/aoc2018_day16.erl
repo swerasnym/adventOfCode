@@ -28,10 +28,10 @@ star1({Tests, _}) ->
 star2({Tests, Program}) ->
     OptMap = find_opt_codes(Tests),
     io:format("~p~n", [OptMap]),
-    StateE = lists:foldl(
-        fun(I, State) -> execute(OptMap, I, State) end, aoc_watch_code:new(), Program
-    ),
-    hd(aoc_watch_code:get_registers(StateE)).
+    P = [[maps:get(Opt, OptMap), A, B, C] || [Opt, A, B, C] <- Program],
+    S0 = aoc_watch_code:new(),
+    StateE = aoc_watch_code:run(aoc_watch_code:load_program(S0, P)),
+    aoc_watch_code:get_reg(StateE, 0).
 
 read(File) ->
     [Program, [] | Tests] = lists:reverse(tools:read_blocks(File)),
@@ -77,6 +77,3 @@ remove_found(Fun, {N, Opt, Functions} = In) ->
         false ->
             In
     end.
-
-execute(OptMap, [Opt, A, B, C], State) ->
-    aoc_watch_code:execute(State, [maps:get(Opt, OptMap), A, B, C]).
