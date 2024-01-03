@@ -23,21 +23,29 @@ run() ->
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
-star1(#{max := End} = Map) ->
-    Start = gb_sets:from_list([{0, {{0, 0}, start, 0}}]),
-    search(Start, End, Map, #{}, fun move1/2).
+star1(#{max := {Ex, Ey} = End} = Map) ->
+    Start = {{0, 0}, start},
+    EndFun = fun({Pos, _}) -> Pos == End end,
+    Neighbours = fun(PosDir) -> move(PosDir, 1, 3, Map) end,
+    Estimate = fun({{X, Y}, _}) -> abs(Ex - X) + abs(Ey - Y) end,
+    {Dist, _, _} = aoc_graph:a_star(Start, EndFun, Neighbours, Estimate),
+    Dist.
 
-star2(#{max := End} = Map) ->
-    Start = gb_sets:from_list([{0, {{0, 0}, start, 0}}]),
-    search(Start, End, Map, #{}, fun move2/2).
+star2(#{max := {Ex, Ey} = End} = Map) ->
+    Start = {{0, 0}, start},
+    EndFun = fun({Pos, _}) -> Pos == End end,
+    Neighbours = fun(PosDir) -> move(PosDir, 4, 10, Map) end,
+    Estimate = fun({{X, Y}, _}) -> abs(Ex - X) + abs(Ey - Y) end,
+    {Dist, _, _} = aoc_graph:a_star(Start, EndFun, Neighbours, Estimate),
+    Dist.
 
 read(File) ->
     tools:read_grid(File, fun(D) -> D - $0 end).
 
-get_neigbour({X, Y}, north) -> {X, Y - 1};
-get_neigbour({X, Y}, south) -> {X, Y + 1};
-get_neigbour({X, Y}, east) -> {X + 1, Y};
-get_neigbour({X, Y}, west) -> {X - 1, Y}.
+get_neighbour({X, Y}, north) -> {X, Y - 1};
+get_neighbour({X, Y}, south) -> {X, Y + 1};
+get_neighbour({X, Y}, east) -> {X + 1, Y};
+get_neighbour({X, Y}, west) -> {X - 1, Y}.
 
 get_turns(start) ->
     [south, east];
@@ -50,37 +58,16 @@ get_turns(east) ->
 get_turns(west) ->
     [north, south].
 
-next({Pos, Dir, 0}, Max, _Min) ->
-    [{get_neigbour(Pos, D), D, Max - 1} || D <- get_turns(Dir)];
-next({Pos, Dir, N}, Max, Min) when N > Max - Min, Dir /= start ->
-    [{get_neigbour(Pos, Dir), Dir, N - 1}];
-next({Pos, Dir, N}, Max, _Min) when N > 0, Dir /= start ->
-    [{get_neigbour(Pos, D), D, Max - 1} || D <- get_turns(Dir)] ++
-        [{get_neigbour(Pos, Dir), Dir, N - 1}].
+move({Pos, Dir}, Min, Max, Map) ->
+    [D1, D2] = get_turns(Dir),
 
-move1({Dist, PDN}, Map) ->
-    [
-        {Dist + maps:get(NextPos, Map), Next}
-     || {NextPos, _, _} = Next <- next(PDN, 3, 1), maps:is_key(NextPos, Map)
-    ].
+    Move1 = fun({D, P}, Direction) ->
+        N = get_neighbour(P, Direction),
+        Dist = D + maps:get(N, Map, 0),
+        {{Dist, {N, Direction}}, {Dist, N}}
+    end,
 
-move2({Dist, PDN}, Map) ->
-    [
-        {Dist + maps:get(NextPos, Map), Next}
-     || {NextPos, _, _} = Next <- next(PDN, 10, 4), maps:is_key(NextPos, Map)
-    ].
-
-search(States, End, Map, Visited, Move) ->
-    {State, Rest} = gb_sets:take_smallest(States),
-    {Dist, PDN} = State,
-    {Pos, _, _} = PDN,
-    case maps:is_key(PDN, Visited) of
-        false when Pos == End ->
-            Dist;
-        false ->
-            New = Move(State, Map),
-            Next = gb_sets:union(Rest, gb_sets:from_list(New)),
-            search(Next, End, Map, Visited#{PDN => Dist}, Move);
-        true ->
-            search(Rest, End, Map, Visited, Move)
-    end.
+    {New1, _} = lists:mapfoldl(fun(_, A) -> Move1(A, D1) end, {0, Pos}, lists:seq(1, Max)),
+    {New2, _} = lists:mapfoldl(fun(_, A) -> Move1(A, D2) end, {0, Pos}, lists:seq(1, Max)),
+    New = lists:nthtail(Min - 1, New1) ++ lists:nthtail(Min - 1, New2),
+    [N || {_, {Np, _}} = N <- New, maps:is_key(Np, Map)].

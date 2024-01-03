@@ -41,8 +41,12 @@ star2({Depth, Target}) ->
     erlang:erase(),
     erlang:put({gi, Depth, Target}, 0),
     rocky = type(Depth, Target),
-    Start = gb_sets:from_list([{0, 0, {{0, 0}, torch}, start}]),
-    search(Start, {Target, torch}, #{}, Depth).
+    Start = {{0, 0}, torch},
+    End = {Target, torch},
+    Neighbours = fun(Pos) -> new(Pos, Depth) end,
+    Estimate = fun(Pos) -> dist(Pos, End) end,
+    {Dist, End, _} = aoc_graph:a_star(Start, End, Neighbours, Estimate),
+    Dist.
 
 read(File) ->
     [DepthS, TargetS] = tools:read_lines(File),
@@ -83,23 +87,7 @@ type(Depth, Pos) ->
         2 -> narrow
     end.
 
-search(States, {EndPos, _} = End, Visited, Depth) ->
-    {State, Rest} = gb_sets:take_smallest(States),
-    {_Est, Dist, PE, From} = State,
-    case maps:is_key(PE, Visited) of
-        false when PE == End ->
-            % io:format("~p~n", [State]),
-            Dist;
-        false ->
-            % io:format("~p~n", [State]),
-            New = new(PE, Depth, Dist, EndPos),
-            Next = gb_sets:union(Rest, gb_sets:from_list(New)),
-            search(Next, End, Visited#{PE => {Dist, From}}, Depth);
-        true ->
-            search(Rest, End, Visited, Depth)
-    end.
-
-equipment() -> [climbing, torch, neither].
+equipment() -> [climbing, neither, torch].
 
 allowed(rocky, climbing) -> true;
 allowed(rocky, torch) -> true;
@@ -117,18 +105,15 @@ allowed(Depth, Pos, Equipment) ->
     allowed(type(Depth, Pos), Equipment).
 
 neighbours({X, Y}) ->
-    [{X + Dx, Y + Dy} || {Dx, Dy} <- [{1, 0}, {-1, 0}, {0, 1}, {0, -1}]].
+    [{X + Dx, Y + Dy} || {Dx, Dy} <- [{-1, 0}, {0, -1}, {0, 1}, {1, 0}]].
 
-new({Pos, Equipment} = PE, Depth, Dist, EndPos) ->
-    Move = [
-        {Dist + dist(N, EndPos) + 1, Dist + 1, {N, Equipment}, PE}
-     || N <- neighbours(Pos), allowed(Depth, N, Equipment)
-    ],
-    Change = [
-        {Dist + dist(Pos, EndPos) + 7, Dist + 7, {Pos, E}, PE}
-     || E <- equipment(), allowed(Depth, Pos, E)
-    ],
-    Move ++ Change.
+new({Pos, Equipment}, Depth) ->
+    Move = [{1, {N, Equipment}} || N <- neighbours(Pos), allowed(Depth, N, Equipment)],
+    Change = [{7, {Pos, E}} || E <- equipment(), E /= Equipment, allowed(Depth, Pos, E)],
+    Out = lists:sort(Move ++ Change),
+    Out = Move ++ Change.
 
-dist({X, Y}, {Ex, Ey}) ->
-    abs(X - Ex) + abs(Y - Ey).
+dist({{X, Y}, Type}, {{Ex, Ey}, Type}) ->
+    abs(X - Ex) + abs(Y - Ey);
+dist({{X, Y}, _}, {{Ex, Ey}, _}) ->
+    abs(X - Ex) + abs(Y - Ey) + 7.
