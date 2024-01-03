@@ -1,6 +1,7 @@
 -module(aoc_graph).
 -export([a_star/4]).
 -export([dijkstra/3]).
+-export([get_path/2]).
 
 -export_type([pos/0]).
 
@@ -47,11 +48,12 @@ a_star(StartList, End, Neighbours, Estimate) when
 dijkstra(Start, End, Neighbours) ->
     a_star(Start, End, Neighbours, fun(_) -> 0 end).
 
-% get_path()
-
-% get_path(Pos, Path)
+get_path(Pos, Visited) when is_map_key(Pos, Visited) ->
+    get_path(Pos, Visited, []).
 
 %% --- Internal implementations ---
+a_star({0, nil}, _End, Visited, _Neighbours, _Estimate) ->
+    {no_path, Visited};
 a_star(States, End, Visited, Neighbours, Estimate) ->
     {State, Rest} = gb_sets:take_smallest(States),
     {_Est, Dist, Pos, From} = State,
@@ -59,10 +61,18 @@ a_star(States, End, Visited, Neighbours, Estimate) ->
         {true, false} ->
             {Dist, Pos, Visited#{Pos => {Dist, From}}};
         {false, false} ->
-            New = [N || N <- Neighbours(Pos), not maps:is_key(N, Visited)],
+            New = Neighbours(Pos),
             NewStates = [{Dist + D + Estimate(N), Dist + D, N, Pos} || {D, N} <- New],
             Next = gb_sets:union(Rest, gb_sets:from_list(NewStates)),
             a_star(Next, End, Visited#{Pos => {Dist, From}}, Neighbours, Estimate);
         {false, true} ->
             a_star(Rest, End, Visited, Neighbours, Estimate)
+    end.
+
+get_path(Pos, Visited, Path) ->
+    case maps:get(Pos, Visited) of
+        {0, start} ->
+            [Pos | Path];
+        {_, From} ->
+            get_path(From, Visited, [Pos | Path])
     end.

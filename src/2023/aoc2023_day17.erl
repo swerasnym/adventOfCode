@@ -36,7 +36,8 @@ star2(#{max := {Ex, Ey} = End} = Map) ->
     EndFun = fun({Pos, _}) -> Pos == End end,
     Neighbours = fun(PosDir) -> move(PosDir, 4, 10, Map) end,
     Estimate = fun({{X, Y}, _}) -> abs(Ex - X) + abs(Ey - Y) end,
-    {Dist, _, _} = aoc_graph:a_star(Start, EndFun, Neighbours, Estimate),
+    {Dist, Ep, Visited} = aoc_graph:a_star(Start, EndFun, Neighbours, Estimate),
+    io:format("~p~n", [aoc_graph:get_path(Ep, Visited)]),
     Dist.
 
 read(File) ->
