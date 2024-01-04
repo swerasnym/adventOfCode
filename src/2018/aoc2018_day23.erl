@@ -30,29 +30,34 @@ star1(Bots) ->
 star2(Bots) ->
     EnumeratedBots = lists:enumerate(Bots),
     StartsAndStops = [starts_ans_stops(Base, EnumeratedBots) || Base <- basis_vectors()],
-    Joined = [join(S, [], []) || S <- StartsAndStops],
+    Joined = [join(S, [], [], []) || S <- StartsAndStops],
     Best = find_best_clusters(Joined, {lists:seq(1, length(Bots)), []}, [{0, []}]),
-    [{_, Clusters}] = Best,
-    Intersections = [erlang:list_to_tuple(I) || I <- intersections(Clusters)],
+    Intersections = lists:usort([
+        to_integer_tuple(I)
+     || {_, Clusters} <- Best, I <- intersections(Clusters), all_integers(I)
+    ]),
     io:format("~p~n", [Intersections]),
 
-    {XL, YL, ZL} = lists:unzip3(Intersections),
-
-    Points = [
-        {X, Y, Z}
-     || X <- lists:seq(lists:min(XL), lists:max(XL)),
-        Y <- lists:seq(lists:min(YL), lists:max(YL)),
-        Z <- lists:seq(lists:min(ZL), lists:max(ZL))
-    ],
-
-    DistPoints = lists:sort([{aoc_vector:manhattan(I, {0, 0, 0}), I} || I <- Points]),
-
-    {_, Dist} = hd(lists:sort(find_matching(Bots, DistPoints))),
+    DistPoints = lists:sort([{aoc_vector:manhattan(I, {0, 0, 0}), I} || I <- Intersections]),
+    Matching = lists:sort(find_matching(Bots, DistPoints)),
+    io:format("~p~n", [Matching]),
+    {_, Dist, _} = hd(Matching),
     Dist.
 
 read(File) ->
     Bots = tools:read_multiple_formats(File, "pos=<~d,~d,~d>, r=~d"),
     [{R, {X, Y, Z}} || [X, Y, Z, R] <- Bots].
+
+is_int(N) when is_integer(N) ->
+    true;
+is_int(N) when is_float(N) ->
+    N == erlang:trunc(N).
+
+all_integers(L) ->
+    lists:all(fun is_int/1, L).
+
+to_integer_tuple(L) ->
+    erlang:list_to_tuple([erlang:trunc(N) || N <- L]).
 
 find_matching(Bots, Points) ->
     [
@@ -61,7 +66,8 @@ find_matching(Bots, Points) ->
                 R
              || {R, Pos} <- Bots, aoc_vector:manhattan(Point, Pos) =< R
             ]),
-            Dist
+            Dist,
+            Point
         }
      || {Dist, Point} <- Points
     ].
@@ -104,66 +110,81 @@ starts_ans_stops(Base, EnumeratedBots) ->
 basis_vectors() ->
     [{1, 1, 1}, {1, -1, 1}, {-1, 1, 1}, {-1, -1, 1}].
 
-join([{_, stop, N}], [N2], Acc) when N == N2 ->
+join([{_, delete, N}], [N], _, Acc) ->
     tools:reverse_sort(Acc);
-join([A, B | Rest], Active, Acc) ->
-    {Range, NewActive} = join(A, B, Active),
-    join([B | Rest], NewActive, [Range | Acc]);
-join({{D, Base}, Type, N}, {{D2, Base}, _, _}, Active) ->
+join([{{D, Base}, Type, N} = A, {{D, Base}, _, _} = B | Rest], Active, Remove, Acc) ->
     case Type of
-        start ->
+        insert ->
+            join([B | Rest], [N | Active], Remove, Acc);
+        delete ->
+            join([B | Rest], Active, [N | Remove], Acc)
+    end;
+join([A, B | Rest], Active, Remove, Acc) ->
+    {Range, NewActive} = join(A, B, Active),
+    join([B | Rest], NewActive -- Remove, [], [Range | Acc]).
+
+join({{D, Base}, Type, N} = A, {{D2, Base}, _, _} = B, Active) ->
+    case D == D2 of
+        true ->
+            io:format("~p ~p~n", [A, B]);
+        _ ->
+            ok
+    end,
+
+    case Type of
+        insert ->
             NewActive = [N | Active],
             Range = {length(NewActive), {{D, Base}, {D2, Base}}, lists:sort(NewActive)};
-        stop ->
+        delete ->
             NewActive = Active -- [N],
-            Range = {length(NewActive), {{D, Base}, {D2, Base}}, lists:sort(NewActive)}
+            Range = {length(Active), {{D, Base}, {D2, Base}}, lists:sort(Active)}
     end,
 
     {Range, NewActive}.
 
 start_stop(Base, {I, Bot}) ->
-    [{plane_top(Base, Bot), start, I}, {plane_bot(Base, Bot), stop, I}].
+    [{plane_top(Base, Bot), insert, I}, {plane_bot(Base, Bot), delete, I}].
 
 plane_top(Base, {R, Pos}) ->
-    {aoc_vector:dot(Base, Pos) + R + 1, Base}.
+    {aoc_vector:dot(Base, Pos) + R, Base}.
 plane_bot(Base, {R, Pos}) ->
-    {aoc_vector:dot(Base, Pos) - R - 1, Base}.
+    {aoc_vector:dot(Base, Pos) - R, Base}.
 
 intersections([{At, Ab}, {Bt, Bb}, {Ct, Cb}, {Dt, Db}]) ->
-    lists:usort([
-        aoc_vector:three_plane_intersection_i(At, Bt, Ct),
-        aoc_vector:three_plane_intersection_i(At, Bt, Cb),
-        aoc_vector:three_plane_intersection_i(At, Bb, Ct),
-        aoc_vector:three_plane_intersection_i(At, Bb, Cb),
-        aoc_vector:three_plane_intersection_i(Ab, Bt, Ct),
-        aoc_vector:three_plane_intersection_i(Ab, Bt, Cb),
-        aoc_vector:three_plane_intersection_i(Ab, Bb, Ct),
-        aoc_vector:three_plane_intersection_i(Ab, Bb, Cb),
+    [
+        aoc_vector:three_plane_intersection(At, Bt, Ct),
+        aoc_vector:three_plane_intersection(At, Bt, Cb),
+        aoc_vector:three_plane_intersection(At, Bb, Ct),
+        aoc_vector:three_plane_intersection(At, Bb, Cb),
+        aoc_vector:three_plane_intersection(Ab, Bt, Ct),
+        aoc_vector:three_plane_intersection(Ab, Bt, Cb),
+        aoc_vector:three_plane_intersection(Ab, Bb, Ct),
+        aoc_vector:three_plane_intersection(Ab, Bb, Cb),
 
-        aoc_vector:three_plane_intersection_i(At, Bt, Dt),
-        aoc_vector:three_plane_intersection_i(At, Bt, Db),
-        aoc_vector:three_plane_intersection_i(At, Bb, Dt),
-        aoc_vector:three_plane_intersection_i(At, Bb, Db),
-        aoc_vector:three_plane_intersection_i(Ab, Bt, Dt),
-        aoc_vector:three_plane_intersection_i(Ab, Bt, Db),
-        aoc_vector:three_plane_intersection_i(Ab, Bb, Dt),
-        aoc_vector:three_plane_intersection_i(Ab, Bb, Db),
+        aoc_vector:three_plane_intersection(At, Bt, Dt),
+        aoc_vector:three_plane_intersection(At, Bt, Db),
+        aoc_vector:three_plane_intersection(At, Bb, Dt),
+        aoc_vector:three_plane_intersection(At, Bb, Db),
+        aoc_vector:three_plane_intersection(Ab, Bt, Dt),
+        aoc_vector:three_plane_intersection(Ab, Bt, Db),
+        aoc_vector:three_plane_intersection(Ab, Bb, Dt),
+        aoc_vector:three_plane_intersection(Ab, Bb, Db),
 
-        aoc_vector:three_plane_intersection_i(At, Ct, Dt),
-        aoc_vector:three_plane_intersection_i(At, Ct, Db),
-        aoc_vector:three_plane_intersection_i(At, Cb, Dt),
-        aoc_vector:three_plane_intersection_i(At, Cb, Db),
-        aoc_vector:three_plane_intersection_i(Ab, Ct, Dt),
-        aoc_vector:three_plane_intersection_i(Ab, Ct, Db),
-        aoc_vector:three_plane_intersection_i(Ab, Cb, Dt),
-        aoc_vector:three_plane_intersection_i(Ab, Cb, Db),
+        aoc_vector:three_plane_intersection(At, Ct, Dt),
+        aoc_vector:three_plane_intersection(At, Ct, Db),
+        aoc_vector:three_plane_intersection(At, Cb, Dt),
+        aoc_vector:three_plane_intersection(At, Cb, Db),
+        aoc_vector:three_plane_intersection(Ab, Ct, Dt),
+        aoc_vector:three_plane_intersection(Ab, Ct, Db),
+        aoc_vector:three_plane_intersection(Ab, Cb, Dt),
+        aoc_vector:three_plane_intersection(Ab, Cb, Db),
 
-        aoc_vector:three_plane_intersection_i(Bt, Ct, Dt),
-        aoc_vector:three_plane_intersection_i(Bt, Ct, Db),
-        aoc_vector:three_plane_intersection_i(Bt, Cb, Dt),
-        aoc_vector:three_plane_intersection_i(Bt, Cb, Db),
-        aoc_vector:three_plane_intersection_i(Bb, Ct, Dt),
-        aoc_vector:three_plane_intersection_i(Bb, Ct, Db),
-        aoc_vector:three_plane_intersection_i(Bb, Cb, Dt),
-        aoc_vector:three_plane_intersection_i(Bb, Cb, Db)
-    ]).
+        aoc_vector:three_plane_intersection(Bt, Ct, Dt),
+        aoc_vector:three_plane_intersection(Bt, Ct, Db),
+        aoc_vector:three_plane_intersection(Bt, Cb, Dt),
+        aoc_vector:three_plane_intersection(Bt, Cb, Db),
+        aoc_vector:three_plane_intersection(Bb, Ct, Dt),
+        aoc_vector:three_plane_intersection(Bb, Ct, Db),
+        aoc_vector:three_plane_intersection(Bb, Cb, Dt),
+        aoc_vector:three_plane_intersection(Bb, Cb, Db)
+    ].
