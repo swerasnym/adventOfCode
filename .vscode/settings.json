@@ -49,6 +49,7 @@
         "Xmin",
         "Ymax",
         "Ymin",
+        "zipwith",
         "Zmax",
         "Zmin"
     ],
