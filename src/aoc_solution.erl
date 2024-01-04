@@ -70,7 +70,7 @@ run(M, StarOrStars, FileOrData, #{summary := true}) ->
     io:format("------------------------------~n"),
     Results;
 run(M, StarOrStars, FileOrData, _Opts) ->
-    merge_meta(run_file(M, StarOrStars, FileOrData), #{}).
+    merge_meta(run_file(M, StarOrStars, FileOrData), #{type => file}).
 
 run_file([M], StarOrStars, FileOrData) ->
     run_file(M, StarOrStars, FileOrData);
@@ -340,6 +340,8 @@ check_answers([{Res, #{expected := Answer} = Meta} | Rest], Acc) ->
 check_answers([{Res, #{type := input, problem := {Year, Day}, star := Star} = Meta} | Rest], Acc) ->
     Answer = aoc_web:get_answer(Year, Day, Star),
     check_answers(Rest, [{Res, Meta#{expected => Answer, check => check(Res, Answer)}} | Acc]);
+check_answers([{Res, #{type := file} = Meta} | Rest], Acc) ->
+    check_answers(Rest, [{Res, Meta#{expected => unknown, check => check(Res, unknown)}} | Acc]);
 check_answers([H | Rest], Acc) ->
     check_answers(Rest, [H | Acc]).
 

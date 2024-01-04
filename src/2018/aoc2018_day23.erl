@@ -86,6 +86,8 @@ find_best_clusters(
             case length(RemainingBots) < BestNumber of
                 true ->
                     find_best_clusters([Rest | OtherPlanes], {Bots, Planes}, CurrentBest);
+                false when length(RemainingBots) == 0 ->
+                    find_best_clusters([Rest | OtherPlanes], {Bots, Planes}, CurrentBest);
                 false ->
                     Best = find_best_clusters(
                         OtherPlanes, {RemainingBots, [HeadPlanes | Planes]}, CurrentBest
@@ -98,9 +100,10 @@ find_best_clusters([], {Bots, Planes}, [{BestNumber, _} | _] = CurrentBest) ->
         N when N < BestNumber ->
             CurrentBest;
         N when N > BestNumber ->
-            io:format("~p~n", [{N, Planes}]),
+            io:format("New region ~p~n", [{N, Planes}]),
             [{N, Planes}];
         BestNumber ->
+            io:format("Additional regions ~p~n", [{BestNumber, Planes}]),
             [{BestNumber, Planes} | CurrentBest]
     end.
 
@@ -112,10 +115,10 @@ basis_vectors() ->
 
 join([{_, delete, N}], [N], _, Acc) ->
     tools:reverse_sort(Acc);
-join([{{D, Base}, Type, N} = A, {{D, Base}, _, _} = B | Rest], Active, Remove, Acc) ->
+join([{{D, Base}, Type, N}, {{D, Base}, _, _} = B | Rest], Active, Remove, Acc) ->
     case Type of
         insert ->
-            join([B | Rest], [N | Active], Remove, Acc);
+            join([B | Rest], lists:merge([N], Active), Remove, Acc);
         delete ->
             join([B | Rest], Active, [N | Remove], Acc)
     end;
@@ -133,11 +136,11 @@ join({{D, Base}, Type, N} = A, {{D2, Base}, _, _} = B, Active) ->
 
     case Type of
         insert ->
-            NewActive = [N | Active],
-            Range = {length(NewActive), {{D, Base}, {D2, Base}}, lists:sort(NewActive)};
+            NewActive = lists:merge([N], Active),
+            Range = {length(NewActive), {{D, Base}, {D2, Base}}, NewActive};
         delete ->
             NewActive = Active -- [N],
-            Range = {length(Active), {{D, Base}, {D2, Base}}, lists:sort(Active)}
+            Range = {length(Active), {{D, Base}, {D2, Base}}, Active}
     end,
 
     {Range, NewActive}.
