@@ -6,6 +6,7 @@
         "addi",
         "addx",
         "banr",
+        "bnot",
         "bori",
         "borr",
         "concat",
