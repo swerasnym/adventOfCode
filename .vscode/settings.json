@@ -32,6 +32,7 @@
         "httpc",
         "inets",
         "intcode",
+        "jsone",
         "mapfoldl",
         "muli",
         "mulr",
