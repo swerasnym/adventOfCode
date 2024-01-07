@@ -39,6 +39,7 @@
         "noreply",
         "nthtail",
         "orelse",
+        "outputpid",
         "proplists",
         "ruleset",
         "setelement",

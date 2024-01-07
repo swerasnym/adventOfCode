@@ -27,27 +27,30 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Program) ->
-    {Res, P} = lists:max([{pahses(Program, Phases), Phases} || Phases <- perms([0, 1, 2, 3, 4])]),
+    {Res, P} = lists:max([
+        {pashes(Program, Phases), Phases}
+     || Phases <- tools:perms([0, 1, 2, 3, 4])
+    ]),
     io:format("~p~n", [P]),
     Res.
 
 star2(Program) ->
-    {Res, P} = lists:max([{loop(Program, Phases), Phases} || Phases <- perms([5, 6, 7, 8, 9])]),
+    {Res, P} = lists:max([{loop(Program, Phases), Phases} || Phases <- tools:perms([5, 6, 7, 8, 9])]),
     io:format("~p~n", [P]),
     Res.
 
 read(File) ->
     intcode:from_file(File).
 
-pahses(Program, Phases) ->
-    pahses(Program, Phases, 0).
+pashes(Program, Phases) ->
+    pashes(Program, Phases, 0).
 
-pahses(_, [], Input) ->
+pashes(_, [], Input) ->
     Input;
-pahses(Program, [Phase | Phases], Input) ->
+pashes(Program, [Phase | Phases], Input) ->
     Result = intcode:run(Program, [{input, [Phase, Input]}]),
     [Output] = intcode:get_output(Result),
-    pahses(Program, Phases, Output).
+    pashes(Program, Phases, Output).
 
 loop(Program, [P0, P1, P2, P3, P4]) ->
     F = fun(Input, Pid) ->
@@ -64,8 +67,3 @@ loop(Program, [P0, P1, P2, P3, P4]) ->
 
     {halt, [Result]} = intcode:recvn(Pid4, all, 1000),
     Result.
-
-perms([]) ->
-    [[]];
-perms(L) ->
-    [[H | T] || H <- L, T <- perms(L -- [H])].

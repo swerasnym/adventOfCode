@@ -24,10 +24,10 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Map) ->
-    lists:min([distance(P, Map, 0) || P <- perms(maps:keys(Map))]).
+    lists:min([distance(P, Map, 0) || P <- tools:perms(maps:keys(Map))]).
 
 star2(Map) ->
-    lists:max([distance(P, Map, 0) || P <- perms(maps:keys(Map))]).
+    lists:max([distance(P, Map, 0) || P <- tools:perms(maps:keys(Map))]).
 
 read(File) ->
     Distances = tools:read_multiple_formats(File, "~s to ~s = ~d"),
@@ -39,8 +39,3 @@ distance([_], _Map, Acc) ->
     Acc;
 distance([F, T | Rest], Map, Acc) ->
     distance([T | Rest], Map, Acc + maps:get(T, maps:get(F, Map))).
-
-perms([]) ->
-    [[]];
-perms(L) ->
-    [[H | T] || H <- L, T <- perms(L -- [H])].

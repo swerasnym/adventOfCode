@@ -72,6 +72,7 @@
 -export([insert_if/4]).
 -export([insert_if_larger/2]).
 -export([insert_if_smaller/2]).
+-export([perms/1]).
 
 -spec whitespace() -> string().
 whitespace() ->
@@ -691,6 +692,11 @@ overlap([A | Rest], B, Overlap) when A < hd(B) ->
     overlap(Rest, B, Overlap);
 overlap(A, [B | Rest], Overlap) when B < hd(A) ->
     overlap(A, Rest, Overlap).
+
+perms([]) ->
+    [[]];
+perms(L) ->
+    [[H | T] || H <- L, T <- perms(L -- [H])].
 
 insert_if_smaller({K, V}, Map) ->
     insert_if_smaller(K, V, Map).
