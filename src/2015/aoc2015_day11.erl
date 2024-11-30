@@ -64,7 +64,7 @@ count_double(String) ->
 
 count_double([A, A | Rest], Count) ->
     count_double(Rest, Count + 1);
-count_double([A | Rest], Count) ->
+count_double([_A | Rest], Count) ->
     count_double(Rest, Count);
 count_double(_, Count) ->
     Count.

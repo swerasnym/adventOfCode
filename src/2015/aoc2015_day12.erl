@@ -28,10 +28,10 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Bin) ->
-    Decoded = jsone:decode(Bin),
+    Decoded = json:decode(Bin),
     sum(Decoded, 0).
 star2(Bin) ->
-    Decoded = jsone:decode(Bin),
+    Decoded = json:decode(Bin),
     sum_non_red(Decoded, 0).
 
 read(File) ->

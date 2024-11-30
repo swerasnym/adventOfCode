@@ -234,7 +234,7 @@ print_result(Result, #{star := Star} = Meta) ->
     Res = vt100format([bright, cyan], "~0p", [Result]),
 
     %% Using vt100 codes \e[s (Save Cursor) to save the start position of the result.
-    %% This is used by the expected string to place the expected result directley below if needed.
+    %% This is used by the expected string to place the expected result directly below if needed.
     io:format("~s~s  ~s~p~s: \t\e[s~s ~s~n", [Check, Time, M, Star, Parameters, Res, Expected]).
 
 format_module(#{module := M}) ->
@@ -284,7 +284,7 @@ format_expected(#{check := Check, expected := Expected}) ->
         true ->
             %% Using vt100 codes \e[u (Restore Cursor) \e[B (Cursor Down)
             %% to place expected value in same column as the result.
-            io_lib:format("~nexpected: \e[u\e[B~p", [Expected]);
+            io_lib:format("~nExpected: \e[u\e[B~p", [Expected]);
         false ->
             ""
     end;
@@ -358,7 +358,7 @@ check(_Result, unknown) ->
 check(_Result, _Other) ->
     fail.
 
-attirs() ->
+attributes() ->
     #{
         reset => "0",
         bright => "1",
@@ -389,14 +389,14 @@ attirs() ->
 
 vt100code(reset) ->
     "\e[0m";
-vt100code(Attirs) when is_list(Attirs) ->
-    ["\e[0;", string:join([maps:get(A, attirs()) || A <- Attirs], ";"), "m"];
-vt100code(Attir) ->
-    ["\e[0;", maps:get(Attir, attirs()), "m"].
+vt100code(Attributes) when is_list(Attributes) ->
+    ["\e[0;", string:join([maps:get(A, attributes()) || A <- Attributes], ";"), "m"];
+vt100code(Attributes) ->
+    ["\e[0;", maps:get(Attributes, attributes()), "m"].
 
-vt100format(Attirs, Format, Params) ->
+vt100format(Attributes, Format, Params) ->
     [
-        vt100code(Attirs),
+        vt100code(Attributes),
         io_lib:format(Format, Params),
         vt100code(reset)
     ].
