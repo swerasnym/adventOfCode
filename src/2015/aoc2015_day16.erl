@@ -7,14 +7,8 @@
 -export([info/0, star1/1, star2/1, read/1]).
 
 info() ->
-    Examples = [
-        % {"examples/2015/day16_ex.txt", star1, unknown},
-        % {"examples/2015/day16_ex.txt", star2, unknown}
-    ],
-
     maps:merge(aoc_solution:default_info(), #{
-        problem => {2015, 16},
-        examples => Examples
+        problem => {2015, 16}
     }).
 
 run() ->
