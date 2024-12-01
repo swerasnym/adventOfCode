@@ -34,5 +34,4 @@ star2({L1, L2}) ->
     lists:sum([I1 * maps:get(I1, C2, 0) || I1 <- L1]).
 
 read(File) ->
-    Lists = tools:read_multiple_formats(File, "~d ~d"),
-    lists:unzip([{I1, I2} || [I1, I2] <- Lists]).
+    lists:unzip(tools:group(2, tools:read_integers(File))).
