@@ -24,11 +24,10 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Grid) ->
-    %  tools:print_grid(Grid),
-    length([W || {X, Y} := _ <- Grid, W <- form_words({X, Y}, Grid), W == "XMAS"]).
+    length([W || Pos := $X <- Grid, W <- form_words(Pos, Grid), W == "XMAS"]).
 
 star2(Grid) ->
-    length([{X, Y} || {X, Y} := _ <- Grid, x_mas(form_word(directions_2({X, Y}), Grid))]).
+    length([Pos || Pos := $A <- Grid, x_mas(form_word(directions2(Pos), Grid))]).
 
 read(File) ->
     tools:read_grid(File).
@@ -46,14 +45,12 @@ directions({X, Y}) ->
     ].
 
 form_word(L, Grid) ->
-    W = [maps:get(Pos, Grid, $.) || Pos <- L],
-    % io:format("~s~n", [W]),
-    W.
+    [maps:get(Pos, Grid, $.) || Pos <- L].
 
 form_words(Pos, Grid) ->
     [form_word(L, Grid) || L <- directions(Pos)].
 
-directions_2({X, Y}) ->
+directions2({X, Y}) ->
     [{X - 1, Y - 1}, {X, Y}, {X + 1, Y + 1}, {X - 1, Y + 1}, {X, Y}, {X + 1, Y - 1}].
 
 x_mas("MASMAS") ->
