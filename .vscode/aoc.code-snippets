@@ -48,7 +48,7 @@
 			"    aoc_solution:run(?MODULE, StarOrStars, FileOrData).",
 			"",
 			"star1(Data) ->",
-			"    io:format(\"~s~n\", [Data]),",
+			"    io:format(\"~p~n\", [Data]),",
 			"    unknown.",
 			"",
 			"star2(Data) ->",
