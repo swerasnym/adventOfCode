@@ -1,0 +1,32 @@
+name: Erlang CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: erlang:27
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set ownership
+      run: |
+        # make owner correct
+        chown -R $(id -u):$(id -g) $PWD
+    - name: Compile
+      run: rebar3 compile
+      env:
+        DEBUG: 1
+    - name: Run tests
+      run: rebar3 test
+      env:
+        DEBUG: 1
