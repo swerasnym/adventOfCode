@@ -12,10 +12,20 @@ examples_test_() ->
      || M <- aoc_solution:get_all_released()
     ]}.
 input_test_() ->
-    {inparallel, [
-        {timeout, 300, verify_input(M)}
-     || M <- aoc_solution:get_all_released()
-    ]}.
+    case application:get_env(aoc, session_id) of
+        undefined ->
+            ?debugFmt("~nsession_id not configured, run ./init.sh to configure.", []),
+            {inparallel, []};
+        {ok, ""} ->
+            ?debugFmt("~nsession_id is empty, configure in aoc.config", []),
+            {inparallel, []};
+        {ok, Id} ->
+            io:format("Session id: '~s'", [Id]),
+            {inparallel, [
+                {timeout, 300, verify_input(M)}
+             || M <- aoc_solution:get_all_released()
+            ]}
+    end.
 
 verify_examples(M) ->
     {
