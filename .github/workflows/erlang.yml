@@ -18,6 +18,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Set ownership
+      run: |
+        # make owner correct
+        chown -R $(id -u):$(id -g) $PWD
     - name: Compile
       run: rebar3 compile
       env:
