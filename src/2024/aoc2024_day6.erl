@@ -25,14 +25,14 @@ run(StarOrStars, FileOrData) ->
 
 star1(Map) ->
     [StartPos] = [Pos || Pos := $^ <- Map],
-    Path = move(StartPos, north, Map#{StartPos => $.}, [], #{}),
-    length(lists:usort(Path)).
+    {outside, Path} = guard_path(StartPos, north, Map#{StartPos => $.}, [], #{}),
+    {Positions, _} = lists:unzip(Path),
+    length(lists:usort(Positions)).
 
 star2(Map) ->
     [StartPos] = [Pos || Pos := $^ <- Map],
-    Path = move(StartPos, north, Map#{StartPos => $.}, [], #{}),
-    Loops = [Obstruction || Obstruction <- lists:usort(Path), is_loop(StartPos, Map, Obstruction)],
-    length(Loops).
+    {outside, Path} = guard_path(StartPos, north, Map#{StartPos => $.}, [], #{}),
+    count_loops(Path, Map#{StartPos => $.}).
 
 read(File) ->
     tools:read_grid(File).
@@ -54,26 +54,35 @@ get_turn(east) ->
     south;
 get_turn(west) ->
     north.
-is_loop(StartPos, _Map, StartPos) ->
-    false;
-is_loop(StartPos, Map, Obstruction) ->
-    case move(StartPos, north, Map#{Obstruction => $#, StartPos => $.}, [], #{}) of
-        {loop, _} ->
-            true;
-        _ ->
-            false
-    end.
 
-move(Pos, Dir, Map, Path, Visited) ->
+guard_path(Pos, Dir, Map, Path, Visited) ->
     Next = move(Pos, Dir),
-    BeenHere = maps:get({Pos, Dir}, Visited, false),
+    PosDir = {Pos, Dir},
+    BeenHere = maps:get(PosDir, Visited, false),
     case {BeenHere, maps:get(Next, Map, outside)} of
         {true, _} ->
-            {loop, [Pos | Path]};
+            {loop, lists:reverse([PosDir | Path])};
         {false, outside} ->
-            [Pos | Path];
+            {outside, lists:reverse([PosDir | Path])};
         {false, $.} ->
-            move(Next, Dir, Map, [Pos | Path], Visited#{{Pos, Dir} => true});
+            guard_path(Next, Dir, Map, [PosDir | Path], Visited#{PosDir => true});
         {false, $#} ->
-            move(Pos, get_turn(Dir), Map, Path, Visited#{{Pos, Dir} => true})
+            guard_path(Pos, get_turn(Dir), Map, Path, Visited#{PosDir => true})
+    end.
+
+count_loops(Path, Map) ->
+    count_loops(Path, Map, 0, #{}, #{}).
+
+count_loops([_], _, Loops, _, _) ->
+    Loops;
+count_loops([{Pos, Dir} | Path], Map, Loops, Visited0, Checked) ->
+    {Block, _} = hd(Path),
+    Visited = Visited0#{{Pos, Dir} => true},
+    case maps:get(Block, Checked, false) of
+        true ->
+            count_loops(Path, Map, Loops, Visited, Checked);
+        false ->
+            {Exit, _} = guard_path(Pos, Dir, Map#{Block => $#}, [], Visited0),
+            LoopsNext = tools:inc_on_true(Exit == loop, Loops),
+            count_loops(Path, Map, LoopsNext, Visited, Checked#{Block => true})
     end.

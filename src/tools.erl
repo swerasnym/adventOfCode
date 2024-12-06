@@ -73,6 +73,7 @@
 -export([insert_if_larger/2]).
 -export([insert_if_smaller/2]).
 -export([perms/1]).
+-export([inc_on_true/2]).
 
 -spec whitespace() -> string().
 whitespace() ->
@@ -102,6 +103,11 @@ count(V, [V | Rest], Count) ->
     count(V, Rest, Count + 1);
 count(V, List, Count) ->
     count(V, tl(List), Count).
+
+inc_on_true(true, V) ->
+    V + 1;
+inc_on_true(_, V) ->
+    V.
 
 %% @doc Calculates the product of a list of numbers.
 

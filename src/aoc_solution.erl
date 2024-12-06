@@ -1,7 +1,7 @@
 -module(aoc_solution).
 
 -type day() :: 1..25.
--type year() :: 2015..2023.
+-type year() :: 2015..2024.
 
 -type info() :: #{problem := {year(), day()}, _ => _}.
 -type data() :: term().
