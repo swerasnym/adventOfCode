@@ -20,5 +20,9 @@ jobs:
     - uses: actions/checkout@v4
     - name: Compile
       run: rebar3 compile
+      env:
+        DEBUG: 1
     - name: Run tests
       run: rebar3 test
+      env:
+        DEBUG: 1
