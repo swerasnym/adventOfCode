@@ -4,12 +4,12 @@
 -export([run/0, run/2]).
 
 %% callbacks
--export([info/0, star1/1, star1/2, star2/1, read/1]).
+-export([info/0, star1/1, star1/2, star2/1, star2/2, read/1]).
 
 info() ->
     Examples = [
-        {"examples/2024/day14_ex.txt", {star1, {11, 7}}, 12}
-        %    {"examples/2024/day14_ex.txt", star2, unknown}
+        {"examples/2024/day14_ex.txt", {star1, {11, 7}}, 12},
+        {"examples/2024/day14_ex.txt", {star2, {11, 7}}, 1}
     ],
 
     maps:merge(aoc_solution:default_info(), #{
@@ -37,7 +37,9 @@ star1(Robots, {W, H} = Size) ->
     Q1 * Q2 * Q3 * Q4.
 
 star2(Robots) ->
-    Size = {101, 103},
+    star2(Robots, {101, 103}).
+
+star2(Robots, Size) ->
     find_tree(1, Robots, Size).
 
 print_tree(Map, Size) ->
@@ -46,7 +48,7 @@ print_tree(Map, Size) ->
 read(File) ->
     [tools:group(2, L) || L <- tools:read_multiple_formats(File, "p=~d,~d v=~d,~d")].
 
-find_tree(Steps, _Robots, {W, H}) when Steps == 10 * W * H ->
+find_tree(Steps, _Robots, {W, H}) when Steps == W * H + 1 ->
     none;
 find_tree(Steps, Robots, Size) ->
     Positions = move_all(Steps, Robots, Size),
