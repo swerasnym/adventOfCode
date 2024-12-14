@@ -13,7 +13,9 @@ info() ->
 
     maps:merge(aoc_solution:default_info(), #{
         problem => {2016, 5},
-        examples => Examples
+        examples => Examples,
+        unit_test_input => false,
+        unit_test_examples => true
     }).
 
 run() ->
@@ -32,8 +34,8 @@ read(File) ->
     tools:read_string(File).
 
 md5(Room) ->
-    <<Interesting:20, C:4, D:4, _/bitstring>> = crypto:hash(md5, Room),
-    {Interesting, C, D}.
+    <<First5:20, C:4, D:4, _/bitstring>> = crypto:hash(md5, Room),
+    {First5, C, D}.
 
 crack(_String, _Suffix, 0, Acc) ->
     [to_char(N) || N <- lists:reverse(Acc)];

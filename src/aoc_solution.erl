@@ -180,7 +180,9 @@ default_info() ->
     #{
         all => [star1, star2],
         examples => [],
-        stable => true
+        stable => true,
+        unit_test_input => true,
+        unit_test_examples => true
     }.
 
 default_options() ->

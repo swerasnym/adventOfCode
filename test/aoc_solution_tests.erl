@@ -9,7 +9,7 @@ problem_set_test() ->
 examples_test_() ->
     {inparallel, [
         {timeout, 300, verify_examples(M)}
-     || M <- aoc_solution:get_all_released()
+     || M <- aoc_solution:get_all_released(), maps:get(unit_test_examples, M:info(), true)
     ]}.
 input_test_() ->
     case application:get_env(aoc, session_id) of
@@ -23,7 +23,7 @@ input_test_() ->
             io:format("Session id: '~s'", [Id]),
             {inparallel, [
                 {timeout, 300, verify_input(M)}
-             || M <- aoc_solution:get_all_released()
+             || M <- aoc_solution:get_all_released(), maps:get(unit_test_input, M:info(), true)
             ]}
     end.
 
