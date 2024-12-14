@@ -24,7 +24,7 @@ star2(Boss) ->
     Hp = 100,
     Losses = [
         {Cost, Items}
-     || {{Cost, Dmg, Armor}, Items} <- gear_sets(), fight1({Hp, Dmg, Armor}, Boss) == boss
+     || {{Cost, Dmg, Armor}, Items} <- gear_sets(), fight({Hp, Dmg, Armor}, Boss) == boss
     ],
     {WorstCost, WorstItems} = lists:max(Losses),
     io:format("Can still lose using ~p costing ~p~n", [WorstItems, WorstCost]),
@@ -80,7 +80,7 @@ gear_sets() ->
     lists:sort([{S, I} || {I, S} <- Combos]).
 
 find_win(Hp, [{{Cost, Dmg, Armor}, Items} | Rest], Boss) ->
-    case fight1({Hp, Dmg, Armor}, Boss) of
+    case fight({Hp, Dmg, Armor}, Boss) of
         player ->
             io:format("Win using ~p costing ~p~n", [Items, Cost]),
             Cost;
@@ -88,7 +88,7 @@ find_win(Hp, [{{Cost, Dmg, Armor}, Items} | Rest], Boss) ->
             find_win(Hp, Rest, Boss)
     end.
 
-fight1({PlayerHp, PlayerDmg, PlayerArmor}, {BossHp, BossDmg, BossArmor}) ->
+fight({PlayerHp, PlayerDmg, PlayerArmor}, {BossHp, BossDmg, BossArmor}) ->
     case
         rounds(PlayerHp, damage(BossDmg, PlayerArmor)) <
             rounds(BossHp, damage(PlayerDmg, BossArmor))
