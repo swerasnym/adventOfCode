@@ -9,8 +9,8 @@
 info() ->
     Examples = [
         {"examples/2024/day15_ex.txt", star1, 10092},
-        {"examples/2024/day15_ex2.txt", star1, 2028},
         {"examples/2024/day15_ex.txt", star2, 9021},
+        {"examples/2024/day15_ex2.txt", star1, 2028},
         {"examples/2024/day15_ex3.txt", star2, 618}
     ],
 
@@ -61,37 +61,19 @@ update(Dir, Pos, Maze) ->
             {Next, Maze#{Pos => $., Next => Symb}};
         $# ->
             {Pos, Maze};
-        $O ->
+        Box when Box == $O orelse Dir == $< orelse Dir == $> ->
             case update(Dir, Next, Maze) of
                 {Next, Maze} ->
                     {Pos, Maze};
                 {_, Maze1} ->
                     {Next, Maze1#{Pos => $., Next => Symb}}
             end;
-        % Star 2 updates below!
-        _ when Dir == $< orelse Dir == $> ->
-            case update(Dir, Next, Maze) of
-                {Next, Maze} ->
-                    {Pos, Maze};
-                {_, Maze1} ->
-                    {Next, Maze1#{Pos => $., Next => Symb}}
-            end;
-        ?BL ->
-            NextL = Next,
-            NextR = move(Dir, move($>, Pos)),
-            {NewL, MazeL} = update(Dir, NextL, Maze),
-            {NewR, MazeR} = update(Dir, NextR, MazeL),
-            case {NewL, NewR} of
-                {NextL, _} ->
-                    {Pos, Maze};
-                {_, NextR} ->
-                    {Pos, Maze};
-                _ ->
-                    {Next, MazeR#{Pos => $., Next => Symb}}
-            end;
-        ?BR ->
-            NextL = move(Dir, move($<, Pos)),
-            NextR = Next,
+        Bracket ->
+            {NextL, NextR} =
+                case Bracket of
+                    ?BL -> {Next, move(Dir, move($>, Pos))};
+                    ?BR -> {move(Dir, move($<, Pos)), Next}
+                end,
             {NewL, MazeL} = update(Dir, NextL, Maze),
             {NewR, MazeR} = update(Dir, NextR, MazeL),
             case {NewL, NewR} of
@@ -116,14 +98,9 @@ expand(Maze) ->
     Right = #{{X * 2 + 1, Y} => right(Symb) || {X, Y} := Symb <- Maze},
     maps:merge(Left, Right).
 
-left($O) ->
-    ?BL;
-left(Other) ->
-    Other.
+left($O) -> ?BL;
+left(Other) -> Other.
 
-right($O) ->
-    ?BR;
-right($#) ->
-    $#;
-right(_) ->
-    $..
+right($O) -> ?BR;
+right($#) -> $#;
+right(_) -> $..
