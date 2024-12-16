@@ -59,6 +59,8 @@ run(all, StarOrStars, FileOrData, Opts) ->
     run(get_all_released(), StarOrStars, FileOrData, Opts);
 run({Year, Day}, StarOrStars, FileOrData, Opts) when is_integer(Year), is_integer(Day) ->
     run(get_all_released(Year, Day), StarOrStars, FileOrData, Opts);
+run({Year, all}, StarOrStars, FileOrData, Opts) when is_integer(Year) ->
+    run(get_all_released(Year), StarOrStars, FileOrData, Opts);
 run(Year, StarOrStars, FileOrData, Opts) when is_integer(Year) ->
     run(get_all_released(Year), StarOrStars, FileOrData, Opts);
 run(M, StarOrStars, FileOrData, #{summary := true}) ->

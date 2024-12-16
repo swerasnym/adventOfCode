@@ -3,7 +3,7 @@
 
 no_path_test() ->
     ?assertEqual(
-        {no_path, #{1 => {0, start}, 2 => {0, start}}},
+        {no_path, #{1 => {0, [start]}, 2 => {0, [start]}}},
         aoc_graph:dijkstra(
             [1, 2],
             fun(_) -> false end,

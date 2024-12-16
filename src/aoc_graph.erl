@@ -2,6 +2,7 @@
 -export([a_star/4]).
 -export([dijkstra/3]).
 -export([get_path/2]).
+-export([get_multi_path/2]).
 
 -export_type([pos/0]).
 
@@ -51,6 +52,9 @@ dijkstra(Start, End, Neighbours) ->
 get_path(Pos, Visited) when is_map_key(Pos, Visited) ->
     get_path(Pos, Visited, []).
 
+get_multi_path(Pos, Visited) when is_map_key(Pos, Visited) ->
+    get_multi_path(Pos, Visited, []).
+
 %% --- Internal implementations ---
 a_star({0, nil}, _End, Visited, _Neighbours, _Estimate) ->
     {no_path, Visited};
@@ -59,20 +63,39 @@ a_star(States, End, Visited, Neighbours, Estimate) ->
     {_Est, Dist, Pos, From} = State,
     case {End(Pos), maps:is_key(Pos, Visited)} of
         {true, false} ->
-            {Dist, Pos, Visited#{Pos => {Dist, From}}};
+            {Dist, Pos, Visited#{Pos => {Dist, [From]}}};
         {false, false} ->
             New = Neighbours(Pos),
             NewStates = [{Dist + D + Estimate(N), Dist + D, N, Pos} || {D, N} <- New],
             Next = gb_sets:union(Rest, gb_sets:from_list(NewStates)),
-            a_star(Next, End, Visited#{Pos => {Dist, From}}, Neighbours, Estimate);
+            a_star(Next, End, Visited#{Pos => {Dist, [From]}}, Neighbours, Estimate);
         {false, true} ->
-            a_star(Rest, End, Visited, Neighbours, Estimate)
+            case maps:get(Pos, Visited) of
+                {Dist, From2} ->
+                    a_star(
+                        Rest, End, Visited#{Pos => {Dist, [From | From2]}}, Neighbours, Estimate
+                    );
+                _ ->
+                    a_star(Rest, End, Visited, Neighbours, Estimate)
+            end
     end.
 
 get_path(Pos, Visited, Path) ->
     case maps:get(Pos, Visited) of
-        {0, start} ->
+        {0, [start]} ->
             [Pos | Path];
-        {_, From} ->
-            get_path(From, Visited, [Pos | Path])
+        {_, [From]} ->
+            get_path(From, Visited, [Pos | Path]);
+        {_, Froms} ->
+            {branches, Pos, Path}
+    end.
+
+get_multi_path(Pos, Visited, Path) ->
+    case maps:get(Pos, Visited) of
+        {0, [start]} ->
+            [Pos | Path];
+        {_, [From]} ->
+            get_multi_path(From, Visited, [Pos | Path]);
+        {_, Froms} ->
+            [get_multi_path(From, Visited, [Pos | Path]) || From <- Froms]
     end.
