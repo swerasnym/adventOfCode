@@ -2,7 +2,7 @@
 -export([a_star/4]).
 -export([dijkstra/3]).
 -export([get_path/2]).
--export([get_multi_path/2]).
+-export([get_multiple_paths/2]).
 
 -export_type([pos/0]).
 
@@ -50,10 +50,10 @@ dijkstra(Start, End, Neighbours) ->
     a_star(Start, End, Neighbours, fun(_) -> 0 end).
 
 get_path(Pos, Visited) when is_map_key(Pos, Visited) ->
-    get_path(Pos, Visited, []).
+    hd(get_multiple_paths(Pos, Visited, [])).
 
-get_multi_path(Pos, Visited) when is_map_key(Pos, Visited) ->
-    get_multi_path(Pos, Visited, []).
+get_multiple_paths(Pos, Visited) when is_map_key(Pos, Visited) ->
+    get_multiple_paths(Pos, Visited, []).
 
 %% --- Internal implementations ---
 a_star({0, nil}, _End, Visited, _Neighbours, _Estimate) ->
@@ -80,22 +80,12 @@ a_star(States, End, Visited, Neighbours, Estimate) ->
             end
     end.
 
-get_path(Pos, Visited, Path) ->
+get_multiple_paths(Pos, Visited, Path) ->
     case maps:get(Pos, Visited) of
         {0, [start]} ->
-            [Pos | Path];
-        {_, [From]} ->
-            get_path(From, Visited, [Pos | Path]);
-        {_, Froms} ->
-            {branches, Pos, Path}
-    end.
-
-get_multi_path(Pos, Visited, Path) ->
-    case maps:get(Pos, Visited) of
-        {0, [start]} ->
-            [Pos | Path];
-        {_, [From]} ->
-            get_multi_path(From, Visited, [Pos | Path]);
-        {_, Froms} ->
-            [get_multi_path(From, Visited, [Pos | Path]) || From <- Froms]
+            [[{0, Pos} | Path]];
+        {Dist, [From]} ->
+            get_multiple_paths(From, Visited, [{Dist, Pos} | Path]);
+        {Dist, Froms} ->
+            [Mp ++ Path || From <- Froms, Mp <- get_multiple_paths(From, Visited, [{Dist, Pos}])]
     end.

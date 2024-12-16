@@ -27,7 +27,8 @@ run(StarOrStars, FileOrData) ->
 
 star1(Map) ->
     [Start] = [P || P := $S <- Map],
-    {Cost, _, _} = aoc_graph:dijkstra({Start, east}, is_end(Map), neigbours(Map)),
+    {Cost, _End, _Visited} = aoc_graph:dijkstra({Start, east}, is_end(Map), neigbours(Map)),
+    %io:format("~p~n", [aoc_graph:get_path(End, Visited)]),
     Cost.
 
 star2(Map) ->
@@ -35,10 +36,8 @@ star2(Map) ->
     [End] = [P || P := $E <- Map],
     {_, _, Visited} = aoc_graph:dijkstra({Start, east}, is_end(Map), neigbours(Map)),
     Ends = [{End, D} || D <- [north, south, east, west], maps:is_key({End, D}, Visited)],
-    io:format("~p~n", [Ends]),
-    Paths = [aoc_graph:get_multi_path(E, Visited) || E <- Ends],
-
-    Positions = [P || {P, _} <- lists:flatten(Paths)],
+    Paths = [aoc_graph:get_multiple_paths(E, Visited) || E <- Ends],
+    Positions = [P || {_, {P, _}} <- lists:flatten(Paths)],
     length(lists:usort(Positions)).
 
 read(File) ->
