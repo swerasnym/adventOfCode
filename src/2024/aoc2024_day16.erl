@@ -9,8 +9,8 @@
 info() ->
     Examples = [
         {"examples/2024/day16_ex1.txt", star1, 7036},
-        {"examples/2024/day16_ex2.txt", star1, 11048},
         {"examples/2024/day16_ex1.txt", star2, 45},
+        {"examples/2024/day16_ex2.txt", star1, 11048},
         {"examples/2024/day16_ex2.txt", star2, 64}
     ],
 
@@ -34,7 +34,7 @@ star2(Map) ->
     [Start] = [P || P := $S <- Map],
     [End] = [P || P := $E <- Map],
     {_, _, Visited} = aoc_graph:dijkstra({Start, east}, is_end(Map), neigbours(Map)),
-    Ends = [{End, D} || D <- [north, south, east, west], is_map_key({End, D}, Visited)],
+    Ends = [{End, D} || D <- [north, south, east, west], maps:is_key({End, D}, Visited)],
     io:format("~p~n", [Ends]),
     Paths = [aoc_graph:get_multi_path(E, Visited) || E <- Ends],
 
