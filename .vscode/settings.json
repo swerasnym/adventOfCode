@@ -10,6 +10,7 @@
         "bnot",
         "bori",
         "borr",
+        "bxor",
         "chainmail",
         "concat",
         "divi",

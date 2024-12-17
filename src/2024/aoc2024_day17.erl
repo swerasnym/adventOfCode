@@ -26,14 +26,16 @@ run(StarOrStars, FileOrData) ->
 
 star1({State, Program}) ->
     io:format("~p~n", [State]),
-    Pmap = maps:from_list(lists:enumerate(0, Program)),
-    Res = execute(State, Pmap),
+    PMap = maps:from_list(lists:enumerate(0, Program)),
+    Res = execute(State, PMap),
     string:join([integer_to_list(I) || I <- Res], ",").
 
 star2({State, Program}) ->
-    Pmap = maps:from_list(lists:enumerate(0, Program)),
-    Res = solve(0, lists:reverse(Program)),
-    Res = search(Res, State, Program, Pmap).
+    PMap = maps:from_list(lists:enumerate(0, Program)),
+    Res = solve_a([0], lists:reverse(Program), [], PMap),
+    % Sanity check...
+    Program = execute(State#state{a = Res}, PMap),
+    Res.
 
 read(File) ->
     [Regs, "Program: " ++ ProgramS] = tools:read_blocks(File),
@@ -51,63 +53,42 @@ cop(N, _) when N < 4 andalso N >= 0 ->
     N.
 
 %% Opt, State
-optcode(0, Op, S = #state{a = A}) ->
-    Cop = cop(Op, S),
-    S#state{a = A div tools:pow(2, Cop)};
-optcode(1, Op, S = #state{b = B}) ->
+instruction(0, Op, S = #state{a = A}) ->
+    S#state{a = A bsr cop(Op, S)};
+instruction(1, Op, S = #state{b = B}) ->
     S#state{b = B bxor Op};
-optcode(2, Op, S = #state{}) ->
+instruction(2, Op, S = #state{}) ->
     S#state{b = tools:mod(cop(Op, S), 8)};
-optcode(3, _Op, S = #state{a = 0}) ->
+instruction(3, _Op, S = #state{a = 0}) ->
     S;
-optcode(3, Op, S = #state{}) ->
-    S#state{ip = Op - 2};
-optcode(4, _Op, S = #state{b = B, c = C}) ->
+instruction(4, _Op, S = #state{b = B, c = C}) ->
     S#state{b = B bxor C};
-optcode(5, Op, S = #state{output = O}) ->
+instruction(3, Op, S = #state{}) ->
+    S#state{ip = Op - 2};
+instruction(5, Op, S = #state{output = O}) ->
     S#state{output = [tools:mod(cop(Op, S), 8) | O]};
-optcode(6, Op, S = #state{a = A}) ->
-    Cop = cop(Op, S),
-    S#state{b = A div tools:pow(2, Cop)};
-optcode(7, Op, S = #state{a = A}) ->
-    Cop = cop(Op, S),
-    S#state{c = A div tools:pow(2, Cop)}.
+instruction(6, Op, S = #state{a = A}) ->
+    S#state{b = A bsr cop(Op, S)};
+instruction(7, Op, S = #state{a = A}) ->
+    S#state{c = A bsr cop(Op, S)}.
 
 execute(S = #state{ip = Ip, output = Out}, Program) ->
     case {maps:get(Ip, Program, exit), maps:get(Ip + 1, Program, exit)} of
         {exit, exit} ->
             lists:reverse(Out);
         {Opt, Oper} ->
-            S0 = optcode(Opt, Oper, S),
-            %  io:format("Ip~p: ~p ~p -> ~p~n", [Ip, Opt, Oper, S0]),
+            S0 = instruction(Opt, Oper, S),
             execute(S0#state{ip = S0#state.ip + 2}, Program)
     end.
 
-search(N, S, Program, Pmap) ->
-    case execute(S#state{a = N}, Pmap) of
-        Program ->
-            N;
-        P when length(P) == length(Program) ->
-            search(N + 1, S, Program, Pmap)
-    end.
-
-solve(A, []) ->
-    A;
-solve(A, [P | Rest]) ->
-    Apos = [(A * 8) bor Bc || Bc <- lists:seq(0, 7), P == bs(A, Bc)],
-    As = [solve(Ax, Rest) || Ax <- Apos, none /= solve(Ax, Rest)],
-    case As of
-        [] ->
-            none;
-        Result ->
-            lists:min(Result)
-    end.
-
-%% Tuned to my input...
-bs(A, Bc) ->
-    Ta = (A bsl 3) bor Bc,
-    Bc1 = Bc bxor 1,
-    C = (Ta bsr Bc1),
-    Bc2 = Bc1 bxor 4,
-    Bc3 = Bc2 bxor C,
-    Bc3 band 7.
+% Assume that we can generate A 3 bits at a time and that B & C is generated from A each printout.
+solve_a(As, [], _, _) ->
+    io:format("~p~n", [As]),
+    lists:min(As);
+solve_a(As, [Next | Rest], Tail, PMap) ->
+    Expected = [Next | Tail],
+    NewAs = [
+        A * 8 + B
+     || A <- As, B <- lists:seq(0, 7), Expected == execute(#state{a = A * 8 + B}, PMap)
+    ],
+    solve_a(NewAs, Rest, Expected, PMap).
