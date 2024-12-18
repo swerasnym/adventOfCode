@@ -31,8 +31,9 @@ star1(Data, {Max = {Xmax, Ymax}, ToAdd}) ->
     Map1 = #{P => $# || P <- lists:sublist(Data, ToAdd)},
     Map = maps:merge(Map0, Map1),
 
-    tools:print_grid(Map),
-    {Dist, _, _} = aoc_graph:a_star([{0, 0}], is_end(Max), neighbours(Map), estimate(Max)),
+    {Dist, End, Visited} = aoc_graph:a_star([{0, 0}], is_end(Max), neighbours(Map), estimate(Max)),
+    Path = #{P => $O || {_, P} <- aoc_graph:get_path(End, Visited)},
+    tools:print_grid(maps:merge(Map, Path)),
     Dist.
 star2(Data) ->
     star2(Data, {{70, 70}, 1024}).

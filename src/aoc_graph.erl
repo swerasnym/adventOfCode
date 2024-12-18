@@ -3,6 +3,8 @@
 -export([dijkstra/3]).
 -export([get_path/2]).
 -export([get_multiple_paths/2]).
+-export([get_nodes_in_shortest_paths/2]).
+-export([get_nodes_distances_in_shortest_paths/2]).
 
 -export_type([pos/0]).
 
@@ -50,10 +52,19 @@ dijkstra(Start, End, Neighbours) ->
     a_star(Start, End, Neighbours, fun(_) -> 0 end).
 
 get_path(Pos, Visited) when is_map_key(Pos, Visited) ->
-    hd(get_multiple_paths(Pos, Visited, [])).
+    get_single_path(Pos, Visited, []).
 
 get_multiple_paths(Pos, Visited) when is_map_key(Pos, Visited) ->
     get_multiple_paths(Pos, Visited, []).
+
+get_nodes_in_shortest_paths(Positions, Visited) when is_list(Positions) ->
+    maps:keys(get_nodes_distances_in_shortest_paths(Positions, Visited, #{}));
+get_nodes_in_shortest_paths(Pos, Visited) ->
+    maps:keys(get_nodes_distances_in_shortest_paths([Pos], Visited, #{})).
+get_nodes_distances_in_shortest_paths(Positions, Visited) when is_list(Positions) ->
+    get_nodes_distances_in_shortest_paths(Positions, Visited, #{});
+get_nodes_distances_in_shortest_paths(Pos, Visited) ->
+    get_nodes_distances_in_shortest_paths([Pos], Visited, #{}).
 
 %% --- Internal implementations ---
 a_star({0, nil}, _End, Visited, _Neighbours, _Estimate) ->
@@ -88,4 +99,27 @@ get_multiple_paths(Pos, Visited, Path) ->
             get_multiple_paths(From, Visited, [{Dist, Pos} | Path]);
         {Dist, Froms} ->
             [Mp ++ Path || From <- Froms, Mp <- get_multiple_paths(From, Visited, [{Dist, Pos}])]
+    end.
+
+get_single_path(Pos, Visited, Path) ->
+    case maps:get(Pos, Visited) of
+        {0, [start]} ->
+            [{0, Pos} | Path];
+        {Dist, From} ->
+            get_single_path(hd(From), Visited, [{Dist, Pos} | Path])
+    end.
+
+get_nodes_distances_in_shortest_paths([], _, Paths) ->
+    Paths;
+get_nodes_distances_in_shortest_paths([Pos | Rest], Visited, Paths) ->
+    case maps:get(Pos, Paths, first) of
+        first ->
+            case maps:get(Pos, Visited) of
+                {0, [start]} ->
+                    get_nodes_distances_in_shortest_paths(Rest, Visited, Paths#{Pos => 0});
+                {Dist, From} ->
+                    get_nodes_distances_in_shortest_paths(Rest ++ From, Visited, Paths#{Pos => Dist})
+            end;
+        _ ->
+            get_nodes_distances_in_shortest_paths(Rest, Visited, Paths)
     end.
