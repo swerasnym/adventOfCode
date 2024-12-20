@@ -57,7 +57,7 @@ find_cheats(Map, TimeLimit) ->
     {_, End, Visited} = aoc_graph:dijkstra(Start, is_end(Map), neighbours(Map)),
     InPath = aoc_graph:get_nodes_distances_in_shortest_paths(End, Visited),
     %% sanity check that there is only one path...
-    maps:size(InPath) == maps:size(Visited),
+    true = maps:size(InPath) == maps:size(Visited),
     Cheats = [saved(P1, D1, InPath, TimeLimit) || P1 := D1 <- InPath],
     tools:count(lists:flatten(Cheats)).
 
