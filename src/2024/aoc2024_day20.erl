@@ -52,14 +52,21 @@ is_end(Map) ->
         maps:get(Pos, Map) == $E
     end.
 
-saved({P1, P2}, Visited) ->
-    {D1, _} = maps:get(P1, Visited),
-    {D2, _} = maps:get(P2, Visited),
-    abs(D1 - D2) - dist(P1, P2).
-
-find_cheats(Map, T) ->
+find_cheats(Map, TimeLimit) ->
     [Start] = [P || P := $S <- Map],
     {_, End, Visited} = aoc_graph:dijkstra(Start, is_end(Map), neighbours(Map)),
-    InPath = aoc_graph:get_nodes_in_shortest_paths(End, Visited),
-    Cheats = [saved({P1, P2}, Visited) || P1 <- InPath, P2 <- InPath, P1 < P2, dist(P1, P2) =< T],
-    tools:count([R || R <- Cheats, R /= 0]).
+    InPath = aoc_graph:get_nodes_distances_in_shortest_paths(End, Visited),
+    %% sanity check that there is only one path...
+    maps:size(InPath) == maps:size(Visited),
+    Cheats = [saved(P1, D1, InPath, TimeLimit) || P1 := D1 <- InPath],
+    tools:count(lists:flatten(Cheats)).
+
+saved(P1, D1, InPath, TimeLimit) ->
+    Ends = [
+        aoc_vector:add(P1, {X, Y})
+     || X <- lists:seq(0, TimeLimit), Y <- lists:seq(-TimeLimit + X, TimeLimit - X)
+    ],
+    [
+        abs(D1 - maps:get(P2, InPath)) - dist(P1, P2)
+     || P2 <- Ends, P1 < P2, maps:is_key(P2, InPath)
+    ].
