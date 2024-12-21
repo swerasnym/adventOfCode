@@ -76,7 +76,7 @@ move(Pos, $<) -> aoc_vector:add(Pos, {-1, 0}).
 calculate_cost(KeyPad, Costs) ->
     #{
         [K1, K2] => calculate_cost(P1, P2, KeyPad, Costs)
-     || P1 := K1 <- KeyPad, P2 := K2 <- KeyPad, P1 /= start, P2 /= start
+     || P1 := K1 <- KeyPad, P2 := K2 <- KeyPad
     }.
 
 calculate_cost(Start, End, KeyPad, Costs) ->
