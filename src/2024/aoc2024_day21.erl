@@ -24,30 +24,17 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Codes) ->
-    Me = "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A",
-    R1 = simulate(Me, key_map2()),
-    R2 = simulate(R1, key_map2()),
-    "029A" = simulate(R2, key_map1()),
+    R1Costs = calculate_cost(keypad_controller(), me_costs()),
+    R2Costs = calculate_cost(keypad_controller(), R1Costs),
+    DoorCosts = calculate_cost(keypad_door(), R2Costs),
 
-    R1Costs = calculate_cost(key_map2(), me_costs()),
-    R2Costs = calculate_cost(key_map2(), R1Costs),
-    R3Costs = calculate_cost(key_map1(), R2Costs),
-
-    CodesCosts = [{Code, press($A, Code, R3Costs, 0)} || Code <- Codes],
-    lists:sum([numeric(Code) * Cost || {Code, Cost} <- CodesCosts]).
-
-% Start = {2, 3},
-% io:format("~p~n", [Data]),
-% unknown.
+    lists:sum([numeric(Code) * press($A, Code, DoorCosts, 0) || Code <- Codes]).
 
 star2(Codes) ->
-    % R1Costs = calculate_cost(key_map2(), me_costs()),
-    % R2Costs = calculate_cost(key_map2(), R1Costs),
     R25Costs = nested_costs(25, me_costs()),
-    R3Costs = calculate_cost(key_map1(), R25Costs),
+    DoorCosts = calculate_cost(keypad_door(), R25Costs),
 
-    CodesCosts = [{Code, press($A, Code, R3Costs, 0)} || Code <- Codes],
-    lists:sum([numeric(Code) * Cost || {Code, Cost} <- CodesCosts]).
+    lists:sum([numeric(Code) * press($A, Code, DoorCosts, 0) || Code <- Codes]).
 
 read(File) ->
     tools:read_lines(File).
@@ -55,7 +42,7 @@ read(File) ->
 nested_costs(0, Costs) ->
     Costs;
 nested_costs(N, Costs) ->
-    nested_costs(N - 1, calculate_cost(key_map2(), Costs)).
+    nested_costs(N - 1, calculate_cost(keypad_controller(), Costs)).
 
 press(_, "", _, C) ->
     C;
@@ -66,53 +53,25 @@ numeric(Code) ->
     list_to_integer(lists:flatten(string:replace(Code, "A", "", all))).
 
 %% erlfmt:ignore Make the layout visible
- key_map1() ->
+keypad_door() ->
     #{
         {0, 0} => $7, {1, 0} => $8, {2, 0} => $9,
         {0, 1} => $4, {1, 1} => $5, {2, 1} => $6,
         {0, 2} => $1, {1, 2} => $2, {2, 2} => $3,
-                      {1, 3} => $0, {2, 3} => $A,
-        start => {2, 3}
+                      {1, 3} => $0, {2, 3} => $A
     }.
 
 %% erlfmt:ignore Make the layout visible
-key_map2() ->
+keypad_controller() ->
     #{
                       {1, 0} => $^, {2, 0} => $A,
-        {0, 1} => $<, {1, 1} => $v, {2, 1} => $>,
-        start => {2,0}
+        {0, 1} => $<, {1, 1} => $v, {2, 1} => $>
     }.
 
-% 029A: <A^A>^^AvvvA
-% AP1: v<<A>>^A<A>AvA<^AA>A<vAAA>^A
-% Me: <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
-
-move(Pos, $^) ->
-    aoc_vector:add(Pos, {0, -1});
-move(Pos, $v) ->
-    aoc_vector:add(Pos, {0, 1});
-move(Pos, $>) ->
-    aoc_vector:add(Pos, {1, 0});
-move(Pos, $<) ->
-    aoc_vector:add(Pos, {-1, 0}).
-
-simulate(error, _) ->
-    error;
-simulate(Sequence, KeyMap = #{start := Start}) ->
-    simulate(Start, Sequence, KeyMap, []).
-
-simulate(_Pos, [], _KeyMap, Out) ->
-    lists:reverse(Out);
-simulate(Pos, [$A | Rest], KeyMap, Out) ->
-    simulate(Pos, Rest, KeyMap, [maps:get(Pos, KeyMap) | Out]);
-simulate(Pos, [D | Rest], KeyMap, Out) ->
-    Next = move(Pos, D),
-    case maps:is_key(Next, KeyMap) of
-        true ->
-            simulate(Next, Rest, KeyMap, Out);
-        false ->
-            error
-    end.
+move(Pos, $^) -> aoc_vector:add(Pos, {0, -1});
+move(Pos, $v) -> aoc_vector:add(Pos, {0, 1});
+move(Pos, $>) -> aoc_vector:add(Pos, {1, 0});
+move(Pos, $<) -> aoc_vector:add(Pos, {-1, 0}).
 
 calculate_cost(KeyPad, Costs) ->
     #{
@@ -133,5 +92,5 @@ neighbours(KeyPad, Costs) ->
     end.
 
 me_costs() ->
-    Keys = "^v<>A",
+    Keys = maps:values(keypad_controller()),
     #{[K1, K2] => 1 || K1 <- Keys, K2 <- Keys}.
