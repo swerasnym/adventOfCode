@@ -28,6 +28,7 @@ star1(Map) ->
 star1(Map, MinSave) ->
     Times = find_cheats(Map, 2),
     lists:sum([C || T := C <- Times, T >= MinSave]).
+
 star2(Map) ->
     star2(Map, 100).
 
