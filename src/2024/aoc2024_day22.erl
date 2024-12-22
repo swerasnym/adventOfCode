@@ -27,7 +27,7 @@ star1(Data) ->
     lists:sum([tools:repeat(2000, fun next/1, D) || D <- Data]).
 
 star2(Data) ->
-    Sequences = [sequences(price_delta(D, 2001), #{}) || D <- Data],
+    Sequences = [sequences(price_delta(D, 2000), #{}) || D <- Data],
     Merge = fun(_, P1, P2) -> P1 + P2 end,
     Totals = lists:foldl(fun(M, Acc) -> maps:merge_with(Merge, M, Acc) end, #{}, Sequences),
     lists:max(maps:values(Totals)).
@@ -50,7 +50,7 @@ price(S) ->
     tools:mod(S, 10).
 
 prices(S, N) ->
-    Secrets = lists:foldl(fun(_, [Hd | _] = Acc) -> [next(Hd) | Acc] end, [S], lists:seq(1, N - 1)),
+    Secrets = lists:foldl(fun(_, [Hd | _] = Acc) -> [next(Hd) | Acc] end, [S], lists:seq(1, N)),
     lists:reverse([price(R) || R <- Secrets]).
 
 deltas([_], Res) ->
