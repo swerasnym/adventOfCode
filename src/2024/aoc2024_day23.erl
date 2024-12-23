@@ -24,7 +24,9 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(G) ->
-    length(lists:usort(lists:flatten([tipples(A, B, G) || [$t, _] = A := AN <- G, B <- AN]))).
+    length(
+        lists:usort(lists:flatten([tipples(A, AN, B, G) || [$t, _] = A := AN <- G, B <- AN]))
+    ).
 
 star2(G) ->
     CS = find_cliques(G),
@@ -42,32 +44,25 @@ build_graph([[A, B] | Rest], G) ->
     BN = maps:get(B, G, []),
     build_graph(Rest, G#{A => [B | AN], B => [A | BN]}).
 
-tipples(A, B, G) ->
-    AN = maps:get(A, G),
+tipples(A, AN, B, G) ->
     BN = maps:get(B, G),
     CN = tools:overlap(AN, BN),
     [list_to_tuple(lists:sort([A, B, C])) || C <- CN].
 
 find_cliques(G) ->
     Nodes = maps:keys(G),
-    find_cliques(G, sets:new(), lists:sort(Nodes), sets:new(), []).
+    find_cliques(G, [], lists:sort(Nodes), [], []).
 
 find_cliques(_G, R, [], X, Result) ->
-    case sets:size(X) of
+    case length(X) of
         0 ->
-            Res = lists:sort(sets:to_list(R)),
-            [{length(Res), Res} | Result];
+            [{length(R), R} | Result];
         _ ->
             Result
     end;
 find_cliques(G, R, [V | Pr] = P, X, Result) ->
-    NV = maps:get(V, G),
-    NS = sets:from_list(NV),
-    PS = sets:from_list(P),
-
+    N = maps:get(V, G),
     Res = find_cliques(
-        G, sets:add_element(V, R), sets:intersection(PS, NS), sets:intersection(X, NS), Result
+        G, R ++ [V], tools:overlap(P, N), tools:overlap(X, N), Result
     ),
-    find_cliques(G, R, Pr, sets:add_element(V, X), Res);
-find_cliques(G, R, P, X, Result) ->
-    find_cliques(G, R, sets:to_list(P), X, Result).
+    find_cliques(G, R, Pr, X ++ [V], Res).
