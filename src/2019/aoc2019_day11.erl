@@ -7,14 +7,8 @@
 -export([info/0, star1/1, star2/1, read/1]).
 
 info() ->
-    Examples = [
-        % {"examples/2019/dayN_ex.txt", star1, unknown},
-        % {"examples/2019/dayN_ex.txt", star2, unknown}
-    ],
-
     maps:merge(aoc_solution:default_info(), #{
-        problem => {2019, 11},
-        examples => Examples
+        problem => {2019, 11}
     }).
 
 run() ->
@@ -34,8 +28,7 @@ star2(Program) ->
     {ok, Hull} = robot(Pid, white),
 
     paint(Hull),
-
-    {manual, fun() -> paint(Hull) end}.
+    aoc_ocr:decode(Hull, white).
 
 read(File) ->
     intcode:from_file(File).

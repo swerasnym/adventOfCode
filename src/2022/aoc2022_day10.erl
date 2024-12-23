@@ -28,8 +28,9 @@ star2(Data) ->
     {ValeLists, _} = lists:mapfoldl(fun run_instruction/2, 1, Data),
     Values = [1] ++ lists:flatten(ValeLists),
     Display = [draw(E) || E <- lists:enumerate(0, Values)],
-    tools:print_grid(maps:from_list(Display)),
-    {manual, fun() -> tools:print_grid(maps:from_list(Display)) end}.
+    Grid = maps:from_list(Display),
+    tools:print_grid(Grid),
+    aoc_ocr:decode(Grid, $█).
 
 run_instruction("noop", X) ->
     {[X], X};

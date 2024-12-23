@@ -7,14 +7,8 @@
 -export([info/0, star1/1, star2/1, read/1]).
 
 info() ->
-    Examples = [
-        % {"2021/data/dayN_ex.txt", star1, unknown},
-        % {"2021/data/dayN_ex.txt", star2, unknown}
-    ],
-
     maps:merge(aoc_solution:default_info(), #{
-        problem => {2021, 13},
-        examples => Examples
+        problem => {2021, 13}
     }).
 
 run() ->
@@ -32,7 +26,7 @@ star2({Points, Folds}) ->
     Sort = folds(Points, Folds),
     Grid = maps:from_list([{P, $█} || P <- Sort]),
     tools:print_grid(Grid),
-    {manual, fun() -> tools:print_grid(Grid) end}.
+    aoc_ocr:decode(Grid, $█).
 
 read(File) ->
     [Points, Instructions] = tools:read_blocks(File),

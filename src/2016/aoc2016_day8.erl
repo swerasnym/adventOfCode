@@ -32,7 +32,7 @@ star1(Data, Max) ->
 star2(Data) ->
     Display = lists:foldl(fun apply/2, #{max => {49, 5}}, Data),
     tools:print_grid(Display),
-    {manual, fun() -> tools:print_grid(Display) end}.
+    aoc_ocr:decode(Display, $█).
 
 read(File) ->
     tools:read_lines(File, fun parse/1).

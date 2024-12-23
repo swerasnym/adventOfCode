@@ -31,9 +31,7 @@ star1(Stars) ->
     %  io:format("~p~n", [Close]),
     Times = tools:overlap([C || C <- Close, C /= always]),
 
-    F = fun() -> print_map(lists:last(Times), Converted) end,
-    F(),
-    {manual, F}.
+    print_map(lists:last(Times), Converted).
 
 star2(Stars) ->
     First = hd(Stars),
@@ -68,4 +66,5 @@ print_map(T, Stars) ->
     io:format("After ~p seconds:~n", [T]),
     %io:format("~p", [Map]),
     tools:print_grid(Map),
-    io:nl().
+    io:nl(),
+    aoc_ocr:decode(Map, $█).

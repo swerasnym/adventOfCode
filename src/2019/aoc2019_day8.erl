@@ -23,10 +23,6 @@ run() ->
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
-
-
-
-
 star1(Data) ->
     Layers =
         [string:slice(Data, Pos, 25 * 6) || Pos <- lists:seq(0, string:length(Data) - 1, 25 * 6)],
@@ -36,17 +32,9 @@ star1(Data) ->
 star2(Data) ->
     Layers =
         [string:slice(Data, Pos, 25 * 6) || Pos <- lists:seq(0, string:length(Data) - 1, 25 * 6)],
-    Image = [pixel(Pos, Layers) || Pos <- lists:seq(0, 25 * 6 - 1)],
-
-    Print = fun() ->
-        [
-            io:fwrite("~ts~n", [string:slice(Image, Pos, 25)])
-         || Pos <- lists:seq(0, string:length(Image) - 1, 25)
-        ]
-    end,
-    Print(),
-    % manual decode!
-    {manual, Print}.
+    Image = #{{Pos rem 25, Pos div 25} => pixel(Pos, Layers) || Pos <- lists:seq(0, 25 * 6 - 1)},
+    tools:print_grid(Image),
+    aoc_ocr:decode(Image, $█).
 
 read(File) ->
     {ok, Bin} = file:read_file(File),
@@ -60,7 +48,7 @@ pixel(Pos, [Top | Rest]) ->
         <<"2">> ->
             pixel(Pos, Rest);
         <<"1">> ->
-            "█";
+            $█;
         _ ->
-            " "
+            $\s
     end.

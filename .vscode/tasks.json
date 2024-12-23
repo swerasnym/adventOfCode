@@ -91,6 +91,17 @@
       "dependsOn": "rebar3 compile",
     },
     {
+      "label": "aoc refresh input",
+      "type": "shell",
+      "options": {},
+      "command": "./run.sh '#{problem := {Year, Day}} =${fileBasenameNoExtension}:info(), aoc_web:get_input_path(Year, Day, remote).'",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": "rebar3 compile",
+    },
+    {
       "label": "rebar3 shell",
       "type": "shell",
       "options": {},

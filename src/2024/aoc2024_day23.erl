@@ -60,9 +60,9 @@ find_cliques(_G, R, [], X, Result) ->
         _ ->
             Result
     end;
-find_cliques(G, R, [V | Pr] = P, X, Result) ->
+find_cliques(G, R, [V | Pr], X, Result) ->
     N = maps:get(V, G),
     Res = find_cliques(
-        G, R ++ [V], tools:overlap(P, N), tools:overlap(X, N), Result
+        G, R ++ [V], tools:overlap(Pr, N), tools:overlap(X, N), Result
     ),
     find_cliques(G, R, Pr, X ++ [V], Res).
