@@ -4,12 +4,11 @@
 -export([run/0, run/2]).
 
 %% callbacks
--export([info/0, star1/1, star2/1, star2/2, read/1]).
+-export([info/0, star1/1, star2/1, read/1]).
 
 info() ->
     Examples = [
-        {"examples/2024/day24_ex.txt", star1, 2024},
-        {input, {star2, dumb}, unknown}
+        {"examples/2024/day24_ex.txt", star1, 2024}
     ],
 
     maps:merge(aoc_solution:default_info(), #{
@@ -24,100 +23,62 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1({Init, Gates}) ->
-    Res = calculate(Gates, [], Init),
+    Res = calculate(Gates, Init),
     value(Res, $z).
 
 star2({Init, Gates}) ->
-    ok.
-
-star2({Init, Gates0}, dumb) ->
-    Swap = #{
-        "z08" => "mvb",
-        "mvb" => "z08",
-        "jss" => "rds",
-        "rds" => "jss",
-        "z23" => "bmn",
-        "bmn" => "z23",
-        "z18" => "wss",
-        "wss" => "z18"
-    },
-
-    Gates = [swap(Op, Swap) || Op <- Gates0],
-
-    %io:format("~p", [lists:sort(Gates)]),
-    Map1 = maps:from_list([L || L <- [relabel1(Op) || Op <- Gates], L /= skip]),
-    Relabled1 = [relabel(Op, Map1) || Op <- Gates],
-    %io:format("~p", [lists:sort(Relabled1)]),
-    Map2 = maps:from_list([L || L <- [relabel2(Op) || Op <- Relabled1], L /= skip]),
-    %io:format("~kp", [Map2]),
-    Relabled2 = [relabel(Op, Map2) || Op <- Relabled1],
-
-    %io:format("~p", [lists:sort(Relabled2)]),
-    Map3 = maps:from_list([L || L <- [relabel3(Op) || Op <- Relabled2], L /= skip]),
-    % io:format("~kp", [Map3]),
-    Relabled3 = [relabel(Op, Map3) || Op <- Relabled2],
-    io:format("~p", [lists:sort(Relabled3)]),
-    Problem = [Op || Op <- Relabled3, check(Op)],
-    io:format("~p~n", [Problem]),
-    Trouble = [P || Tuple <- Problem, P <- tuple_to_list(Tuple), check2(P)],
-    io:format("~p~n", [tools:count(Trouble)]),
-    io:format("~s", [string:join(lists:usort(Trouble), ",")]),
-
-    Res0 = calculate(Gates0, [], Init),
-    Z0 = value(Res0, $z),
-    X0 = value(Init, $x),
-    Y0 = value(Init, $y),
-    Diff0 = lists:reverse(integer_to_list(Z0 bxor (X0 + Y0), 2)),
-    % io:format("~p~n", [lists:enumerate(0, [D - $0 || D <- Diff0])]),
-
-    Res = calculate(Gates, [], Init),
-    Z = value(Res, $z),
+    Vars = maps:from_list(lists:flatten([classify_var(G) || G <- Gates])),
+    Classified = [classify_gate(G, Vars) || G <- Gates],
+    Problem =
+        lists:flatten(
+            [vars(G) || G <- Classified, problem_gate(G)] ++
+                [V || V <- maps:values(Vars), problem_var(V)]
+        ),
+    Maps = lists:flatten(get_maps(lists:usort(Problem))),
+    io:format("~p ~p~n", [length(Maps), hd(Maps)]),
     X = value(Init, $x),
     Y = value(Init, $y),
-    Diff = lists:reverse(integer_to_list(Z bxor (X + Y), 2)),
-
-    io:format("~p~n", [lists:enumerate(0, [D - $0 || D <- Diff])]),
-
-    io:format("Z:~p~n", [integer_to_list(Z, 2)]),
-    io:format("s:~p~n", [integer_to_list(X + Y, 2)]),
-    io:format("x:~p~n", [integer_to_list(Z bxor (X + Y), 2)]),
-    io:format("X: ~p~n", [integer_to_list(X, 2)]),
-    io:format("Y: ~p~n", [integer_to_list(Y, 2)]),
-    string:join(lists:usort(maps:keys(Swap)), ",").
-%length(Problem).
+    check(Init, X, Y, Gates, Maps).
 
 read(File) ->
-    [Init, Gatesations] = tools:read_blocks(File),
+    [Init, Gates] = tools:read_blocks(File),
     {
         maps:from_list(tools:parse_lines(Init, fun parse_init/1)),
-        tools:parse_lines(Gatesations, fun parse_Gatesations/1)
+        tools:parse_lines(Gates, fun parse_gates/1)
     }.
 
 parse_init(L) ->
     [Key, Value] = string:split(L, ": "),
     {Key, list_to_integer(Value)}.
 
-parse_Gatesations(L) ->
+parse_gates(L) ->
     [Key1, Op, Key2, "->", Res] = string:split(L, " ", all),
     [K1, K2] = lists:sort([Key1, Key2]),
     {K1, Op, K2, Res}.
 
+value(no_solution, _) ->
+    -1;
 value(Map, Letter) ->
     Binary = [V + $0 || [L | _] := V <- maps:iterator(Map, ordered), L == Letter],
     list_to_integer(lists:reverse(Binary), 2).
 
-calculate([], [], Map) ->
+calculate(Gates, Init) ->
+    calculate(Gates, [], Init, length(Gates)).
+
+calculate([], [], Map, _) ->
     Map;
-calculate([], Skipped, Map) ->
-    calculate(Skipped, [], Map);
-calculate([{Key1, Op, Key2, Res} = K | Rest], Skipped, Map) ->
+calculate([], Skipped, Map, N) when N > length(Skipped) ->
+    calculate(Skipped, [], Map, length(Skipped));
+calculate([], _Skipped, _Map, _N) ->
+    no_solution;
+calculate([{Key1, Op, Key2, Res} = K | Rest], Skipped, Map, N) ->
     case {maps:get(Key1, Map, missing), maps:get(Key2, Map, missing)} of
         {missing, _} ->
-            calculate(Rest, [K | Skipped], Map);
+            calculate(Rest, [K | Skipped], Map, N);
         {_, missing} ->
-            calculate(Rest, [K | Skipped], Map);
+            calculate(Rest, [K | Skipped], Map, N);
         {V1, V2} ->
-            calculate(Rest, Skipped, Map#{Res => op(Op, V1, V2)})
+            calculate(Rest, Skipped, Map#{Res => op(Op, V1, V2)}, N)
     end.
 
 op("XOR", V1, V2) ->
@@ -126,72 +87,64 @@ op("AND", V1, V2) ->
     V1 band V2;
 op("OR", V1, V2) ->
     V1 bor V2.
-
-relabel1({"x00", "XOR", "y00", "z00"}) ->
-    skip;
-relabel1({"x" ++ D, "XOR", "y" ++ D, Res}) ->
-    {Res, {"s", D, Res}};
-relabel1({"x" ++ D, "AND", "y" ++ D, Res}) ->
-    {Res, {"c", D, Res}};
-relabel1(Op) ->
-    skip.
-
 swap({A, Op, B, Res}, Map) ->
     {A, Op, B, maps:get(Res, Map, Res)}.
 
-relabel({A, Op, B, Res}, Map) ->
-    [Ao, Bo] = lists:sort([maps:get(A, Map, A), maps:get(B, Map, B)]),
-    {Ao, Op, Bo, maps:get(Res, Map, Res)}.
+classify_var({_, "OR", _, Out}) ->
+    {Out, {carry, Out}};
+classify_var({"x" ++ _ = X, "XOR", "y" ++ _ = Y, Out}) ->
+    [{X, {in, X}}, {Y, {in, Y}}, {Out, {sum, Out}}];
+classify_var({_, "XOR", _, Out}) ->
+    {Out, {out, Out}};
+classify_var({"x00", "AND", "y00", Out}) ->
+    {Out, {carry, Out}};
+classify_var({_, "AND", _, Out}) ->
+    {Out, {internal, Out}}.
 
-relabel2({"x00", "XOR", "y00", "z00"}) ->
-    skip;
-relabel2({{"s", D, _}, "XOR", Lab, "z" ++ D}) ->
-    {Lab, {"cin", D, Lab}};
-relabel2(Op) ->
-    skip.
+classify_gate({A, Op, B, Res}, Map) ->
+    [Ao, Bo] = lists:sort([maps:get(A, Map), maps:get(B, Map)]),
+    {Ao, Op, Bo, maps:get(Res, Map)}.
 
-relabel3({"x00", "XOR", "y00", "z00"}) ->
-    skip;
-relabel3({{"cin", D, _}, "AND", {"s", D, _}, Res}) ->
-    {Res, {"cmi", D, Res}};
-relabel3(Op) ->
-    skip.
+problem_gate({{in, _}, "XOR", {in, _}, {sum, _}}) -> false;
+problem_gate({{carry, _}, "XOR", {sum, _}, {out, _}}) -> false;
+problem_gate({{carry, _}, "AND", {sum, _}, {internal, _}}) -> false;
+problem_gate({{in, _}, "AND", {in, _}, {internal, _}}) -> false;
+problem_gate({{in, "x00"}, "AND", {in, "y00"}, {carry, _}}) -> false;
+problem_gate({{internal, _}, "OR", {internal, _}, {carry, _}}) -> false;
+problem_gate(_) -> true.
 
-check({"x00", "XOR", "y00", "z00"}) -> false;
-check({_, "AND", _, "z" ++ _D}) -> true;
-check({{_, D, _}, _Op, {_, D, _}, {_, D, _}}) -> false;
-check({{_, D1, _}, _Op, {_, D1, _}, {_, D2, _}}) -> list_to_integer(D1) + 1 /= list_to_integer(D2);
-check({"x" ++ D, _Op, "y" ++ D, {_, D, _}}) -> false;
-check({{_, D, _}, "XOR", {_, D, _}, "z" ++ D}) -> false;
-check({{_, D, _}, _Op, {_, D, _}, _}) -> false;
-check({{_, D, _}, _Op, _, {_, D, _}}) -> false;
-check({{_, D1, _}, _Op, {_, D2, _}, _}) -> list_to_integer(D1) + 1 /= list_to_integer(D2);
-check({{_, D1, _}, _Op, _, {_, D2, _}}) -> list_to_integer(D1) + 1 /= list_to_integer(D2);
-check({{_, D, _}, "XOR", _, "z" ++ D}) -> false;
-check({{"c", "00", _}, _Op, _, _}) -> false;
-check(_) -> true.
+vars({A, _, B, C}) -> [A, B, C].
 
-check2({_, _, _}) -> false;
-% check2("z" ++ D) -> false;
-check2("AND") -> false;
-check2("OR") -> false;
-check2("XOR") -> false;
-check2(_) -> true.
+problem_var({carry, "z45" ++ _}) -> false;
+problem_var({sum, "z00" ++ _}) -> false;
+problem_var({Type, "z" ++ _}) -> Type /= out;
+problem_var({in, "x" ++ _}) -> false;
+problem_var({in, "y" ++ _}) -> false;
+problem_var({in, _}) -> true;
+problem_var(_) -> false.
 
-% [{{"s","08","mcr"},"XOR","sjd","mvb"},
-%  {{"s","18","fmm"},"XOR","mfk","wss"},
-%  {{"c","14","rds"},"AND","scs","dcv"},
-%  {{"c","23","fwj"},"OR","vsq","z23"},
-%  {"shw","OR","wss",{"cin","19","nws"}},
-%  {{"s","23","qmd"},"AND","bpr","vsq"},
-%  {{"s","08","mcr"},"AND","sjd","z08"},
-%  {{"s","18","fmm"},"AND","mfk","shw"}]
-% #{"bpr" => 1,"dcv" => 1,"mfk" => 2,"mvb" => 1,"scs" => 1,"shw" => 2,
-%   "sjd" => 2,"vsq" => 2,"wss" => 2}
+get_maps(Problem) ->
+    {Pv, Rest0} = lists:partition(fun problem_var/1, Problem),
+    Rest = [R || {_, L} = R <- Rest0, hd(L) /= $z],
+    get_maps(4, Pv, Rest, #{}).
 
-% dcv,mfk,mvb,scs,shw,sjd,vsq,wss
-% bpr,mfk,mvb,scs,shw,sjd,vsq,wss
-% bpr,dcv,mfk,scs,shw,sjd,vsq,wss
-% bpr,dcv,mfk,mvb,shw,sjd,vsq,wss
-res() ->
-    lists:usort(["wss", "vsq", "sjd", "shw", "mfk", "dcv", "bpr"]).
+get_maps(0, [], _, Map) ->
+    Map;
+get_maps(N, [], Rest, Map) ->
+    [get_maps(N, [V], Rest -- [V], Map) || V <- Rest];
+get_maps(N, [{_, "z" ++ _ = LP} | RP], Rest, Map) ->
+    [get_maps(N - 1, RP, Rest -- [V], Map#{LP => LV, LV => LP}) || {out, LV} = V <- Rest];
+get_maps(N, [{_, LP} | RP], Rest, Map) ->
+    [get_maps(N - 1, RP, Rest -- [V], Map#{LP => LV, LV => LP}) || {_, LV} = V <- Rest].
+
+check(Init, X, Y, Gates0, [Swap | Rest]) ->
+    Gates = [swap(Op, Swap) || Op <- Gates0],
+
+    Res = calculate(Gates, Init),
+    Z = value(Res, $z),
+    case Z == X + Y of
+        true ->
+            string:join(lists:usort(maps:keys(Swap)), ",");
+        false ->
+            check(Init, X, Y, Gates0, Rest)
+    end.
