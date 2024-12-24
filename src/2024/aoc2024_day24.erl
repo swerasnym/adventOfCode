@@ -35,7 +35,7 @@ star2({Init, Gates}) ->
                 [V || V <- maps:values(Vars), problem_var(V)]
         ),
     Maps = lists:flatten(get_maps(lists:usort(Problem))),
-    io:format("~p ~p~n", [length(Maps), hd(Maps)]),
+    io:format("Searching ~p possibilities!~n", [length(Maps)]),
     X = value(Init, $x),
     Y = value(Init, $y),
     check(Init, X, Y, Gates, Maps).
@@ -115,8 +115,8 @@ problem_gate(_) -> true.
 
 vars({A, _, B, C}) -> [A, B, C].
 
-problem_var({carry, "z45" ++ _}) -> false;
-problem_var({sum, "z00" ++ _}) -> false;
+problem_var({carry, "z45"}) -> false;
+problem_var({sum, "z00"}) -> false;
 problem_var({Type, "z" ++ _}) -> Type /= out;
 problem_var({in, "x" ++ _}) -> false;
 problem_var({in, "y" ++ _}) -> false;
