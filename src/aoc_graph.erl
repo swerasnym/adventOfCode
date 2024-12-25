@@ -106,6 +106,8 @@ a_star(States, End, Visited, Neighbours, Estimate) ->
             end
     end.
 
+bfs_([], _End, _Neighbours, Visited) ->
+    {no_path, Visited};
 bfs_([State | Rest], End, Neighbours, Visited) ->
     {Dist, Pos, From} = State,
     case {End(Pos), maps:is_key(Pos, Visited)} of
