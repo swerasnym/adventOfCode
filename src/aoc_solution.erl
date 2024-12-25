@@ -359,6 +359,8 @@ check_answers([H | Rest], Acc) ->
 
 check(Result, Result) ->
     ok;
+check({done, Action}, Action) ->
+    done;
 check({done, _}, unknown) ->
     done;
 check(manual, _Expected) ->

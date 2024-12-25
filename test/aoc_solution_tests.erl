@@ -50,7 +50,7 @@ verify_input(M) ->
                 {_, []} ->
                     ?debugFmt("Unstable: ~p", [Failed]);
                 {_, _} ->
-                    ?debugFmt("Falied: ~p", [Failed])
+                    ?debugFmt("Failed: ~p", [Failed])
             end,
 
             ?assertEqual([], Filtered, {"Problem failing for", Filtered})
