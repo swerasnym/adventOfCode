@@ -113,7 +113,7 @@ bfs_([State | Rest], End, Neighbours, Visited) ->
             {Dist, Pos, Visited#{Pos => {Dist, [From]}}};
         {false, false} ->
             New = Neighbours(Pos),
-            NewStates = [{Dist + 1, N, Pos} || N <- New],
+            NewStates = [{Dist + 1, N, Pos} || N <- New, not maps:is_key(N, Visited)],
             bfs_(Rest ++ NewStates, End, Neighbours, Visited#{Pos => {Dist, [From]}});
         {false, true} ->
             case maps:get(Pos, Visited) of

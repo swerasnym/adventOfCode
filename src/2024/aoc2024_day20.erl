@@ -42,7 +42,7 @@ read(File) ->
 neighbours(Map) ->
     fun(Pos) ->
         Dn = [aoc_vector:add(Pos, Dp) || Dp <- [{1, 0}, {-1, 0}, {0, 1}, {0, -1}]],
-        [{1, D} || D <- Dn, maps:get(D, Map, $#) /= $#]
+        [D || D <- Dn, maps:get(D, Map, $#) /= $#]
     end.
 
 dist({X1, Y1}, {X2, Y2}) ->
@@ -55,7 +55,7 @@ is_end(Map) ->
 
 find_cheats(Map, TimeLimit) ->
     [Start] = [P || P := $S <- Map],
-    {_, End, Visited} = aoc_graph:dijkstra(Start, is_end(Map), neighbours(Map)),
+    {_, End, Visited} = aoc_graph:bfs(Start, is_end(Map), neighbours(Map)),
     InPath = aoc_graph:get_nodes_distances_in_shortest_paths(End, Visited),
     %% sanity check that there is only one path...
     true = maps:size(InPath) == maps:size(Visited),
