@@ -5,6 +5,7 @@
 -export([get_multiple_paths/2]).
 -export([get_nodes_in_shortest_paths/2]).
 -export([get_nodes_distances_in_shortest_paths/2]).
+-export([bfs/3]).
 
 -export_type([pos/0]).
 
@@ -51,6 +52,20 @@ a_star(StartList, End, Neighbours, Estimate) when
 dijkstra(Start, End, Neighbours) ->
     a_star(Start, End, Neighbours, fun(_) -> 0 end).
 
+bfs(Start, End, Neighbours) when not is_list(Start) ->
+    bfs([Start], End, Neighbours);
+bfs(StartList, End, Neighbours) when
+    is_list(StartList),
+    is_function(Neighbours, 1)
+->
+    Starts = [{0, S, start} || S <- StartList],
+    case is_function(End, 1) of
+        true ->
+            bfs_(Starts, End, Neighbours, #{});
+        false ->
+            bfs_(Starts, fun(Pos) -> Pos == End end, Neighbours, #{})
+    end.
+
 get_path(Pos, Visited) when is_map_key(Pos, Visited) ->
     get_single_path(Pos, Visited, []).
 
@@ -88,6 +103,24 @@ a_star(States, End, Visited, Neighbours, Estimate) ->
                     );
                 _ ->
                     a_star(Rest, End, Visited, Neighbours, Estimate)
+            end
+    end.
+
+bfs_([State | Rest], End, Neighbours, Visited) ->
+    {Dist, Pos, From} = State,
+    case {End(Pos), maps:is_key(Pos, Visited)} of
+        {true, false} ->
+            {Dist, Pos, Visited#{Pos => {Dist, [From]}}};
+        {false, false} ->
+            New = Neighbours(Pos),
+            NewStates = [{Dist + 1, N, Pos} || N <- New],
+            bfs_(Rest ++ NewStates, End, Neighbours, Visited#{Pos => {Dist, [From]}});
+        {false, true} ->
+            case maps:get(Pos, Visited) of
+                {Dist, From2} ->
+                    bfs_(Rest, End, Neighbours, Visited#{Pos => {Dist, [From | From2]}});
+                _ ->
+                    bfs_(Rest, End, Neighbours, Visited)
             end
     end.
 
