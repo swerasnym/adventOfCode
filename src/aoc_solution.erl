@@ -342,7 +342,15 @@ check_answers([{Res, #{error := _} = Meta} | Rest], Acc) ->
 check_answers([{Res, #{expected := Answer} = Meta} | Rest], Acc) ->
     check_answers(Rest, [{Res, Meta#{expected => Answer, check => check(Res, Answer)}} | Acc]);
 check_answers([{Res, #{type := input, problem := {Year, Day}, star := Star} = Meta} | Rest], Acc) ->
-    Answer = aoc_web:get_answer(Year, Day, Star),
+    Answer =
+        case aoc_web:get_answer(Year, Day, Star) of
+            {_, A} when is_list(Res) ->
+                A;
+            {A, _} ->
+                A;
+            A ->
+                A
+        end,
     check_answers(Rest, [{Res, Meta#{expected => Answer, check => check(Res, Answer)}} | Acc]);
 check_answers([{Res, #{type := file} = Meta} | Rest], Acc) ->
     check_answers(Rest, [{Res, Meta#{expected => unknown, check => check(Res, unknown)}} | Acc]);

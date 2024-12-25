@@ -268,7 +268,7 @@ binary_to_answer(B) ->
         fun erlang:binary_to_integer/1,
         fun erlang:binary_to_list/1
     ],
-    try_fun(Functions, B).
+    {try_fun(Functions, B), erlang:binary_to_list(B)}.
 
 try_fun([Fun | Rest], B) ->
     try
