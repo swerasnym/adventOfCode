@@ -31,7 +31,7 @@ star1(Passcode) ->
     bfs([{0, {0, 0}, Passcode}]) -- Passcode.
 
 star2(Passcode) ->
-    bfs2([{0, {0, 0}, Passcode}], 0).
+    dfs({0, {0, 0}, Passcode}).
 
 read(File) ->
     tools:read_string(File).
@@ -57,9 +57,7 @@ bfs([{_, {3, 3}, Passcode} | _]) ->
 bfs([S | Rest]) ->
     bfs(Rest ++ neighbours(S)).
 
-bfs2([], Max) ->
-    Max;
-bfs2([{D, {3, 3}, _} | Rest], _) ->
-    bfs2(Rest, D);
-bfs2([S | Rest], Max) ->
-    bfs2(Rest ++ neighbours(S), Max).
+dfs({D, {3, 3}, _}) ->
+    D;
+dfs(S) ->
+    tools:max([dfs(N) || N <- neighbours(S)], 0).

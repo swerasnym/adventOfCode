@@ -74,6 +74,8 @@
 -export([insert_if_smaller/2]).
 -export([perms/1]).
 -export([inc_on_true/2]).
+-export([max/2]).
+-export([min/2]).
 
 -spec whitespace() -> string().
 whitespace() ->
@@ -739,3 +741,13 @@ insert_if(Pred, K, V, Map) when is_function(Pred, 2), is_map_key(K, Map) ->
     end;
 insert_if(Pred, K, V, Map) when is_function(Pred, 2) ->
     Map#{K => V}.
+
+max([], V) ->
+    V;
+max(List, _) when is_list(List) ->
+    lists:max(List).
+
+min([], V) ->
+    V;
+min(List, _) when is_list(List) ->
+    lists:min(List).
