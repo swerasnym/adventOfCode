@@ -88,6 +88,8 @@ whitespace() ->
     (List) -> #{Value => integer()} when List :: [Value].
 count(Map) when is_map(Map) ->
     count(maps:values(Map));
+count(Binary) when is_binary(Binary) ->
+    count([B || <<B>> <= Binary]);
 count(List) when is_list(List) ->
     Fun = fun(V) -> V + 1 end,
     lists:foldl(fun(Value, Map) -> maps:update_with(Value, Fun, 1, Map) end, #{}, List).
@@ -96,6 +98,8 @@ count(List) when is_list(List) ->
 -spec count(Value, [Value | any()] | map()) -> integer().
 count(Value, List) when is_list(List) ->
     count(Value, List, 0);
+count(Value, Binary) when is_binary(Binary) ->
+    length([B || <<B>> <= Binary, B == Value]);
 count(Value, Map) when is_map(Map) ->
     count(Value, maps:values(Map), 0).
 
