@@ -76,6 +76,7 @@
 -export([inc_on_true/2]).
 -export([max/2]).
 -export([min/2]).
+-export([repeat_with_memory/3]).
 
 -spec whitespace() -> string().
 whitespace() ->
@@ -140,6 +141,22 @@ repeat(N, Fun, Acc) when N >= 1, is_function(Fun, 1) ->
     repeat(N - 1, Fun, Fun(Acc));
 repeat(N, Fun, Acc0) when N >= 1, is_function(Fun, 2) ->
     lists:foldl(Fun, Acc0, lists:seq(1, N)).
+
+repeat_with_memory(N, Fun, State0) ->
+    repeat_with_memory(N, Fun, State0, #{}).
+
+repeat_with_memory(0, _, State, _) ->
+    State;
+repeat_with_memory(N, Fun, State, Mem) ->
+    case maps:is_key(State, Mem) of
+        false ->
+            repeat_with_memory(N - 1, Fun, Fun(State), Mem#{State => N});
+        true ->
+            Pn = maps:get(State, Mem),
+            Dn = Pn - N,
+            Cycles = N div Dn,
+            repeat_with_memory(N - Dn * Cycles, Fun, State, #{})
+    end.
 
 group(N, List) when length(List) rem N == 0 ->
     group(N, List, []).
@@ -748,10 +765,10 @@ insert_if(Pred, K, V, Map) when is_function(Pred, 2) ->
 
 max([], V) ->
     V;
-max(List, _) when is_list(List) ->
-    lists:max(List).
+max(List, V) when is_list(List) ->
+    lists:max([V | List]).
 
 min([], V) ->
     V;
-min(List, _) when is_list(List) ->
-    lists:min(List).
+min(List, V) when is_list(List) ->
+    lists:min([V | List]).

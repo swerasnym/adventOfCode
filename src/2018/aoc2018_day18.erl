@@ -30,7 +30,7 @@ star1(Map) ->
 
 star2(Map) ->
     erlang:erase(),
-    End = simulate(Map, 1000000000),
+    End = tools:repeat_with_memory(1000000000, fun step/1, Map),
     tools:print_grid(End),
     #{$# := Lumberyards, $| := Trees} = tools:count(End),
     Lumberyards * Trees.
@@ -64,18 +64,4 @@ update(Pos, $#, Map) ->
     case tools:count([maps:get(P, Map, outside) || P <- neighbours(Pos)]) of
         #{$# := _, $| := _} -> $#;
         _ -> $.
-    end.
-
-simulate(Map, 0) ->
-    Map;
-simulate(Map, N) ->
-    case erlang:get(Map) of
-        undefined ->
-            erlang:put(Map, N),
-            simulate(step(Map), N - 1);
-        Pn ->
-            erlang:erase(),
-            Dn = Pn - N,
-            Cycles = N div Dn,
-            simulate(Map, N - Dn * Cycles)
     end.
