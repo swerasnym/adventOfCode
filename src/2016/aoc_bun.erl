@@ -13,8 +13,6 @@
     mem = #{a => 0, b => 0, c => 0, d => 0},
     commands,
     out = [],
-    step = false,
-    bout = false,
     jint = false
 }).
 
@@ -90,12 +88,8 @@ run(#bun{cp = Cp, commands = Commands} = B) ->
     case maps:get(Cp, Commands, halt) of
         halt ->
             B;
-        {out, X} when B#bun.bout ->
-            run_command({out, X}, B);
         Command when B#bun.jint ->
             run(jint(Command, B));
-        Command when B#bun.step ->
-            run_command(Command, B);
         Command ->
             run(run_command(Command, B))
     end.
@@ -104,9 +98,7 @@ get_mem(#bun{mem = Mem}) -> Mem.
 set_mem(#bun{mem = Mem1} = B, Mem2) -> B#bun{mem = maps:merge(Mem1, Mem2)}.
 get_out(#bun{out = Out}) -> lists:reverse(Out).
 clear_out(#bun{} = B) -> B#bun{out = []}.
-set_opt(jint, Value, #bun{} = B) -> B#bun{jint = Value};
-set_opt(step, Value, #bun{} = B) -> B#bun{step = Value};
-set_opt(bout, Value, #bun{} = B) -> B#bun{bout = Value}.
+set_opt(jint, Value, #bun{} = B) -> B#bun{jint = Value}.
 
 jint(Cmd = {cpy, _, _}, B) ->
     #bun{cp = Cp, commands = Commands} = B,

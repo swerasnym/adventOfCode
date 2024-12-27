@@ -1,5 +1,5 @@
 # Advent Of Code — Using Erlang!
-This is the place where I keep my [Advent of Code](https://adventofcode.com/) solutions written in [Erlang.](https://www.erlang.org/) It currently contains solutions for all problems for the years 2015, 2018..2024.
+This is the place where I keep my [Advent of Code](https://adventofcode.com/) solutions written in [Erlang.](https://www.erlang.org/) It currently contains solutions for all problems for the years 2015..2016, 2018..2024.
 
 
 ## Configuration
