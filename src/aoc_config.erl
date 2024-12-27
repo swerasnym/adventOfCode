@@ -1,5 +1,4 @@
 -module(aoc_config).
--feature(maybe_expr, enable).
 
 -export([check/0]).
 -export([init/0]).

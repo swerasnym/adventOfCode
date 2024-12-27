@@ -7,6 +7,7 @@
         "addx",
         "bandedmail",
         "banr",
+        "bitstring",
         "bnot",
         "bori",
         "borr",
@@ -54,6 +55,7 @@
         "splitwith",
         "statem",
         "topsort",
+        "trunc",
         "usort",
         "warhammer",
         "Xmax",
@@ -64,4 +66,8 @@
         "Zmax",
         "Zmin"
     ],
+    "files.exclude": {
+        "**/usr/lib/**": true
+    },
+    "erlangFormatter.formatter": "erlfmt",
 }

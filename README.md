@@ -15,7 +15,7 @@ If you wish to store the inputs somewhere outside of the repo you can! Just edit
 The project uses [Rebar3](https://rebar3.org/) so it can be built using the `rebar3 compile` command.
 
 ## Running
-There exists a few things to run in this repo. How to run some of the more common things are layed out below.
+There exists a few things to run in this repo. How to run some of the more common things are laid out below.
 
 
 ### Run solutions
