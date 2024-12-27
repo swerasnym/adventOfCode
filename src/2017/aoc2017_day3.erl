@@ -15,8 +15,6 @@ info() ->
         {{data, 23}, star1, 2},
         {{data, 1024}, star1, 31},
         {{data, 23}, star2, 25}
-
-        %{"examples/2017/day3_ex.txt", star2, unknown}
     ],
 
     maps:merge(aoc_solution:default_info(), #{
