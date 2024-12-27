@@ -1,4 +1,4 @@
--module(aoc2016_day12).
+-module(aoc2016_day23).
 -behaviour(aoc_solution).
 
 -export([run/0, run/2]).
@@ -8,12 +8,11 @@
 
 info() ->
     Examples = [
-        {"examples/2016/day12_ex.txt", star1, 42},
-        {"examples/2016/day12_ex.txt", star2, 42}
+        {"examples/2016/day23_ex.txt", star1, 3}
     ],
 
     maps:merge(aoc_solution:default_info(), #{
-        problem => {2016, 12},
+        problem => {2016, 23},
         examples => Examples
     }).
 
@@ -23,13 +22,15 @@ run() ->
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
-star1(Bun) ->
+star1(Bun0) ->
+    Bun1 = aoc_bun:set_mem(Bun0, #{a => 7}),
+    Bun = aoc_bun:set_opt(jint, true, Bun1),
     End = aoc_bun:run(Bun),
     #{a := A} = aoc_bun:get_mem(End),
     A.
 
 star2(Bun0) ->
-    Bun1 = aoc_bun:set_mem(Bun0, #{c => 1}),
+    Bun1 = aoc_bun:set_mem(Bun0, #{a => 12}),
     Bun = aoc_bun:set_opt(jint, true, Bun1),
     End = aoc_bun:run(Bun),
     #{a := A} = aoc_bun:get_mem(End),

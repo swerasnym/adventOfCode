@@ -36,6 +36,7 @@
         "httpc",
         "inets",
         "intcode",
+        "jint",
         "mapfoldl",
         "muli",
         "mulr",
