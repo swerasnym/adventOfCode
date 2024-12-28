@@ -6,7 +6,7 @@ trap 'echo >&2 "Error - exited with status $? at line $LINENO:";
          pr -tn $0 | tail -n+$((LINENO - 3)) | head -n7' ERR
 
 if [ "$#" != 1 ]; then
-    echo Error: The takes ecactly one argument, the command to run. > /dev/stderr
+    echo Error: The script takes exactly one argument, the command to run. > /dev/stderr
     exit 1
 fi
 command="${1}"
