@@ -77,6 +77,7 @@
 -export([max/2]).
 -export([min/2]).
 -export([repeat_with_memory/3]).
+-export([find_cycle/2]).
 
 -spec whitespace() -> string().
 whitespace() ->
@@ -156,6 +157,18 @@ repeat_with_memory(N, Fun, State, Mem) ->
             Dn = Pn - N,
             Cycles = N div Dn,
             repeat_with_memory(N - Dn * Cycles, Fun, State, #{})
+    end.
+
+find_cycle(Fun, State0) ->
+    find_cycle(0, Fun, State0, #{}).
+
+find_cycle(N, Fun, State, Mem) ->
+    case maps:is_key(State, Mem) of
+        false ->
+            find_cycle(N + 1, Fun, Fun(State), Mem#{State => N});
+        true ->
+            Length = N - maps:get(State, Mem),
+            {N, Length, State, Mem}
     end.
 
 group(N, List) when length(List) rem N == 0 ->
