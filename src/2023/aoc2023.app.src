@@ -6,8 +6,7 @@
         kernel,
         stdlib,
         inets,
-        ssl,
-        htmerl
+        ssl
     ]},
     %{mod, {aoc_app, []}},
     {env, []},

@@ -1,8 +1,1 @@
-{"1.2.0",
-[{<<"htmerl">>,{pkg,<<"htmerl">>,<<"0.1.0">>},0}]}.
-[
-{pkg_hash,[
- {<<"htmerl">>, <<"CDB5F7DAC08617F7E039F74311A5B4E5F1909D2C363CF4A355D3DDE7B3CA6F37">>}]},
-{pkg_hash_ext,[
- {<<"htmerl">>, <<"D932F76EA33C318A79F41A429FDBEAE30820390DDB72BA89F38EEF32FEC36395">>}]}
-].
+[].

@@ -37,7 +37,7 @@ start_link() ->
 
 %% Returns the internal state.
 init(nothing) ->
-    {ok, _} = application:ensure_all_started([inets, ssl, htmerl]),
+    {ok, _} = application:ensure_all_started([inets, ssl]),
     ok = ensure_paths(),
     {ok, #state{}}.
 
@@ -252,20 +252,24 @@ get_answers(Year, Day) ->
     maybe
         {ok, Page} ?= aoc_web:get_problem_path(Year, Day),
         {ok, File} ?= file:read_file(Page),
-        {ok, Tokens, []} ?= htmerl:sax(File),
-        find_answers(Tokens, [])
+        [_ | AnswerBlocks] ?= binary:split(File, <<"<p>Your puzzle answer was <code>">>, [global]),
+        {ok, Answers} ?= extract_answers(AnswerBlocks, []),
+        Answers
     else
         Error ->
             io:format("No answer due to ~p.", [Error]),
             []
     end.
 
-find_answers([], Answers) ->
-    lists:reverse(Answers);
-find_answers([{characters, <<"Your puzzle answer was">>}, _, {characters, Answer} | Rest], Answers) ->
-    find_answers(Rest, [binary_to_answer(Answer) | Answers]);
-find_answers([_ | Rest], Answers) ->
-    find_answers(Rest, Answers).
+extract_answers([], Answers) ->
+    {ok, lists:reverse(Answers)};
+extract_answers([Line | Rest], Answers) ->
+    case binary:split(Line, [<<"</code>">>]) of
+        [Answer, _] ->
+            extract_answers(Rest, [binary_to_answer(Answer) | Answers]);
+        _ ->
+            {error, {failed_to_split, Line}}
+    end.
 
 binary_to_answer(B) ->
     Functions = [
