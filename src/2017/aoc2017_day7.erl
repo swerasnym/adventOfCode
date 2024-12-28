@@ -54,7 +54,8 @@ find_new(Diff, R, Programs) ->
     case tools:min_or(Counts, this) of
         {1, Wrong} ->
             [Strange] = [S || S := W <- Weights, W == Wrong],
-            {_, Rest} = lists:max(Counts),
+            {C, Rest} = lists:max(Counts),
+            C = length(Sp) - 1,
             find_new(Wrong - Rest, Strange, Programs);
         _ ->
             io:format("~s should way: ~p~n", [R, ThisW - Diff]),
