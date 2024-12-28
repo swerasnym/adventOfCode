@@ -74,8 +74,8 @@
 -export([insert_if_smaller/2]).
 -export([perms/1]).
 -export([inc_on_true/2]).
--export([max/2]).
--export([min/2]).
+-export([max_or/2]).
+-export([min_or/2]).
 -export([repeat_with_memory/3]).
 -export([find_cycle/2]).
 
@@ -776,12 +776,12 @@ insert_if(Pred, K, V, Map) when is_function(Pred, 2), is_map_key(K, Map) ->
 insert_if(Pred, K, V, Map) when is_function(Pred, 2) ->
     Map#{K => V}.
 
-max([], V) ->
+max_or([], V) ->
     V;
-max(List, V) when is_list(List) ->
-    lists:max([V | List]).
+max_or(List, _) when is_list(List) ->
+    lists:max(List).
 
-min([], V) ->
+min_or([], V) ->
     V;
-min(List, V) when is_list(List) ->
-    lists:min([V | List]).
+min_or(List, _) when is_list(List) ->
+    lists:min(List).

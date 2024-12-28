@@ -60,4 +60,4 @@ bfs([S | Rest]) ->
 dfs({D, {3, 3}, _}) ->
     D;
 dfs(S) ->
-    tools:max([dfs(N) || N <- neighbours(S)], 0).
+    tools:max_or([dfs(N) || N <- neighbours(S)], 0).
