@@ -11,6 +11,13 @@ To enable automatic downloads of inputs, edit the `{session_id, ""}` tuple in `a
 
 If you wish to store the inputs somewhere outside of the repo you can! Just edit the `{base_path, "aoc_storage"}` tuple to match your desired path.
 
+### Local cache of inputs
+The problem inputs and problems are automatically cached as `inputs/<year>/day<day>.txt` and `problems/<year>/day<day>.html` respectively in the `base_path` folder. So by default the input for 2024 day 1 would be stored in `aoc_storage/inputs/2024/day1.txt`. If more than one file be missing they will slowly downloaded when running `solve.sh` in order to  comply with the [automation requirements](https://www.reddit.com/r/adventofcode/wiki/faqs/automation).
+
+If needed the cache can be manually updated by running one of:  
+`./run.sh 'aoc_web:get_input_path(<year>, <day>, remote).'`  
+`./run.sh 'aoc_web:get_problem_path(<year>, <day>, remote).'`
+
 ## Building
 The project uses [Rebar3](https://rebar3.org/) so it can be built using the `rebar3 compile` command.
 

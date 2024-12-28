@@ -16,6 +16,8 @@
 -define(BASE_URL, "https://adventofcode.com/").
 -define(PACING, 5000).
 -define(RELEASE_TIME, {5, 0, 0}).
+-define(REPO, "https://github.com/swerasnym/adventOfCode").
+-define(CONTACT, "https://github.com/swerasnym/adventOfCode/issues/new").
 
 -record(state, {
     queue = queue:new() :: queue:queue(),
@@ -107,6 +109,9 @@ session_cookie() ->
         {ok, Session} ->
             {ok, {"Cookie", "session=" ++ Session}}
     end.
+
+user_agent() ->
+    {"User-Agent", ?REPO ++ " contact: " ++ ?CONTACT}.
 
 ensure_paths() ->
     [ok = filelib:ensure_path(get_dir(D)) || D <- [inputs, problems]],
@@ -217,7 +222,7 @@ get_url(Url, [cookie]) ->
     end;
 get_url(Url, Options) ->
     io:format("Downloading: ~s~n", [Url]),
-    case httpc:request(get, {Url, Options}, [], [{full_result, false}]) of
+    case httpc:request(get, {Url, [user_agent() | Options]}, [], [{full_result, false}]) of
         {ok, {200, Page}} ->
             {ok, Page};
         {ok, {Code, Error}} ->
