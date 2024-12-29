@@ -31,9 +31,9 @@ star2(Map) ->
 
 read(File) ->
     Distances = tools:read_multiple_formats(File, "~s to ~s = ~d"),
-    Edges = lists:flatten([[{A, B, D}, {B, A, D}] || [A, B, D] <- Distances]),
-    Map = maps:groups_from_list(fun({K, _, _}) -> K end, fun({_, A, B}) -> {A, B} end, Edges),
-    maps:map(fun(_, V) -> maps:from_list(V) end, Map).
+    Edges = lists:flatten([[{A, {B, D}}, {B, {A, D}}] || [A, B, D] <- Distances]),
+    Map = tools:group_kv(Edges),
+    #{K => maps:from_list(V) || K := V <- Map}.
 
 distance([_], _Map, Acc) ->
     Acc;

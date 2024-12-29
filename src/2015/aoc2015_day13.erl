@@ -35,9 +35,9 @@ read(File) ->
     Distances = tools:read_multiple_formats(
         File, "~s would ~a ~d happiness units by sitting next to ~s"
     ),
-    Edges = lists:flatten([{A, lists:droplast(B), value(T, D)} || [A, T, D, B] <- Distances]),
-    Map = maps:groups_from_list(fun({K, _, _}) -> K end, fun({_, A, B}) -> {A, B} end, Edges),
-    maps:map(fun(_, V) -> maps:from_list(V) end, Map).
+    Edges = lists:flatten([{A, {lists:droplast(B), value(T, D)}} || [A, T, D, B] <- Distances]),
+    Map = tools:group_kv(Edges),
+    #{K => maps:from_list(V) || K := V <- Map}.
 
 value(gain, V) ->
     V;

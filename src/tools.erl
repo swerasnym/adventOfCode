@@ -78,6 +78,7 @@
 -export([min_or/2]).
 -export([repeat_with_memory/3]).
 -export([find_cycle/2]).
+-export([group_kv/1]).
 
 -spec whitespace() -> string().
 whitespace() ->
@@ -180,6 +181,13 @@ group(_, [], Acc) ->
 group(N, List, Acc) ->
     {G, Rest} = lists:split(N, List),
     group(N, Rest, [list_to_tuple(G) | Acc]).
+
+group_kv(List) ->
+    maps:groups_from_list(
+        fun({K, _}) -> K end,
+        fun({_, V}) -> V end,
+        List
+    ).
 
 replace(Map, Fun) when is_map(Map), is_function(Fun, 1) ->
     maps:map(fun(_, V) -> Fun(V) end, Map);

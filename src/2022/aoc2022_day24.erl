@@ -72,9 +72,7 @@ reached_start(Ps, _) ->
 
 update_map(Map) ->
     NewList = lists:flatten([update(KV, Map) || KV <- maps:to_list(Map)]),
-    NewWrappedMax =
-        maps:groups_from_list(fun({K, _}) -> K end, fun({_, V}) -> V end, NewList),
-
+    NewWrappedMax = tools:group_kv(NewList),
     [Max] = maps:get(max, NewWrappedMax),
     NewWrappedMax#{max => Max}.
 

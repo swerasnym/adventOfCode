@@ -57,10 +57,7 @@ test(I, {Before, [A, B, C], After}) ->
     After == aoc_watch_code:get_registers(S).
 
 find_opt_codes(Tests) ->
-    AllValid = maps:groups_from_list(fun({K, _}) -> K end, fun({_, V}) -> V end, [
-        test(T)
-     || T <- Tests
-    ]),
+    AllValid = tools:group_kv([test(T) || T <- Tests]),
     Overlaps = [{Opt, tools:overlap(Vs)} || Opt := Vs <- AllValid],
     filter_overlaps(lists:sort([{length(Vs), Opt, Vs} || {Opt, Vs} <- Overlaps]), []).
 

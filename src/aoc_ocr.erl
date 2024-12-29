@@ -31,12 +31,7 @@ generate_maps(Info, Pattern) ->
     Zipped = lists:zip(Chars, Grids),
     PosLetter = [{Pos, L} || {L, G} <- Zipped, Pos := $# <- G],
     LenLetter = [{maps:size(G), L} || {L, G} <- Zipped],
-    {Height,
-        maps:groups_from_list(
-            fun({K, _}) -> K end,
-            fun({_, V}) -> V end,
-            PosLetter ++ LenLetter
-        )}.
+    {Height, tools:group_kv(PosLetter ++ LenLetter)}.
 
 split_grid(Grid, S) ->
     Pixels = #{K => V || K := V <- Grid, V == S},
