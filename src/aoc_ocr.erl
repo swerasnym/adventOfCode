@@ -66,7 +66,7 @@ match(#{max := {_, Ymax}} = Letter) ->
             $?
     end.
 
-%% cSpell:disable
+%% cSpell:ignoreRegExp [A-Z]+
 maps() ->
     #{
         6 =>

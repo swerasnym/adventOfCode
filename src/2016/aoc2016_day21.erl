@@ -6,6 +6,7 @@
 %% callbacks
 -export([info/0, star1/1, star1/2, star2/1, read/1]).
 
+%% cSpell:ignore decab fbgdceah
 info() ->
     Examples = [
         {"examples/2016/day21_ex.txt", {star1, <<"abcde">>}, "decab"}
