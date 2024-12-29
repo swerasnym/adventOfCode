@@ -143,11 +143,16 @@ rotate_while(Pred, List) ->
 repeat(0, _, Acc) ->
     Acc;
 repeat(N, Fun, Acc) when N >= 1, is_function(Fun, 1) ->
-    repeat(N - 1, Fun, Fun(Acc));
+    repeat1(N, Fun, Acc);
 repeat(N, Fun, Acc0) when N >= 1, is_function(Fun, 2) ->
     lists:foldl(Fun, Acc0, lists:seq(1, N)).
 
-repeat_with_memory(N, Fun, State0) ->
+repeat1(0, _, Acc) ->
+    Acc;
+repeat1(N, Fun, Acc) ->
+    repeat1(N - 1, Fun, Fun(Acc)).
+
+repeat_with_memory(N, Fun, State0) when N >= 0, is_function(Fun, 1) ->
     repeat_with_memory(N, Fun, State0, #{}).
 
 repeat_with_memory(0, _, State, _) ->
@@ -160,7 +165,7 @@ repeat_with_memory(N, Fun, State, Mem) ->
             Pn = maps:get(State, Mem),
             Dn = Pn - N,
             Cycles = N div Dn,
-            repeat_with_memory(N - Dn * Cycles, Fun, State, #{})
+            repeat1(N - Dn * Cycles, Fun, State)
     end.
 
 find_cycle(Fun, State0) ->
