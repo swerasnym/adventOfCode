@@ -41,20 +41,15 @@ read(File) ->
     tools:read_string(File).
 
 md5(String) ->
-    [to_char(N) || <<N:4>> <= crypto:hash(md5, String)].
+    tools:binary_to_hex_string(crypto:hash(md5, String)).
 
 md5(String, Pad) ->
-    [to_char(N) || <<N:4>> <= crypto:hash(md5, String ++ integer_to_list(Pad))].
+    md5(String ++ integer_to_list(Pad)).
 
 md5_s(Repeats) ->
     fun(String, Pad) ->
         tools:repeat(Repeats, fun md5/1, md5(String, Pad))
     end.
-
-to_char(N) when N < 10 ->
-    $0 + N;
-to_char(N) ->
-    N - 10 + $a.
 
 three_in_a_row(List) when length(List) < 3 ->
     {x, false};

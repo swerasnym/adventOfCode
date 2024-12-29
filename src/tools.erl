@@ -10,6 +10,7 @@
     rotate_while/2,
     repeat/3,
     group/2,
+    group/3,
     replace/2, replace/3, replace/4
 ]).
 -export([read_string/1, read_tokens/2]).
@@ -79,6 +80,8 @@
 -export([repeat_with_memory/3]).
 -export([find_cycle/2]).
 -export([group_kv/1]).
+-export([binary_to_hex_string/1]).
+-export([binary_to_bit_string/1]).
 
 -spec whitespace() -> string().
 whitespace() ->
@@ -172,15 +175,20 @@ find_cycle(N, Fun, State, Mem) ->
             {N, Length, State, Mem}
     end.
 
-group(N, List) when length(List) rem N == 0 ->
-    group(N, List, []).
+group(N, List) ->
+    group(N, List, tuple).
+
+group(N, List, tuple) when length(List) rem N == 0 ->
+    [list_to_tuple(G) || G <- group_(N, List, [])];
+group(N, List, list) when length(List) rem N == 0 ->
+    group_(N, List, []).
 
 %% internal
-group(_, [], Acc) ->
+group_(_, [], Acc) ->
     lists:reverse(Acc);
-group(N, List, Acc) ->
+group_(N, List, Acc) ->
     {G, Rest} = lists:split(N, List),
-    group(N, Rest, [list_to_tuple(G) | Acc]).
+    group_(N, Rest, [G | Acc]).
 
 group_kv(List) ->
     maps:groups_from_list(
@@ -793,3 +801,15 @@ min_or([], V) ->
     V;
 min_or(List, _) when is_list(List) ->
     lists:min(List).
+
+binary_to_hex_string(Bin) ->
+    ToChar = fun
+        (N) when N < 10 ->
+            $0 + N;
+        (N) ->
+            N - 10 + $a
+    end,
+    [ToChar(N) || <<N:4>> <= Bin].
+
+binary_to_bit_string(Bin) ->
+    [B + $0 || <<B:1>> <= Bin].

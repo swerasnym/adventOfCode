@@ -6,6 +6,9 @@
 %% callbacks
 -export([info/0, star1/1, star1/2, star2/1, read/1]).
 
+%% Used in future days
+-export([knot_hash/1]).
+
 info() ->
     Examples = [
         {{data, [3, 4, 1, 5]}, {star1, 4}, 12},
@@ -31,10 +34,8 @@ star1(String) ->
 star1(Lengths, Max) ->
     [A, B | _] = fold(Lengths, Max),
     A * B.
-star2(Lengths) ->
-    Sequence = Lengths ++ [17, 31, 73, 47, 23],
-    FullSequence = lists:flatten(lists:duplicate(64, Sequence)),
-    output(fold(FullSequence, 255), 0).
+star2(Stream) ->
+    tools:binary_to_hex_string(knot_hash(Stream)).
 
 read(File) ->
     tools:read_string(File).
@@ -48,9 +49,11 @@ twist(L, {Start, Skip, List}) ->
     {First, Rest} = lists:split(L, Rotated),
     {Start + L + Skip, Skip + 1, tools:rotate(-Start, lists:reverse(First, Rest))}.
 
-output([], Sum) ->
-    string:to_lower(integer_to_list(Sum, 16));
-output(Stream, Sum) ->
-    {Block, Rest} = lists:split(16, Stream),
-    Compact = lists:foldl(fun erlang:'bxor'/2, 0, Block),
-    output(Rest, Sum * 256 + Compact).
+knot_hash(Stream) ->
+    Sequence = Stream ++ [17, 31, 73, 47, 23],
+    FullSequence = lists:flatten(lists:duplicate(64, Sequence)),
+    Sparse = fold(FullSequence, 255),
+    <<<<(compact(Block))>> || Block <- tools:group(16, Sparse, list)>>.
+
+compact(Block) ->
+    lists:foldl(fun erlang:'bxor'/2, 0, Block).
