@@ -51,23 +51,23 @@ read(File) ->
     StartDirs = [
         D
      || D <- [north, south, east, west],
-        lists:member(Start, neigbours(get_neigbour(Start, D), Map))
+        lists:member(Start, neighbours(get_neighbour(Start, D), Map))
     ],
     %% Asert that only one pipe pice is valid
     2 = length(StartDirs),
     {Start, Map#{Start := StartDirs}}.
 
-neigbours(Pos, Map) when is_map(Map) ->
-    [get_neigbour(Pos, Dir) || Dir <- maps:get(Pos, Map, [])];
-neigbours(Pos, Dirs) when is_list(Dirs) ->
-    [get_neigbour(Pos, Dir) || Dir <- Dirs];
-neigbours(_, _) ->
+neighbours(Pos, Map) when is_map(Map) ->
+    [get_neighbour(Pos, Dir) || Dir <- maps:get(Pos, Map, [])];
+neighbours(Pos, Dirs) when is_list(Dirs) ->
+    [get_neighbour(Pos, Dir) || Dir <- Dirs];
+neighbours(_, _) ->
     [].
 
-get_neigbour({X, Y}, north) -> {X, Y - 1};
-get_neigbour({X, Y}, south) -> {X, Y + 1};
-get_neigbour({X, Y}, east) -> {X + 1, Y};
-get_neigbour({X, Y}, west) -> {X - 1, Y}.
+get_neighbour({X, Y}, north) -> {X, Y - 1};
+get_neighbour({X, Y}, south) -> {X, Y + 1};
+get_neighbour({X, Y}, east) -> {X + 1, Y};
+get_neighbour({X, Y}, west) -> {X - 1, Y}.
 
 move([], Map, Count, []) ->
     {Count, Map};
@@ -78,7 +78,7 @@ move([Pos | Rest], Map, Count, NextLayer) ->
         {visited, _} ->
             move(Rest, Map, Count, NextLayer);
         Dirs ->
-            New = [N || N <- neigbours(Pos, Dirs), is_list(maps:get(N, Map))],
+            New = [N || N <- neighbours(Pos, Dirs), is_list(maps:get(N, Map))],
             move(Rest, Map#{Pos := {visited, Dirs}}, Count, New ++ NextLayer)
     end.
 

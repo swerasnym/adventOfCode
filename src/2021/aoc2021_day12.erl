@@ -45,31 +45,31 @@ read(File) ->
          || Line <- Lines
         ],
     Rooms = lists:umerge(Paths),
-    maps:from_list([neigbours(Room, Paths, []) || Room <- Rooms]).
+    maps:from_list([neighbours(Room, Paths, []) || Room <- Rooms]).
 
-neigbours(Room, [], Acc) ->
+neighbours(Room, [], Acc) ->
     {Room, lists:delete(start, Acc)};
-neigbours(Room, [[Room, N] | Rest], Acc) ->
-    neigbours(Room, Rest, [N | Acc]);
-neigbours(Room, [[N, Room] | Rest], Acc) ->
-    neigbours(Room, Rest, [N | Acc]);
-neigbours(Room, [_ | Rest], Acc) ->
-    neigbours(Room, Rest, Acc).
+neighbours(Room, [[Room, N] | Rest], Acc) ->
+    neighbours(Room, Rest, [N | Acc]);
+neighbours(Room, [[N, Room] | Rest], Acc) ->
+    neighbours(Room, Rest, [N | Acc]);
+neighbours(Room, [_ | Rest], Acc) ->
+    neighbours(Room, Rest, Acc).
 
 paths('end', _Visited, _Nerbours, _) ->
     1;
-paths(Pos, Visited, Neigbours, true) ->
+paths(Pos, Visited, Neighbours, true) ->
     case small_visited(Pos, Visited) of
         true ->
             0;
         false ->
             Visited1 = visit(Pos, Visited),
-            lists:sum([paths(N, Visited1, Neigbours, true) || N <- maps:get(Pos, Neigbours)])
+            lists:sum([paths(N, Visited1, Neighbours, true) || N <- maps:get(Pos, Neighbours)])
     end;
-paths(Pos, Visited, Neigbours, false) ->
+paths(Pos, Visited, Neighbours, false) ->
     Repeat = small_visited(Pos, Visited),
     Visited1 = visit(Pos, Visited),
-    lists:sum([paths(N, Visited1, Neigbours, Repeat) || N <- maps:get(Pos, Neigbours)]).
+    lists:sum([paths(N, Visited1, Neighbours, Repeat) || N <- maps:get(Pos, Neighbours)]).
 
 small_visited(Pos, Visited) ->
     erlang:get(Pos) and lists:member(Pos, Visited).

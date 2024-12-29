@@ -48,8 +48,8 @@ star2(Images) ->
             Side /= right_rev
         ],
 
-    Neigbours = build(Internal, hd(Counrers), Images, Sides, Count),
-    Grid = orient(Neigbours, Images, Sides, Count),
+    Neighbours = build(Internal, hd(Counrers), Images, Sides, Count),
+    Grid = orient(Neighbours, Images, Sides, Count),
 
     Highlighted = highlight_mosters(commbind(Grid)),
     tools:print_grid(Highlighted),
@@ -114,8 +114,8 @@ commbind(#{{0, 0} := #{max := {Xmax, Ymax}}} = Grid) ->
     {Mx, My} = lists:max(maps:keys(Map)),
     Map#{max => {Mx, My}}.
 
-orient(Neigbours, Images, Sides, Count) ->
-    Grid = to_grid(Neigbours),
+orient(Neighbours, Images, Sides, Count) ->
+    Grid = to_grid(Neighbours),
     {Gx, Gy} = lists:max(maps:keys(Grid)),
     orient({0, 0}, Grid, Images, Sides, Count, #{}, {Gx + 1, Gy + 1}).
 
@@ -131,16 +131,16 @@ orient({X, Y} = Pos, Grid, Images, Sides, Count, Acc, Max) ->
         [
             Orientation
          || Orientation <- get_tansforms(Map),
-            check_neigbours(Id, Pos, Orientation, Grid, Sides, Count)
+            check_neighbours(Id, Pos, Orientation, Grid, Sides, Count)
         ],
 
     orient({X + 1, Y}, Grid, Images, Sides, Count, Acc#{Pos => NewMap}, Max).
 
-check_neigbours(Id, {X, Y}, Map, Grid, Sides, Count) ->
-    is_neigbour(Id, top(Map), maps:get({X, Y - 1}, Grid, edge), Sides, Count) and
-        is_neigbour(Id, bot(Map), maps:get({X, Y + 1}, Grid, edge), Sides, Count) and
-        is_neigbour(Id, left(Map), maps:get({X - 1, Y}, Grid, edge), Sides, Count) and
-        is_neigbour(Id, right(Map), maps:get({X + 1, Y}, Grid, edge), Sides, Count).
+check_neighbours(Id, {X, Y}, Map, Grid, Sides, Count) ->
+    is_neighbour(Id, top(Map), maps:get({X, Y - 1}, Grid, edge), Sides, Count) and
+        is_neighbour(Id, bot(Map), maps:get({X, Y + 1}, Grid, edge), Sides, Count) and
+        is_neighbour(Id, left(Map), maps:get({X - 1, Y}, Grid, edge), Sides, Count) and
+        is_neighbour(Id, right(Map), maps:get({X + 1, Y}, Grid, edge), Sides, Count).
 
 get_tansforms(Grid) ->
     Flip = tools:flip_grid(Grid),
@@ -155,11 +155,11 @@ get_tansforms(Grid) ->
         tools:rotate_grid(tools:rotate_grid(Flip))
     ].
 
-is_neigbour(_Id, Value, edge, _Sides, Count) ->
+is_neighbour(_Id, Value, edge, _Sides, Count) ->
     maps:get(Value, Count) == 1;
-is_neigbour(Id, Value, Neigbour, Sides, _Count) ->
+is_neighbour(Id, Value, Neighbour, Sides, _Count) ->
     case [N || {N, _} <- proplists:get_all_values(Value, Sides), N /= Id] of
-        [Neigbour] ->
+        [Neighbour] ->
             true;
         _ ->
             false

@@ -116,7 +116,7 @@ single_moves(_Pos, Map) when map_size(Map) == 0 ->
 single_moves(Pos, Map) ->
     case erlang:get({moves, Pos, Map}) of
         undefined ->
-            Moves = [N || N <- neigbours(Pos), maps:get(N, Map, $#) == $.],
+            Moves = [N || N <- neighbours(Pos), maps:get(N, Map, $#) == $.],
             Filled = maps:without(Moves, Map),
 
             PossibleMoves = Moves ++ lists:append([single_moves(N, Filled) || N <- Moves]),
@@ -127,7 +127,7 @@ single_moves(Pos, Map) ->
             Result
     end.
 
-neigbours({X, Y}) ->
+neighbours({X, Y}) ->
     [{X, Y - 1}, {X, Y + 1}, {X - 1, Y}, {X + 1, Y}].
 
 amphipod(_, $A) ->

@@ -45,7 +45,7 @@ read(File) ->
 update_seat1(_Seat, floor, _OldMap, NewMap) ->
     NewMap;
 update_seat1(Seat, Value, OldMap, NewMap) ->
-    case {Value, tools:count(occupied, neigbours1(Seat, OldMap))} of
+    case {Value, tools:count(occupied, neighbours1(Seat, OldMap))} of
         {free, 0} ->
             NewMap#{Seat => occupied};
         {occupied, N} when N >= 4 ->
@@ -54,7 +54,7 @@ update_seat1(Seat, Value, OldMap, NewMap) ->
             NewMap
     end.
 
-neigbours1({X, Y}, Map) ->
+neighbours1({X, Y}, Map) ->
     [
         maps:get({Xn, Yn}, Map, wall)
      || Xn <- lists:seq(X - 1, X + 1), Yn <- lists:seq(Y - 1, Y + 1), {Xn, Yn} /= {X, Y}
@@ -72,7 +72,7 @@ iterate1(Map) ->
 update_seat2(_Seat, floor, _OldMap, NewMap) ->
     NewMap;
 update_seat2(Seat, Value, OldMap, NewMap) ->
-    case {Value, tools:count(occupied, neigbours2(Seat, OldMap))} of
+    case {Value, tools:count(occupied, neighbours2(Seat, OldMap))} of
         {free, 0} ->
             NewMap#{Seat => occupied};
         {occupied, N} when N >= 5 ->
@@ -81,7 +81,7 @@ update_seat2(Seat, Value, OldMap, NewMap) ->
             NewMap
     end.
 
-neigbours2(Seat, Map) ->
+neighbours2(Seat, Map) ->
     [
         find_seat(Seat, {Dx, Dy}, Map)
      || Dx <- lists:seq(-1, 1), Dy <- lists:seq(-1, 1), {Dx, Dy} /= {0, 0}

@@ -1,7 +1,7 @@
 -module(aoc2019_day18).
 -behaviour(aoc_solution).
 
--export([memmory/1]).
+-export([memory/1]).
 
 -export([run/0, run/2]).
 
@@ -30,28 +30,28 @@ star1({Maze, Start, Keys}) ->
     AllKeys = lists:sort([K || {key, K} <- [maps:get(Pos, Maze) || Pos <- Keys]]),
     Connections = maps:from_list(Paths),
 
-    %% Just verify thet there is a single path trough doors to get between keys.
+    %% Just verify that there is a single path trough doors to get between keys.
     true = length(maps:keys(Connections)) == length(Paths),
 
     %% Start persistent memory
-    Memmory = spawn_link(?MODULE, memmory, [#{}]),
+    Memory = spawn_link(?MODULE, memory, [#{}]),
 
-    {Result, [_Start | Path]} = bfs(Memmory, Start, Connections, AllKeys),
+    {Result, [_Start | Path]} = bfs(Memory, Start, Connections, AllKeys),
 
-    %% Dump memmory
-    Memmory ! {halt, self()},
+    %% Dump memory
+    Memory ! {halt, self()},
     receive
         Map ->
             Map
     end,
     io:format("@~s~n", [Path]),
-    %% Check how many possitions where stored
+    %% Check how many positions where stored
     Result.
 
 star2({Maze0, {X, Y}, Keys}) ->
     %% TODO make it pass day18_4.data, with 72 where the assumption that the
     %% robots can get all keys in their areas in any order no longer
-    %% holds (assumong the required keys age given from the other robots in time.)
+    %% holds (assuming the required keys age given from the other robots in time.)
     Maze =
         Maze0#{
             {X - 1, Y - 1} => start,
@@ -85,11 +85,11 @@ star2({Maze0, {X, Y}, Keys}) ->
     Connections = maps:from_list(Paths),
     true = length(maps:keys(Connections)) == length(Paths),
 
-    Memmory = spawn_link(?MODULE, memmory, [#{}]),
+    Memory = spawn_link(?MODULE, memory, [#{}]),
 
     Results =
         [
-            bfs2(Memmory, Start, Connections, AllKeys, StartList)
+            bfs2(Memory, Start, Connections, AllKeys, StartList)
          || Start <- [{X - 1, Y - 1}, {X + 1, Y - 1}, {X - 1, Y + 1}, {X + 1, Y + 1}]
         ],
 
@@ -97,7 +97,7 @@ star2({Maze0, {X, Y}, Keys}) ->
 
     SolutionPath = [["@", Path, " "] || {_, [_Start | Path]} <- Results],
 
-    Memmory ! {halt, self()},
+    Memory ! {halt, self()},
 
     receive
         Map ->
@@ -106,19 +106,19 @@ star2({Maze0, {X, Y}, Keys}) ->
     io:format("~s~n", [lists:concat(lists:concat(SolutionPath))]),
     lists:sum(Result).
 
-memmory(Map) ->
+memory(Map) ->
     receive
         {query, Pid, Key} ->
             Pid ! {result, maps:get(Key, Map, new)},
-            memmory(Map);
+            memory(Map);
         {store, Key, Value} ->
-            memmory(Map#{Key => Value});
+            memory(Map#{Key => Value});
         {halt, Pid} ->
             Pid ! Map
     end.
 
-query(Memmory, Key) ->
-    Memmory ! {query, self(), Key},
+query(Memory, Key) ->
+    Memory ! {query, self(), Key},
     receive
         {result, Value} ->
             {ok, Value}
@@ -126,46 +126,46 @@ query(Memmory, Key) ->
         error
     end.
 
-store(Memmory, Key, Value) ->
-    Memmory ! {store, Key, Value}.
+store(Memory, Key, Value) ->
+    Memory ! {store, Key, Value}.
 
-bfs2(Memmory, Pos, Connections, KeysINeed, StartList) ->
+bfs2(Memory, Pos, Connections, KeysINeed, StartList) ->
     Available = proplists:get_all_values(Pos, StartList),
     bfs(
-        Memmory,
+        Memory,
         {start, Pos},
         sets:from_list(KeysINeed -- Available),
         Available,
         Connections
     ).
 
-bfs(Memmory, Pos, Connections, KeysINeed) ->
-    bfs(Memmory, {start, Pos}, sets:new(), KeysINeed, Connections).
+bfs(Memory, Pos, Connections, KeysINeed) ->
+    bfs(Memory, {start, Pos}, sets:new(), KeysINeed, Connections).
 
-bfs(_Memmory, From, _KeysIHave, [], _Connections) ->
+bfs(_Memory, From, _KeysIHave, [], _Connections) ->
     {0, [From]};
-bfs(Memmory, From, KeysIHave, KeysINeed, Connections) ->
-    case query(Memmory, {From, KeysIHave}) of
+bfs(Memory, From, KeysIHave, KeysINeed, Connections) ->
+    case query(Memory, {From, KeysIHave}) of
         {ok, new} ->
-            Nexts = [To || To <- KeysINeed, have_keys(From, To, KeysIHave, Connections)],
+            Next = [To || To <- KeysINeed, have_keys(From, To, KeysIHave, Connections)],
 
             {Distance, Path} =
                 lists:min([
                     add(
-                        distance(From, Next, Connections),
+                        distance(From, N, Connections),
                         bfs(
-                            Memmory,
-                            Next,
-                            sets:add_element(Next, KeysIHave),
-                            KeysINeed -- [Next],
+                            Memory,
+                            N,
+                            sets:add_element(N, KeysIHave),
+                            KeysINeed -- [N],
                             Connections
                         )
                     )
-                 || Next <- Nexts
+                 || N <- Next
                 ]),
 
             Result = {Distance, [From | Path]},
-            store(Memmory, {From, KeysIHave}, Result),
+            store(Memory, {From, KeysIHave}, Result),
             Result;
         {ok, Value} ->
             Value
@@ -269,17 +269,17 @@ next(
     } =
         State
 ) ->
-    Npos =
+    NPos =
         lists:filter(
-            fun(Neigbour) ->
-                case maps:get(Neigbour, Maze) of
+            fun(Neighbour) ->
+                case maps:get(Neighbour, Maze) of
                     wall ->
                         false;
                     _ ->
                         true
                 end
             end,
-            neigbours(Pos)
+            neighbours(Pos)
         ),
 
     [
@@ -288,7 +288,7 @@ next(
             path = [N | Path],
             maze = Maze#{Pos => wall}
         }
-     || N <- Npos
+     || N <- NPos
     ].
 
 reduce([{{From, From}, _} | As]) ->
@@ -315,5 +315,5 @@ reduce(
 reduce([A | Rest], Result) ->
     reduce(Rest, [A | Result]).
 
-neigbours({X, Y}) ->
+neighbours({X, Y}) ->
     [{X, Y - 1}, {X, Y + 1}, {X + 1, Y}, {X - 1, Y}].

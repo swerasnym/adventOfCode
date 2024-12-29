@@ -74,13 +74,13 @@ not_wall() ->
 
 next(Pos, Grid, Valid) ->
     Dirs = [north, west, east, south],
-    Next = [{Dir, get_neigbour(Pos, Dir)} || Dir <- Dirs],
+    Next = [{Dir, get_neighbour(Pos, Dir)} || Dir <- Dirs],
     [NP || {Dir, NP} <- Next, Valid(Dir, maps:get(NP, Grid, $#))].
 
-get_neigbour({X, Y}, north) -> {X, Y - 1};
-get_neigbour({X, Y}, south) -> {X, Y + 1};
-get_neigbour({X, Y}, east) -> {X + 1, Y};
-get_neigbour({X, Y}, west) -> {X - 1, Y}.
+get_neighbour({X, Y}, north) -> {X, Y - 1};
+get_neighbour({X, Y}, south) -> {X, Y + 1};
+get_neighbour({X, Y}, east) -> {X + 1, Y};
+get_neighbour({X, Y}, west) -> {X - 1, Y}.
 
 valid(_Dir, $.) -> true;
 valid(_Dir, $#) -> false;

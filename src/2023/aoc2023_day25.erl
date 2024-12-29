@@ -55,9 +55,9 @@ read(File) ->
     {Graph, lists:concat(Edges)}.
 
 parse_line(L) ->
-    [Label, Neigbours] = string:split(L, ": "),
+    [Label, Neighbours] = string:split(L, ": "),
 
-    {Label, string:split(Neigbours, " ", all)}.
+    {Label, string:split(Neighbours, " ", all)}.
 
 split(_, []) ->
     none;

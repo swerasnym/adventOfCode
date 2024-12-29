@@ -37,7 +37,7 @@ star2(Map) ->
 read(File) ->
     tools:read_grid(File, fun(V) -> V - $0 end).
 
-neigbours({X, Y}) ->
+neighbours({X, Y}) ->
     [{X, Y + 1}, {X + 1, Y}, {X, Y - 1}, {X - 1, Y}].
 
 bfs(End, [{Risk, End} | _], _Map) ->
@@ -49,7 +49,7 @@ bfs(End, [{Risk, Pos} | Rest], Map) ->
         _ ->
             New = [
                 {Risk + NRisk, N}
-             || N <- neigbours(Pos), visited /= (NRisk = maps:get(N, Map, visited))
+             || N <- neighbours(Pos), visited /= (NRisk = maps:get(N, Map, visited))
             ],
             bfs(End, lists:umerge(Rest, lists:sort(New)), Map#{Pos => visited})
     end.

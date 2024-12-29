@@ -78,8 +78,8 @@ iterate2(Map, N) ->
     iterate2(evolve(Map), N - 1).
 
 cell(Pos, Value, Map) ->
-    Neigbours = [N || N <- neigbours(Pos), maps:get(N, Map, empty) == bug],
-    case {Value, length(Neigbours)} of
+    Neighbours = [N || N <- neighbours(Pos), maps:get(N, Map, empty) == bug],
+    case {Value, length(Neighbours)} of
         {bug, 1} ->
             bug;
         {bug, _} ->
@@ -136,12 +136,12 @@ map2(Map, Iterations) ->
         ]),
     maps:fold(fun({X, Y}, Value, Acc) -> Acc#{{0, X, Y} => Value} end, Map0, Map).
 
-neigbours({X, Y}) ->
+neighbours({X, Y}) ->
     [{X, Y - 1}, {X, Y + 1}, {X - 1, Y}, {X + 1, Y}];
 %? (middle)
-neigbours({_, 2, 2}) ->
+neighbours({_, 2, 2}) ->
     [];
-neigbours({Level, X, Y}) ->
+neighbours({Level, X, Y}) ->
     Base = [{Level, X, Y - 1}, {Level, X, Y + 1}, {Level, X - 1, Y}, {Level, X + 1, Y}],
 
     Extra =

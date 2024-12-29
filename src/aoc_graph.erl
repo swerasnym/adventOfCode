@@ -132,8 +132,8 @@ get_multiple_paths(Pos, Visited, Path) ->
             [[{0, Pos} | Path]];
         {Dist, [From]} ->
             get_multiple_paths(From, Visited, [{Dist, Pos} | Path]);
-        {Dist, Froms} ->
-            [Mp ++ Path || From <- Froms, Mp <- get_multiple_paths(From, Visited, [{Dist, Pos}])]
+        {Dist, From} ->
+            [Mp ++ Path || F <- From, Mp <- get_multiple_paths(F, Visited, [{Dist, Pos}])]
     end.
 
 get_single_path(Pos, Visited, Path) ->

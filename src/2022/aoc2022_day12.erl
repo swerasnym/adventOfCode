@@ -30,7 +30,7 @@ star2(Map) ->
     [{End, $E}] = maps:to_list(maps:filter(fun(_K, V) -> V == $E end, Map)),
     search_down([{End, $z, 0}], Map#{Start => $a, End => $z}).
 
-neigbours({X, Y}) ->
+neighbours({X, Y}) ->
     [
         {X + Dx, Y + Dy}
      || Dx <- [-1, 0, 1], Dy <- [-1, 0, 1], {Dx, Dy} /= {0, 0}, Dx * Dy == 0
@@ -41,7 +41,7 @@ search_up([{End, _Height, Steps} | _Rest], End, _Map) ->
 search_up([{Pos, Height, Steps} | Rest], End, Map) ->
     N = [
         {P, H, Steps + 1}
-     || P <- neigbours(Pos),
+     || P <- neighbours(Pos),
         (H = maps:get(P, Map, $a + 100)) =< Height + 1,
         erlang:put(P, visited) /= visited
     ],
@@ -52,7 +52,7 @@ search_down([{_End, $a, Steps} | _Rest], _Map) ->
 search_down([{Pos, Height, Steps} | Rest], Map) ->
     N = [
         {P, H, Steps + 1}
-     || P <- neigbours(Pos),
+     || P <- neighbours(Pos),
         (H = maps:get(P, Map, -100)) + 1 >= Height,
         erlang:put(P, visited) /= visited
     ],

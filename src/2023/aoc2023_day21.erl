@@ -74,11 +74,11 @@ bfs2([{_Pos, N} | _Rest], _Grid, Visited, Nmax) when N > Nmax ->
 bfs2([{Pos, N} | Rest], Grid, Visited, Nmax) ->
     case maps:is_key(Pos, Visited) of
         false ->
-            bfs2(Rest ++ neigbours2(Pos, Grid, N + 1), Grid, Visited#{Pos => N}, Nmax);
+            bfs2(Rest ++ neighbours2(Pos, Grid, N + 1), Grid, Visited#{Pos => N}, Nmax);
         true ->
             bfs2(Rest, Grid, Visited, Nmax)
     end.
-neigbours2({X, Y}, #{max := {Xmax, Ymax}} = Grid, N) ->
+neighbours2({X, Y}, #{max := {Xmax, Ymax}} = Grid, N) ->
     [
         {Pos, N}
      || {Px, Py} = Pos <- [{X, Y - 1}, {X, Y + 1}, {X - 1, Y}, {X + 1, Y}],

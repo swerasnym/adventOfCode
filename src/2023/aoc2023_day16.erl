@@ -43,17 +43,17 @@ light([{Pos, Dir, N} | Rest], Grid, Lighted) ->
                     light(Rest, Grid, Lighted);
                 _ ->
                     NewDirs = interact(Dir, Symbol),
-                    Next = [{get_neigbour(Pos, Nd), Nd, N + 1} || Nd <- NewDirs],
+                    Next = [{get_neighbour(Pos, Nd), Nd, N + 1} || Nd <- NewDirs],
                     light(Rest ++ Next, Grid, Lighted#{{Pos, Dir} => N})
             end;
         _ ->
             light(Rest, Grid, Lighted)
     end.
 
-get_neigbour({X, Y}, north) -> {X, Y - 1};
-get_neigbour({X, Y}, south) -> {X, Y + 1};
-get_neigbour({X, Y}, east) -> {X + 1, Y};
-get_neigbour({X, Y}, west) -> {X - 1, Y}.
+get_neighbour({X, Y}, north) -> {X, Y - 1};
+get_neighbour({X, Y}, south) -> {X, Y + 1};
+get_neighbour({X, Y}, east) -> {X + 1, Y};
+get_neighbour({X, Y}, west) -> {X - 1, Y}.
 
 interact(Dir, $.) ->
     [Dir];

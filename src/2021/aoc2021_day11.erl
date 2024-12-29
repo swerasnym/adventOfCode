@@ -35,7 +35,7 @@ star2(Data) ->
 read(File) ->
     tools:drop_max(tools:read_grid(File, fun(V) -> V - $0 end)).
 
-neigbours({X, Y} = Pos) ->
+neighbours({X, Y} = Pos) ->
     lists:delete(Pos, [{X + Dx, Y + Dy} || Dx <- lists:seq(-1, 1), Dy <- lists:seq(-1, 1)]).
 
 step(Map, 0, Count) ->
@@ -86,7 +86,7 @@ iterate(Map, Flashed) ->
     end.
 
 inc(Map, Fk) ->
-    Add = lists:flatmap(fun neigbours/1, Fk),
+    Add = lists:flatmap(fun neighbours/1, Fk),
     lists:foldl(
         fun
             (K, AccIn) when is_map_key(K, AccIn) ->

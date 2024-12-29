@@ -7,6 +7,7 @@
 -export([info/0, star1/1, star1/2, star2/1, star2/2, read/1]).
 
 info() ->
+    %% cSpell:words baedc ceadb
     Examples = [
         {"examples/2017/day16_ex.txt", {star1, <<"abcde">>}, "baedc"},
         {"examples/2017/day16_ex.txt", {star2, {<<"abcde">>, 2}}, "ceadb"},

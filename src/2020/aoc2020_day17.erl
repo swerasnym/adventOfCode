@@ -37,13 +37,16 @@ read(File) ->
 iterate(0, Map) ->
     Map;
 iterate(N, Map) ->
-    Check = lists:usort(lists:flatmap(fun neigbours/1, maps:keys(Map))),
+    Check = lists:usort(lists:flatmap(fun neighbours/1, maps:keys(Map))),
 
     Update =
         fun(Pos, Acc) ->
-            ActiveNeigbours = [Neigbour || Neigbour <- neigbours(Pos), maps:is_key(Neigbour, Map)],
+            ActiveNeighbours = [
+                Neighbour
+             || Neighbour <- neighbours(Pos), maps:is_key(Neighbour, Map)
+            ],
 
-            case {maps:get(Pos, Map, inactive), length(ActiveNeigbours)} of
+            case {maps:get(Pos, Map, inactive), length(ActiveNeighbours)} of
                 {active, 2} ->
                     Acc#{Pos => active};
                 {active, 3} ->
@@ -56,7 +59,7 @@ iterate(N, Map) ->
         end,
     iterate(N - 1, lists:foldl(Update, #{}, Check)).
 
-neigbours({X, Y, Z}) ->
+neighbours({X, Y, Z}) ->
     [
         {Xn, Yn, Zn}
      || Xn <- lists:seq(X - 1, X + 1),
@@ -64,7 +67,7 @@ neigbours({X, Y, Z}) ->
         Zn <- lists:seq(Z - 1, Z + 1),
         {Xn, Yn, Zn} /= {X, Y, Z}
     ];
-neigbours({X, Y, Z, W}) ->
+neighbours({X, Y, Z, W}) ->
     [
         {Xn, Yn, Zn, Wn}
      || Xn <- lists:seq(X - 1, X + 1),

@@ -81,13 +81,13 @@ flip(Pos, [Dir | Dirs], Map) ->
 iterate(0, Floor) ->
     Floor;
 iterate(N, Floor) ->
-    NewPos = lists:usort(lists:flatmap(fun neigbours/1, maps:keys(Floor))),
+    NewPos = lists:usort(lists:flatmap(fun neighbours/1, maps:keys(Floor))),
 
     Update =
         fun(Pos, Acc) ->
-            Neigbours = [Neigbour || Neigbour <- neigbours(Pos), maps:is_key(Neigbour, Floor)],
+            Neighbours = [Neighbour || Neighbour <- neighbours(Pos), maps:is_key(Neighbour, Floor)],
 
-            case {maps:get(Pos, Floor, white), length(Neigbours)} of
+            case {maps:get(Pos, Floor, white), length(Neighbours)} of
                 {black, 1} ->
                     Acc#{Pos => black};
                 {black, 2} ->
@@ -100,5 +100,5 @@ iterate(N, Floor) ->
         end,
     iterate(N - 1, lists:foldl(Update, #{}, NewPos)).
 
-neigbours(Pos) ->
+neighbours(Pos) ->
     [move(Pos, Dir) || Dir <- [e, se, sw, w, nw, ne]].

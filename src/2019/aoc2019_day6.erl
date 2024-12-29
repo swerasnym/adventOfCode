@@ -32,8 +32,8 @@ depth(G, Vertex) ->
 depth(_, [], Acc) ->
     Acc;
 depth(G, [{Vertex, Distance} | Rest], Acc) ->
-    Neigbours = [{V, Distance + 1} || V <- digraph:out_neighbours(G, Vertex)],
-    depth(G, Neigbours ++ Rest, Acc + Distance).
+    Neighbours = [{V, Distance + 1} || V <- digraph:out_neighbours(G, Vertex)],
+    depth(G, Neighbours ++ Rest, Acc + Distance).
 
 star2(G) ->
     P1 = digraph:get_path(G, <<"COM">>, <<"YOU">>),

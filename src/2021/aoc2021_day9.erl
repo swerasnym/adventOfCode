@@ -40,9 +40,9 @@ read(File) ->
     tools:read_grid(File).
 
 low({Point, Value}, Map) ->
-    lists:all(fun(V) -> V end, [Value < maps:get(N, Map, $9) || N <- neigbours(Point)]).
+    lists:all(fun(V) -> V end, [Value < maps:get(N, Map, $9) || N <- neighbours(Point)]).
 
-neigbours({X, Y}) ->
+neighbours({X, Y}) ->
     [{X, Y - 1}, {X, Y + 1}, {X - 1, Y}, {X + 1, Y}].
 
 basin([], In, _Map) ->
@@ -50,7 +50,7 @@ basin([], In, _Map) ->
 basin([Point | Rest], In, Map) ->
     case maps:get(Point, Map, $9) /= $9 of
         true ->
-            basin(Rest ++ neigbours(Point), [Point | In], maps:update(Point, $9, Map));
+            basin(Rest ++ neighbours(Point), [Point | In], maps:update(Point, $9, Map));
         false ->
             basin(Rest, In, Map)
     end.

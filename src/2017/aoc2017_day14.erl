@@ -7,6 +7,7 @@
 -export([info/0, star1/1, star2/1, read/1]).
 
 info() ->
+    %% cSpell:words flqrgnkx
     Examples = [
         {{data, "flqrgnkx"}, star1, 8108},
         {{data, "flqrgnkx"}, star2, 1242}
