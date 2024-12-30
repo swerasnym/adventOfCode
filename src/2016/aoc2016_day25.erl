@@ -19,13 +19,13 @@ run(StarOrStars, FileOrData) ->
 
 star1({BunA0, BunB0}) ->
     BunA = aoc_bun:set_opt(jint, true, BunA0),
-    EndA = aoc_bun:run(BunA),
+    {halt, EndA} = aoc_bun:run(BunA),
     #{a := Add} = Mem = aoc_bun:get_mem(EndA),
     A = find_a(Add, 2),
     BunB1 = aoc_bun:set_opt(jint, true, BunB0),
     Start = Mem#{a => A + Add},
     BunB = aoc_bun:set_mem(BunB1, Start),
-    EndB = aoc_bun:run(BunB),
+    {halt, EndB} = aoc_bun:run(BunB),
     Output = aoc_bun:get_out(EndB),
     true = verify_output(0, Output),
     io:format("~p~n", [Output]),

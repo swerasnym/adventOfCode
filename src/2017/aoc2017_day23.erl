@@ -18,13 +18,16 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Lines) ->
+    [io:format("~s~n", [L]) || L <- Lines],
     Program = aoc_tablet:from_lines(Lines),
     {halt, S} = aoc_tablet:run(aoc_tablet:debug(Program, true)),
     Calls = aoc_tablet:get_calls(S),
     maps:get(mul, Calls).
 
 star2(Lines) ->
-    Program = aoc_tablet:from_lines(patch(Lines)),
+    Patched = patch(Lines),
+    [io:format("~s~n", [L]) || L <- Patched],
+    Program = aoc_tablet:from_lines(Patched),
     {halt, S} = aoc_tablet:run(aoc_tablet:set_mem(Program, #{a => 1})),
     Mem = aoc_tablet:get_mem(S),
     maps:get(h, Mem).

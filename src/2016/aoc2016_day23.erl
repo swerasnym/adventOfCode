@@ -25,14 +25,14 @@ run(StarOrStars, FileOrData) ->
 star1(Bun0) ->
     Bun1 = aoc_bun:set_mem(Bun0, #{a => 7}),
     Bun = aoc_bun:set_opt(jint, true, Bun1),
-    End = aoc_bun:run(Bun),
+    {halt, End} = aoc_bun:run(Bun),
     #{a := A} = aoc_bun:get_mem(End),
     A.
 
 star2(Bun0) ->
     Bun1 = aoc_bun:set_mem(Bun0, #{a => 12}),
     Bun = aoc_bun:set_opt(jint, true, Bun1),
-    End = aoc_bun:run(Bun),
+    {halt, End} = aoc_bun:run(Bun),
     #{a := A} = aoc_bun:get_mem(End),
     A.
 
