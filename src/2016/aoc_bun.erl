@@ -29,8 +29,7 @@ parse_command(["dec", A]) -> {dec, parse_value(A)};
 parse_command(["inc", A]) -> {inc, parse_value(A)};
 parse_command(["jnz", A, B]) -> {jnz, parse_value(A), parse_value(B)};
 parse_command(["out", A]) -> {out, parse_value(A)};
-parse_command(["tgl", A]) -> {tgl, parse_value(A)};
-parse_command([]) -> ok.
+parse_command(["tgl", A]) -> {tgl, parse_value(A)}.
 
 parse_value("a") -> a;
 parse_value("b") -> b;
