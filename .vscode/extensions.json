@@ -2,8 +2,8 @@
     "recommendations": [
         "pgourlain.erlang",
         "sztheory.erlang-formatter",
-        "erlang-ls.erlang-ls",
         "streetsidesoftware.code-spell-checker",
-        "streetsidesoftware.code-spell-checker-british-english"
+        "streetsidesoftware.code-spell-checker-british-english",
+        "erlang-language-platform.erlang-language-platform"
     ]
 }
