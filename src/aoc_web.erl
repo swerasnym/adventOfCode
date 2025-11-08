@@ -2,7 +2,7 @@
 
 -behaviour(gen_server).
 
-%% @doc Provide an cached API towards https://adventofcode.com
+-doc "Provide an cached API towards https://adventofcode.com".
 -export([start_link/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2]).
 -export([get_input_path/2, get_input_path/3, base_url/0]).
@@ -225,7 +225,7 @@ get_url(Url, Options) ->
     case httpc:request(get, {Url, [user_agent() | Options]}, [], [{full_result, false}]) of
         {ok, {200, Page}} ->
             {ok, Page};
-        {ok, {Code, Error}} ->
+        {ok, {Code, Error}} when is_number(Code), is_list(Error) ->
             {error, "Url: " ++ Url ++ " Code: " ++ integer_to_list(Code) ++ " Error: " ++ Error};
         {error, _} = Error ->
             {error, Error}

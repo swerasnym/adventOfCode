@@ -26,11 +26,11 @@ star1(Operations) ->
     star1(Operations, {49, 5}).
 
 star1(Data, Max) ->
-    Display = lists:foldl(fun apply/2, #{max => Max}, Data),
+    Display = lists:foldl(fun apply_operation/2, #{max => Max}, Data),
     maps:size(Display) - 1.
 
 star2(Data) ->
-    Display = lists:foldl(fun apply/2, #{max => {49, 5}}, Data),
+    Display = lists:foldl(fun apply_operation/2, #{max => {49, 5}}, Data),
     tools:print_grid(Display),
     aoc_ocr:decode(Display, $█).
 
@@ -47,13 +47,13 @@ parse("rotate row y=" ++ Rest) ->
     [Row, Steps] = tools:parse_format(Rest, "~d by ~d"),
     {rot, {y, Row, Steps}}.
 
-apply({rot, {x, Col, Steps}}, Screen = #{max := {_, Ymax}}) ->
+apply_operation({rot, {x, Col, Steps}}, Screen = #{max := {_, Ymax}}) ->
     Pos = [{Col, Y} || {C, Y} := _ <- Screen, C == Col],
     Remove = maps:without(Pos, Screen),
     maps:merge(Remove, #{{X, tools:mod(Y + Steps, Ymax + 1)} => $█ || {X, Y} <- Pos});
-apply({rot, {y, Row, Steps}}, Screen = #{max := {Xmax, _}}) ->
+apply_operation({rot, {y, Row, Steps}}, Screen = #{max := {Xmax, _}}) ->
     Pos = [{X, Row} || {X, R} := _ <- Screen, R == Row],
     Remove = maps:without(Pos, Screen),
     maps:merge(Remove, #{{tools:mod(X + Steps, Xmax + 1), Y} => $█ || {X, Y} <- Pos});
-apply({rect, {Cols, Rows}}, Screen) ->
+apply_operation({rect, {Cols, Rows}}, Screen) ->
     maps:merge(Screen, #{{X, Y} => $█ || X <- lists:seq(0, Cols - 1), Y <- lists:seq(0, Rows - 1)}).

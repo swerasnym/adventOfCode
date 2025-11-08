@@ -1,5 +1,5 @@
 {
-    "explorer.excludeGitIgnore": true,
+    "explorer.excludeGitIgnore": false,
     "cSpell.language": "en,en-GB",
     "cSpell.words": [
         "absname",
@@ -17,12 +17,14 @@
         "divi",
         "dont",
         "droplast",
+        "ebin",
         "egcd",
         "elerium",
         "eprof",
         "eqir",
         "eqri",
         "eqrr",
+        "eqwalizer",
         "erlc",
         "erlfmt",
         "eunit",
@@ -67,6 +69,9 @@
         "Zmin"
     ],
     "files.exclude": {
+        "_build": true,
+        "**/*.beam": true,
+        "**/*.o": true,
         "**/usr/lib/**": true
     },
     "erlangFormatter.formatter": "erlfmt",

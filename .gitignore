@@ -16,3 +16,4 @@ rel/example_project
 /aoc.config
 .#*
 *.TAGS
+aoc_storage

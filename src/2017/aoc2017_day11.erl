@@ -36,7 +36,7 @@ star2(Directions) ->
     Max.
 
 read(File) ->
-    [list_to_atom(D) || D <- string:split(tools:read_string(File), ",", all)].
+    [list_to_existing_atom(D) || D <- string:split(tools:read_string(File), ",", all)].
 
 move2(D, {Pos, Max}) ->
     Next = move(D, Pos),

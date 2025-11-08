@@ -112,7 +112,13 @@ run_file(M, StarOrStars, examples) ->
 run_file(M, _, {example, {File, Star, ExpectedResult}}) ->
     {#{type => example, expected => ExpectedResult}, run_file(M, Star, File)};
 run_file(M, StarOrStars, File) when is_list(File) ->
-    FilePath = filename:join(code:priv_dir(aoc), File),
+    Dir =
+        case code:priv_dir(aoc) of
+            {error, _} -> "";
+            Path -> Path
+        end,
+
+    FilePath = filename:join(Dir, File),
     case filelib:is_file(FilePath) of
         false ->
             Error = "File not found",
@@ -323,7 +329,11 @@ get_all_released(Year, Day) ->
 
 implements_behaviour(Module) ->
     {module, Module} = code:ensure_loaded(Module),
-    Attributes = erlang:get_module_info(Module, attributes),
+    Attributes =
+        case erlang:get_module_info(Module, attributes) of
+            A when is_list(A) -> A;
+            A -> [A]
+        end,
     case proplists:get_value(behaviour, Attributes) of
         undefined ->
             false;
