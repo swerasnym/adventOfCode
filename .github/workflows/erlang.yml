@@ -18,6 +18,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
+    - name: Add git
+      run: | 
+        apt-get update
+        apt-get install -y --no-install-recommends git ca-certificates
     - name: Set ownership
       run: |
         # make owner correct
