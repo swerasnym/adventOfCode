@@ -1,4 +1,5 @@
 -module(intcode).
+-compile({no_auto_import, [halt/1]}).
 
 %% Parse
 -export([from_list/1, from_string/1, from_file/1]).
