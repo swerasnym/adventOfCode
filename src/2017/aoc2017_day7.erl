@@ -31,7 +31,6 @@ star1(Programs) ->
 star2(Programs) ->
     SubPrograms = [P || _ := {_, Sps} <- Programs, P <- Sps],
     [Bottom] = maps:keys(Programs) -- SubPrograms,
-    Bottom,
     find_new(0, Bottom, Programs).
 
 read(File) ->

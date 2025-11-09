@@ -138,7 +138,7 @@ product(List) ->
 -doc """
 Sorts in reverse order
 """.
--spec reverse_sort([any()]) -> [any()].
+-spec reverse_sort([T]) -> [T].
 reverse_sort(List) ->
     lists:sort(fun erlang:'>'/2, List).
 

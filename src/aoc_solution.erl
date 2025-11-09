@@ -1,19 +1,19 @@
 -module(aoc_solution).
 
 -type day() :: 1..25.
--type year() :: 2015..2024.
+-type year() :: 2015..2025.
 
 -type info() :: #{problem := {year(), day()}, _ => _}.
--type data() :: term().
--type result() :: term().
--export_type([result/0]).
+-type data() :: dynamic().
+-type result() :: number() | string().
+-export_type([day/0, year/0, result/0, data/0, info/0]).
 
 -callback info() -> info().
 -callback read(File :: file:name_all()) -> Data :: data().
 -callback star1(Data :: data()) -> result().
--callback star1(Data :: data(), Parameters :: any()) -> result().
+-callback star1(Data :: data(), Parameters :: dynamic()) -> result().
 -callback star2(Data :: data()) -> result().
--callback star2(Data :: data(), Parameters :: any()) -> result().
+-callback star2(Data :: data(), Parameters :: dynamic()) -> result().
 
 -optional_callbacks([star1/2, star2/2]).
 

@@ -137,9 +137,9 @@ orient({X, Y} = Pos, Grid, Images, Sides, Count, Acc, Max) ->
     orient({X + 1, Y}, Grid, Images, Sides, Count, Acc#{Pos => NewMap}, Max).
 
 check_neighbours(Id, {X, Y}, Map, Grid, Sides, Count) ->
-    is_neighbour(Id, top(Map), maps:get({X, Y - 1}, Grid, edge), Sides, Count) and
-        is_neighbour(Id, bot(Map), maps:get({X, Y + 1}, Grid, edge), Sides, Count) and
-        is_neighbour(Id, left(Map), maps:get({X - 1, Y}, Grid, edge), Sides, Count) and
+    is_neighbour(Id, top(Map), maps:get({X, Y - 1}, Grid, edge), Sides, Count) andalso
+        is_neighbour(Id, bot(Map), maps:get({X, Y + 1}, Grid, edge), Sides, Count) andalso
+        is_neighbour(Id, left(Map), maps:get({X - 1, Y}, Grid, edge), Sides, Count) andalso
         is_neighbour(Id, right(Map), maps:get({X + 1, Y}, Grid, edge), Sides, Count).
 
 get_tansforms(Grid) ->

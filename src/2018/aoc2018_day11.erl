@@ -52,7 +52,6 @@ power_level(X, Y, SN) ->
     PL3 - 5.
 
 power_grid(SN, Max) ->
-    ok,
     #{{X, Y} => power_level(X, Y, SN) || X <- lists:seq(1, Max), Y <- lists:seq(1, Max)}.
 
 partial_sums(Map) ->

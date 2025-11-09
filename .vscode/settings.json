@@ -78,4 +78,13 @@
         "**/usr/lib/**": true
     },
     "erlangFormatter.formatter": "erlfmt",
+    "elp.diagnostics.disabled": [
+        "W0049",
+        "W0023"
+    ],
+    "elp.eqwalizer.all": true,
+    "elp.highlightDynamic.enable": false,
+    "elp.lens.links.enable": true,
+    "elp.hoverActions.enable": false,
+    "erlang-elp.trace.server": "off",
 }

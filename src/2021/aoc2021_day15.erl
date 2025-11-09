@@ -48,6 +48,7 @@ bfs(End, [{Risk, Pos} | Rest], Map) ->
             bfs(End, Rest, Map);
         _ ->
             New = [
+                % eqwalizer:ignore
                 {Risk + NRisk, N}
              || N <- neighbours(Pos), visited /= (NRisk = maps:get(N, Map, visited))
             ],

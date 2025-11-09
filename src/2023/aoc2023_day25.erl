@@ -52,6 +52,7 @@ read(File) ->
         ]
      || Key <- maps:keys(Map)
     ],
+    % eqwalizer:ignore
     {Graph, lists:concat(Edges)}.
 
 parse_line(L) ->
@@ -106,5 +107,6 @@ input_to_graphviz(input) ->
 input_to_graphviz(File) ->
     String0 = tools:read_string(File),
     String1 = string:replace(String0, ": ", "->", all),
+    % eqwalizer:ignore
     String2 = string:replace(String1, " ", ",", all),
     io:format("digraph G{~n~s~n}~n", [String2]).

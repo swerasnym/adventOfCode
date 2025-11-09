@@ -59,6 +59,7 @@ parse_rule(RuleLine) ->
         "\"" ++ Rest ->
             {Id, {str, lists:droplast(Rest)}};
         RuleLists ->
+            % eqwalizer:ignore
             Rules = string:split(RuleLists, " | ", all),
             {Id, {rule, [tools:parse_integers(Rule) || Rule <- Rules]}}
     end.

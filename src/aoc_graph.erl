@@ -16,7 +16,7 @@
         Dist :: non_neg_integer(),
         EndPoint :: End | EndPos :: pos(),
         Visited :: #{
-            Start :: pos() => {0, start},
+            %% Start => {0, start},
             Pos :: pos() => {Distance :: non_neg_integer(), From :: pos()}
         }
     }

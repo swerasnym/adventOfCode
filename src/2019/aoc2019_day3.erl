@@ -47,6 +47,8 @@ read(File) ->
     {ok, Device} = file:open(File, [read]),
     Row1 = io:get_line(Device, ""),
     Row2 = io:get_line(Device, ""),
+    true = is_list(Row1),
+    true = is_list(Row2),
 
     List1 = string:split(string:trim(Row1), ",", all),
     List2 = string:split(string:trim(Row2), ",", all),

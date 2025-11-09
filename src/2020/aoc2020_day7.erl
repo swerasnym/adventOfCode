@@ -40,13 +40,16 @@ process_bag(BagContent) ->
             {emty, 0};
         (Content) ->
             case string:to_integer(Content) of
-                {1, " " ++ Rbag} ->
-                    {list_to_atom(Rbag), 1};
+                {1, " " ++ RestBag} ->
+                    % eqwalizer:ignore
+                    {list_to_atom(RestBag), 1};
                 {Number, " " ++ Rbag} ->
+                    % eqwalizer:ignore
                     {list_to_atom(lists:droplast(Rbag)), Number}
             end
     end,
     {
+        % elp:ignore W0023 (atoms_exhaustion)
         list_to_atom(Bag),
         maps:from_list([F(Content) || Content <- string:split(Contents, ", ", all)])
     }.

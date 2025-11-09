@@ -29,6 +29,7 @@ star1(Lines) ->
 star2(Lines) ->
     erlang:erase(),
     {Pos, Zero} = lists:partition(fun non_zero_rate/1, Lines),
+    % eqwalizer:ignore
     PosN = [{P, S#{n => 1 bsl I}} || {I, {P, S}} <- lists:enumerate(0, Pos)],
     ALL = lists:sum([N || {_, #{n := N}} <- PosN]),
 

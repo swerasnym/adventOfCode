@@ -71,5 +71,6 @@ filter2([_ | Rest] = L, V) ->
             $1,
             ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
         ),
+    % eqwalizer:ignore
     Match = [D || {D, Text} <- Numbers, lists:prefix(Text, L)],
     filter2(Rest, Match ++ V).
