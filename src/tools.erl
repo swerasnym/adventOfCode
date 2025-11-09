@@ -1,5 +1,7 @@
-%% @doc tools used for solving AdventOfCode
 -module(tools).
+-moduledoc """
+tools used for solving AdventOfCode
+""".
 
 -export([
     whitespace/0,
@@ -87,7 +89,9 @@
 whitespace() ->
     "\s\t\n\r\v".
 
-%% @doc Generates a map of counts of the terms in the collection.
+-doc """
+Generates a map of counts of the terms in the collection.
+""".
 
 -spec count
     (Map) -> #{Value => integer()} when Map :: #{_ => Value};
@@ -100,8 +104,10 @@ count(List) when is_list(List) ->
     Fun = fun(V) -> V + 1 end,
     lists:foldl(fun(Value, Map) -> maps:update_with(Value, Fun, 1, Map) end, #{}, List).
 
-%% @doc Counts the number of occurrences of 'Value' in the Collection.
--spec count(Value, [Value | any()] | map()) -> integer().
+-doc """
+Counts the number of occurrences of 'Value' in the Collection.
+""".
+-spec count(Value, [Value | any()] | map() | binary()) -> integer().
 count(Value, List) when is_list(List) ->
     count(Value, List, 0);
 count(Value, Binary) when is_binary(Binary) ->
@@ -121,13 +127,17 @@ inc_on_true(true, V) ->
 inc_on_true(_, V) ->
     V.
 
-%% @doc Calculates the product of a list of numbers.
+-doc """
+Calculates the product of a list of numbers.
+""".
 
 -spec product([number()]) -> number().
 product(List) ->
     lists:foldl(fun(Term, Product) -> Term * Product end, 1, List).
 
-%% @doc Sorts in reverse order
+-doc """
+Sorts in reverse order
+""".
 -spec reverse_sort([any()]) -> [any()].
 reverse_sort(List) ->
     lists:sort(fun erlang:'>'/2, List).
@@ -209,8 +219,10 @@ replace(Map, Fun) when is_map(Map), is_function(Fun, 2) ->
 replace(Values, Replacements) when is_map(Replacements) ->
     replace(Values, Replacements, all).
 
-%% @doc All for list
--spec replace(maybe_improper_list() | map(), _, _) -> any().
+-doc """
+All for list
+""".
+-spec replace(maybe_improper_list() | map(), dynamic(), dynamic()) -> dynamic().
 replace(List, Replacements, all) when is_list(List), is_map(Replacements) ->
     lists:map(fun(Value) -> maps:get(Value, Replacements, Value) end, List);
 %% @doc All for map
@@ -223,7 +235,9 @@ replace(List, Replacements, N) when is_list(List), is_map(Replacements), is_inte
 replace(Values, Replace, With) ->
     replace(Values, #{Replace => With}, all).
 
-%% @doc Replace up to Count occurrences off Replace with With in a list
+-doc """
+Replace up to Count occurrences off Replace with With in a list
+""".
 replace(Values, Replace, With, Count) ->
     replace(Values, #{Replace => With}, Count).
 
@@ -242,7 +256,9 @@ replace_([Head | Rest], Replacements, N, Acc) ->
 %% ------------------------
 %% read
 
-%% @doc Reads a whole file into a string, without any trailing whitespace.
+-doc """
+Reads a whole file into a string, without any trailing whitespace.
+""".
 read_string(File) ->
     case file:read_file(File) of
         {ok, Bin} ->
@@ -251,37 +267,51 @@ read_string(File) ->
             erlang:error(Error, [File])
     end.
 
-%% @doc Tokenizes a whole file using string:tokens/2 ignoring any trailing whitespace.
+-doc """
+Tokenizes a whole file using string:tokens/2 ignoring any trailing whitespace.
+""".
 read_tokens(File, Separators) ->
     string:tokens(read_string(File), Separators).
 
-%% @doc Reads a whole file into a list of lines without trailing line breaks.
+-doc """
+Reads a whole file into a list of lines without trailing line breaks.
+""".
 read_lines(File) ->
     string:split(read_string(File), "\n", all).
 
-%% @doc Reads a whole file into a list of lines without trailing line breaks and applies function
+-doc """
+Reads a whole file into a list of lines without trailing line breaks and applies function
+""".
 read_lines(File, Fun) when is_function(Fun, 1) ->
     [Fun(Line) || Line <- read_lines(File)];
 read_lines(File, {Fun, Params}) when is_function(Fun), is_list(Params) ->
     [erlang:apply(Fun, [Line | Params]) || Line <- read_lines(File)].
 
-%% @doc Reads a whole file into a lists of blocks that where separated by a
-%% single empty line.
+-doc """
+Reads a whole file into a lists of blocks that where separated by a
+single empty line.
+""".
 read_blocks(File) ->
     string:split(read_string(File), "\n\n", all).
 
-%% @doc Reads a whole file into a lists of blocks that where separated by a
-%% single empty line and applies function.
+-doc """
+Reads a whole file into a lists of blocks that where separated by a
+single empty line and applies function.
+""".
 read_blocks(File, Fun) when is_function(Fun, 1) ->
     [Fun(Block) || Block <- read_blocks(File)];
 read_blocks(File, {Fun, Params}) when is_function(Fun), is_list(Params) ->
     [erlang:apply(Fun, [Block | Params]) || Block <- read_blocks(File)].
 
-%% @doc Reads a file of whitespace separated integers to a list.
+-doc """
+Reads a file of whitespace separated integers to a list.
+""".
 read_integers(File) ->
     read_integers(File, whitespace()).
 
-%% @doc Reads a file of whitespace separated integers to a list and sort them.
+-doc """
+Reads a file of whitespace separated integers to a list and sort them.
+""".
 read_integers(File, sort) ->
     lists:sort(read_integers(File));
 read_integers(File, Separators) ->
@@ -290,9 +320,11 @@ read_integers(File, Separators) ->
 read_integers(File, Separators, sort) ->
     lists:sort(read_integers(File, Separators)).
 
-%% @doc Reads a file of repeated formats ino a list of lits of terms.
-%% @see io:format().
-%% for format specification
+-doc """
+Reads a file of repeated formats ino a list of lits of terms.
+See `m:io:format()`.
+for format specification
+""".
 read_multiple_formats(File, Format) ->
     {ok, Device} = file:open(File, [read]),
     read_multiple_formats_(Device, Format, []).
@@ -328,12 +360,16 @@ parse_blocks(String, Fun) when is_function(Fun, 1) ->
 parse_blocks(String, {Fun, Params}) when is_function(Fun), is_list(Params) ->
     [erlang:apply(Fun, [Block | Params]) || Block <- parse_blocks(String)].
 
-%% @doc Reads a string of whitespace separated integers to a list.
+-doc """
+Reads a string of whitespace separated integers to a list.
+""".
 parse_integers(String) ->
     parse_integers(String, whitespace()),
     lists:flatten(parse_multiple_formats(String, "~d")).
 
-%% @doc Reads a file of whitespace separated integers to a list and sort them.
+-doc """
+Reads a file of whitespace separated integers to a list and sort them.
+""".
 parse_integers(String, sort) ->
     lists:sort(parse_integers(String));
 parse_integers(String, Separators) ->
@@ -560,8 +596,10 @@ lcm([A, B | Rest]) ->
 lcm(A, B) ->
     A * B div gcd(A, B).
 
-%% @doc egcd(A,B) calculates the tuple {R, X, Y} s.t. A*X + B*Y = R, with R = gcd(A, B).
-%% Note that R is allowed to be negative.
+-doc """
+egcd(A,B) calculates the tuple {R, X, Y} s.t. A*X + B*Y = R, with R = gcd(A, B).
+Note that R is allowed to be negative.
+""".
 egcd(R, 0) ->
     {R, 1, 0};
 egcd(A, B) ->
@@ -579,8 +617,11 @@ mod_inv(A, B) ->
             undefined
     end.
 
-%% @doc Calculates modulo of two numbers.
-%% @return A positive integer
+-doc """
+Calculates modulo of two numbers.
+### Return
+A positive integer
+""".
 mod(A, M) ->
     X = A rem M,
     case X < 0 of
@@ -590,7 +631,9 @@ mod(A, M) ->
             X
     end.
 
-%% @doc Calculates Base^Exponent for integer exponents.
+-doc """
+Calculates Base^Exponent for integer exponents.
+""".
 pow(Base, Exponent) -> pow(Base, Exponent, 1).
 
 pow(_, 0, RunningTotal) ->
@@ -604,13 +647,15 @@ pow(SquaredBase, Exponent, RunningTotal) ->
     Congruences :: [{Ri :: integer(), Mi :: integer()}],
     Result :: {X :: integer(), M :: integer()} | undefined.
 
-%% @doc Solves a system of linear congruences:
-%% ```X + k*M ~ R1 (mod M1),
-%%    X + k*M ~ R2 (mod M2),
-%%    ...,
-%%    X + k*M ~ Rn (mod Mn)'''
-%%
-%% returns {X, M} such that X + kM is a solution for all integers k; or undefined when no solution exists (i.e. when when gcd(Mi, Mj) does not divide (Ri-Rj) for some i /= j).
+-doc """
+Solves a system of linear congruences:
+```X + k*M ~ R1 (mod M1),
+   X + k*M ~ R2 (mod M2),
+   ...,
+   X + k*M ~ Rn (mod Mn)```
+
+returns {X, M} such that X + kM is a solution for all integers k; or undefined when no solution exists (i.e. when when gcd(Mi, Mj) does not divide (Ri-Rj) for some i /= j).
+""".
 
 chinese_remainder([V]) ->
     V;
@@ -631,7 +676,9 @@ chinese_remainder([{R1, M1}, {R2, M2} | Rest]) ->
 -spec chinese_multi_reminder(Congruences) -> Result when
     Congruences :: [{[Ri :: integer()], Mi :: integer()}],
     Result :: {[X :: integer()], M :: integer()} | undefined.
-%% @doc Solves a system of linear congruences with multiple valid residues:
+-doc """
+Solves a system of linear congruences with multiple valid residues:
+""".
 chinese_multi_reminder([A]) ->
     A;
 chinese_multi_reminder([{As, Ma}, {Bs, Mb} | Rest]) ->
@@ -690,7 +737,9 @@ interval_split({A1, A2} = A, {B1, B2} = B) ->
 interval_split(A, _) ->
     A.
 
-%% @doc Returns the part of interval A that exists before B
+-doc """
+Returns the part of interval A that exists before B
+""".
 interval_before(A, {B}) ->
     interval_before(A, {B, B});
 interval_before({_, A2} = A, {B1, _}) when A2 < B1 ->
@@ -702,8 +751,9 @@ interval_before({A1, _}, {B1, _}) ->
 interval_before(A, _) ->
     A.
 
-%% @doc Returns the part of interval A that exists after B
-%%
+-doc """
+Returns the part of interval A that exists after B
+""".
 interval_after(A, {B}) ->
     interval_after(A, {B, B});
 interval_after({A1, _} = A, {_, B2}) when A1 > B2 ->

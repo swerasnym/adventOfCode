@@ -103,7 +103,7 @@ star2({Maze0, {X, Y}, Keys}) ->
         Map ->
             Map
     end,
-    io:format("~s~n", [lists:concat(lists:concat(SolutionPath))]),
+    io:format("~s~n", [SolutionPath]),
     lists:sum(Result).
 
 memory(Map) ->
@@ -134,13 +134,13 @@ bfs2(Memory, Pos, Connections, KeysINeed, StartList) ->
     bfs(
         Memory,
         {start, Pos},
-        sets:from_list(KeysINeed -- Available),
+        sets:from_list(KeysINeed -- Available, [{version, 2}]),
         Available,
         Connections
     ).
 
 bfs(Memory, Pos, Connections, KeysINeed) ->
-    bfs(Memory, {start, Pos}, sets:new(), KeysINeed, Connections).
+    bfs(Memory, {start, Pos}, sets:new([{version, 2}]), KeysINeed, Connections).
 
 bfs(_Memory, From, _KeysIHave, [], _Connections) ->
     {0, [From]};

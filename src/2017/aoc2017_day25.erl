@@ -31,6 +31,7 @@ star2(_) ->
 read(File) ->
     String = tools:read_string(File),
     Cleaned0 = string:replace(String, ".", "", all),
+    % eqwalizer:ignore [string()] is a string()...
     Cleaned1 = string:replace(Cleaned0, ":", "", all),
     Clean = lists:flatten(Cleaned1),
     [Header | Cards] = tools:parse_blocks(Clean),
@@ -55,6 +56,7 @@ parse_card("In state " ++ [S, $\n | Card]) ->
             - Continue with state ~a
         """,
     [If0, If1] = tools:group(3, tools:parse_format(Card, Format)),
+    % elp:ignore W0023 (atoms_exhaustion)
     {list_to_atom([S]), #{0 => If0, 1 => If1}}.
 
 step(Cards) ->

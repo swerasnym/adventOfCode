@@ -9,14 +9,15 @@
 
 -export_type([pos/0]).
 
--type pos() :: term().
+-type pos() :: dynamic().
 
 -spec a_star(Start | StartList, End, Neighbours, Estimate) ->
     {
         Dist :: non_neg_integer(),
         EndPoint :: End | EndPos :: pos(),
         Visited :: #{
-            Start := {0, start}, Pos :: pos() => {Distance :: non_neg_integer(), From :: pos()}
+            Start :: pos() => {0, start},
+            Pos :: pos() => {Distance :: non_neg_integer(), From :: pos()}
         }
     }
 when
@@ -26,11 +27,13 @@ when
     Neighbours :: fun((Pos :: pos()) -> [{D :: non_neg_integer(), Neighbour :: pos()}]),
     Estimate :: fun((Pos :: pos()) -> E :: non_neg_integer()).
 
-%% @doc Calculate the shortest distance between a (set of) start and an end (condition)
-%% using the a_star algorithm.
-%%
-%% Note: For the distance to be truly the shortest the Estimate function must be admissible,
-%% i.e. never overestimate the distance from the current position to the/an end.
+-doc """
+Calculate the shortest distance between a (set of) start and an end (condition)
+using the a_star algorithm.
+
+Note: For the distance to be truly the shortest the Estimate function must be admissible,
+i.e. never overestimate the distance from the current position to the/an end.
+""".
 a_star(Start, End, Neighbours, Estimate) when not is_list(Start) ->
     a_star([Start], End, Neighbours, Estimate);
 a_star(StartList, End, Neighbours, Estimate) when
@@ -48,7 +51,9 @@ a_star(StartList, End, Neighbours, Estimate) when
             )
     end.
 
-%% @doc Same as a_star but with an estimate that always is 0.
+-doc """
+Same as a_star but with an estimate that always is 0.
+""".
 dijkstra(Start, End, Neighbours) ->
     a_star(Start, End, Neighbours, fun(_) -> 0 end).
 

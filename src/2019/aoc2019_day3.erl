@@ -24,24 +24,24 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1({Data1, Data2}) ->
-    S1 = sets:from_list(move(Data1)),
-    S2 = sets:from_list(move(Data2)),
+    S1 = sets:from_list(move(Data1), [{version, 2}]),
+    S2 = sets:from_list(move(Data2), [{version, 2}]),
     Crossings = sets:to_list(sets:intersection(S1, S2)),
-    Distanses = lists:map(fun distance/1, Crossings),
-    lists:min(Distanses).
+    Distances = lists:map(fun distance/1, Crossings),
+    lists:min(Distances).
 
 star2({Data1, Data2}) ->
     M1 = move(Data1),
     M2 = move(Data2),
-    S1 = sets:from_list(M1),
-    S2 = sets:from_list(M2),
+    S1 = sets:from_list(M1, [{version, 2}]),
+    S2 = sets:from_list(M2, [{version, 2}]),
     Crossings = sets:to_list(sets:intersection(S1, S2)),
     Z1 = lists:zip(M1, lists:seq(1, length(M1))),
     Z2 = lists:zip(M2, lists:seq(1, length(M2))),
 
-    Distanses = lists:map(fun(Pos) -> distanse(Pos, Z1, Z2) end, Crossings),
+    Distances = lists:map(fun(Pos) -> distance(Pos, Z1, Z2) end, Crossings),
 
-    lists:min(Distanses).
+    lists:min(Distances).
 
 read(File) ->
     {ok, Device} = file:open(File, [read]),
@@ -83,7 +83,7 @@ move({$D, I}, {X, Y}, List, Acc) ->
 distance({X, Y}) ->
     abs(X) + abs(Y).
 
-distanse(Pos, L1, L2) ->
+distance(Pos, L1, L2) ->
     {Pos, D1} = lists:keyfind(Pos, 1, L1),
     {Pos, D2} = lists:keyfind(Pos, 1, L2),
     D1 + D2.

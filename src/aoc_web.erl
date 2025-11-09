@@ -2,7 +2,7 @@
 
 -behaviour(gen_server).
 
--doc "Provide an cached API towards https://adventofcode.com".
+-moduledoc "Provide an cached API towards https://adventofcode.com".
 -export([start_link/0]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2]).
 -export([get_input_path/2, get_input_path/3, base_url/0]).

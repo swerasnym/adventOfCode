@@ -46,6 +46,7 @@ parse_floor(Text) ->
             [];
         "a " ++ InventoryAAnd ->
             InventoryA = string:replace(InventoryAAnd, " and ", " "),
+            % eqwalizer:ignore [string()] is a string()...
             Inventory = string:replace(InventoryA, ",", "", all),
             lists:sort([parse_item(I) || I <- string:split(lists:flatten(Inventory), " a ", all)])
     end.

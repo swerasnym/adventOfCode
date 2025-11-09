@@ -25,8 +25,9 @@ run(StarOrStars, FileOrData) ->
 
 star1(Data) ->
     G = build_graph(Data),
-
-    Order = lists:droplast(digraph_utils:topsort(G)),
+    T = digraph_utils:topsort(G),
+    true = is_list(T),
+    Order = lists:droplast(T),
 
     F = fun(Result) -> react(Result, Data) end,
     Reactions = lists:map(F, Order),
@@ -36,7 +37,9 @@ star1(Data) ->
 star2(Data) ->
     G = build_graph(Data),
 
-    Order = lists:droplast(digraph_utils:topsort(G)),
+    T = digraph_utils:topsort(G),
+    true = is_list(T),
+    Order = lists:droplast(T),
 
     F = fun(Result) -> react(Result, Data) end,
     Reactions = lists:map(F, Order),
@@ -101,14 +104,14 @@ react(Result, Data) ->
 
 do_react({{Reaction, Output}, List}, Amounts) ->
     Amount = maps:get(Reaction, Amounts, 0),
-    No = divup(Amount, Output),
+    No = div_up(Amount, Output),
     F = fun({E, A}, Acc) ->
         C = maps:get(E, Acc, 0),
         Acc#{E => C + A * No}
     end,
     lists:foldl(F, Amounts, List).
 
-divup(A, B) ->
+div_up(A, B) ->
     case A rem B of
         0 ->
             A div B;

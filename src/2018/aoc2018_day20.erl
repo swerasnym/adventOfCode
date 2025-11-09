@@ -47,6 +47,7 @@ read(File) ->
     ),
 
     Expr1 = string:replace(Expr0, ",{\"\"}", "", all),
+    % eqwalizer:ignore [string()] is a string()...
     Expr2 = string:replace(Expr1, "*", "", all),
     tools:as_term(lists:flatten(Expr2)).
 
