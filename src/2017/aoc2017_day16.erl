@@ -9,9 +9,9 @@
 info() ->
     %% cSpell:ignore baedc ceadb
     Examples = [
-        {"examples/2017/day16_ex.txt", {star1, <<"abcde">>}, "baedc"},
-        {"examples/2017/day16_ex.txt", {star2, {<<"abcde">>, 2}}, "ceadb"},
-        {"examples/2017/day16_ex.txt", {star2, {<<"abcde">>, 10000}}, "abcde"}
+        {"examples/2017/day16_ex.txt", {star1, ~"abcde"}, "baedc"},
+        {"examples/2017/day16_ex.txt", {star2, {~"abcde", 2}}, "ceadb"},
+        {"examples/2017/day16_ex.txt", {star2, {~"abcde", 10000}}, "abcde"}
     ],
 
     maps:merge(aoc_solution:default_info(), #{
@@ -26,14 +26,14 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(Moves) ->
-    star1(Moves, <<"abcdefghijklmnop">>).
+    star1(Moves, ~"abcdefghijklmnop").
 
 star1(Moves, Dancers) ->
     Dance = dance(Moves),
     binary_to_list(Dance(Dancers)).
 
 star2(Moves) ->
-    star2(Moves, {<<"abcdefghijklmnop">>, 1000000000}).
+    star2(Moves, {~"abcdefghijklmnop", 1000000000}).
 star2(Moves, {Dancers, Times}) ->
     Res = tools:repeat_with_memory(Times, dance(Moves), Dancers),
     binary_to_list(Res).

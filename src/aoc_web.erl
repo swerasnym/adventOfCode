@@ -252,7 +252,7 @@ get_answers(Year, Day) ->
     maybe
         {ok, Page} ?= aoc_web:get_problem_path(Year, Day),
         {ok, File} ?= file:read_file(Page),
-        [_ | AnswerBlocks] ?= binary:split(File, <<"<p>Your puzzle answer was <code>">>, [global]),
+        [_ | AnswerBlocks] ?= binary:split(File, ~"<p>Your puzzle answer was <code>", [global]),
         {ok, Answers} ?= extract_answers(AnswerBlocks, []),
         Answers
     else
@@ -264,7 +264,7 @@ get_answers(Year, Day) ->
 extract_answers([], Answers) ->
     {ok, lists:reverse(Answers)};
 extract_answers([Line | Rest], Answers) ->
-    case binary:split(Line, [<<"</code>">>]) of
+    case binary:split(Line, [~"</code>"]) of
         [Answer, _] ->
             extract_answers(Rest, [binary_to_answer(Answer) | Answers]);
         _ ->

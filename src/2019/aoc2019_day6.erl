@@ -24,7 +24,7 @@ run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
 star1(G) ->
-    depth(G, <<"COM">>).
+    depth(G, ~"COM").
 
 depth(G, Vertex) ->
     depth(G, [{Vertex, 0}], 0).
@@ -36,8 +36,8 @@ depth(G, [{Vertex, Distance} | Rest], Acc) ->
     depth(G, Neighbours ++ Rest, Acc + Distance).
 
 star2(G) ->
-    P1 = digraph:get_path(G, <<"COM">>, <<"YOU">>),
-    P2 = digraph:get_path(G, <<"COM">>, <<"SAN">>),
+    P1 = digraph:get_path(G, ~"COM", ~"YOU"),
+    P2 = digraph:get_path(G, ~"COM", ~"SAN"),
     true = is_list(P1),
     true = is_list(P2),
     length(P1 -- P2) + length(P2 -- P1) - 2.

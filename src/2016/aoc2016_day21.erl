@@ -9,7 +9,7 @@
 %% cSpell:ignore decab fbgdceah
 info() ->
     Examples = [
-        {"examples/2016/day21_ex.txt", {star1, <<"abcde">>}, "decab"}
+        {"examples/2016/day21_ex.txt", {star1, ~"abcde"}, "decab"}
     ],
 
     maps:merge(aoc_solution:default_info(), #{
@@ -23,7 +23,7 @@ run() ->
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 star1(Instructions) ->
-    star1(Instructions, <<"abcdefgh">>).
+    star1(Instructions, ~"abcdefgh").
 
 star1(Instructions, Start) ->
     Res = lists:foldl(fun execute/2, Start, Instructions),

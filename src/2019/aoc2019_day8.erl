@@ -45,9 +45,9 @@ count(Layer, String) ->
 
 pixel(Pos, [Top | Rest]) ->
     case string:slice(Top, Pos, 1) of
-        <<"2">> ->
+        ~"2" ->
             pixel(Pos, Rest);
-        <<"1">> ->
+        ~"1" ->
             $█;
         _ ->
             $\s

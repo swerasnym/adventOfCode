@@ -50,7 +50,7 @@ sum(Val, Sum) when is_binary(Val) ->
 sum_non_red(List, Sum) when is_list(List) ->
     lists:foldl(fun sum_non_red/2, Sum, List);
 sum_non_red(Map, Sum) when is_map(Map) ->
-    case lists:member(<<"red">>, maps:values(Map)) of
+    case lists:member(~"red", maps:values(Map)) of
         true ->
             Sum;
         false ->
