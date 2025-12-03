@@ -4,11 +4,12 @@
 -export([run/0, run/2]).
 
 %% callbacks
--export([info/0, star1/1, star2/1, read/1]).
+-export([info/0, star1/1, star2/1, star2/2, read/1]).
 
 info() ->
     Examples = [
         {"examples/2025/day3_ex.txt", star1, 357},
+        {"examples/2025/day3_ex.txt", {star2, 2}, 357},
         {"examples/2025/day3_ex.txt", star2, 3121910778619}
     ],
 
@@ -23,13 +24,15 @@ run() ->
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
-star1(Data) ->
-    Pairs = [max_ordered_pair(L) || L <- Data],
+star1(Lines) ->
+    Pairs = [max_ordered_pair(L) || L <- Lines],
     lists:sum(Pairs).
 
-star2(Data) ->
-    Pairs = [max_ordered_n(L, 12, []) || L <- Data],
-    %    io:format("~kp", [[0 | Pairs]]),
+star2(Lines) ->
+    star2(Lines, 12).
+
+star2(Lines, N) ->
+    Pairs = [max_ordered_n(Line, N) || Line <- Lines],
     lists:sum(Pairs).
 
 read(File) ->
@@ -44,12 +47,14 @@ max_ordered_pair(Line) ->
     % io:format("~c~c~n", [Tv, Ov]),
     list_to_integer([Tv, Ov]).
 
+max_ordered_n(Line, N) ->
+    Rev = lists:reverse(Line),
+    Enum = [{V, P} || {P, V} <- lists:enumerate(0, Rev)],
+    max_ordered_n(Enum, N, []).
+
 max_ordered_n(_, 0, Acc) ->
     list_to_integer(lists:reverse(Acc));
-max_ordered_n(Line, N, Acc) ->
-    Rev = lists:reverse(Line),
-
-    Enum = [{V, P} || {P, V} <- lists:enumerate(Rev)],
+max_ordered_n(Enum, N, Acc) ->
     Tail = lists:nthtail(N - 1, Enum),
     {Tv, Tp} = lists:max(Tail),
-    max_ordered_n(lists:reverse(lists:sublist(Rev, Tp - 1)), N - 1, [Tv | Acc]).
+    max_ordered_n(lists:sublist(Enum, Tp), N - 1, [Tv | Acc]).
