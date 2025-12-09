@@ -56,13 +56,15 @@ intersect({{X1, Y1}, {X2, Y2}}, P) ->
     [Ymin, Ymax] = lists:sort([Y1, Y2]),
     case P of
         {{X3, Y}, {X4, Y}} ->
-            ((Ymin < Y andalso Y < Ymax) andalso
-                ((min(X3, X4) =< Xmin andalso Xmin < max(X3, X4)) orelse
-                    (min(X3, X4) < Xmax andalso Xmax =< max(X3, X4))));
+            Min = min(X3, X4),
+            Max = max(X3, X4),
+            (Ymin < Y andalso Y < Ymax) andalso
+                ((Min =< Xmin andalso Xmin < Max) orelse (Min < Xmax andalso Xmax =< Max));
         {{X, Y3}, {X, Y4}} ->
-            ((Xmin < X andalso X < Xmax) andalso
-                ((min(Y3, Y4) =< Ymin andalso Ymin < max(Y3, Y4)) orelse
-                    (min(Y3, Y4) < Ymax andalso Ymax =< max(Y3, Y4))))
+            Min = min(Y3, Y4),
+            Max = max(Y3, Y4),
+            (Xmin < X andalso X < Xmax) andalso
+                ((Min =< Ymin andalso Ymin < Max) orelse (Min < Ymax andalso Ymax =< Max))
     end.
 
 non_inter(_, []) ->
