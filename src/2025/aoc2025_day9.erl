@@ -8,8 +8,8 @@
 
 info() ->
     Examples = [
-        {"examples/2025/day9_ex.txt", star1, unknown},
-        {"examples/2025/day9_ex.txt", star2, unknown}
+        {"examples/2025/day9_ex.txt", star1, 50},
+        {"examples/2025/day9_ex.txt", star2, 24}
     ],
 
     maps:merge(aoc_solution:default_info(), #{
@@ -23,13 +23,54 @@ run() ->
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
-star1(Data) ->
-    io:format("~kp~n", [Data]),
-    unknown.
+star1(Points) ->
+    lists:max([area(P1, P2) || P1 <- Points, P2 <- Points, P1 < P2]).
 
-star2(Data) ->
-    Data,
-    unknown.
+star2(Points) ->
+    Segments = border_segments(Points ++ [hd(Points)], []),
+    Areas = [area(P1, P2) || P1 <- Points, P2 <- Points, P1 < P2, inside(P1, P2, Segments)],
+    lists:max(Areas).
 
 read(File) ->
-    tools:read_string(File).
+    tools:group(2, tools:read_integers(File, ",\n")).
+
+area({X1, Y1}, {X2, Y2}) ->
+    (abs(X1 - X2) + 1) * (abs(Y1 - Y2) + 1).
+
+inside({X1, Y1}, {X2, Y2}, Border) ->
+    I1 = {{X1, Y1}, {X1, Y2}},
+    I2 = {{X2, Y1}, {X2, Y2}},
+    I3 = {{X1, Y1}, {X2, Y1}},
+    I4 = {{X1, Y2}, {X2, Y2}},
+
+    non_inter(I1, Border) andalso non_inter(I2, Border) andalso non_inter(I3, Border) andalso
+        non_inter(I4, Border).
+
+border_segments([_], Border) ->
+    Border;
+border_segments([P1, P2 | Rest], Border) ->
+    border_segments([P2 | Rest], [{P1, P2} | Border]).
+
+intersect({{X1, Y1}, {X2, Y2}}, P) ->
+    [Xmin, Xmax] = lists:sort([X1, X2]),
+    [Ymin, Ymax] = lists:sort([Y1, Y2]),
+    case P of
+        {{X3, Y}, {X4, Y}} ->
+            ((Ymin < Y andalso Y < Ymax) andalso
+                ((min(X3, X4) =< Xmin andalso Xmin < max(X3, X4)) orelse
+                    (min(X3, X4) < Xmax andalso Xmax =< max(X3, X4))));
+        {{X, Y3}, {X, Y4}} ->
+            ((Xmin < X andalso X < Xmax) andalso
+                ((min(Y3, Y4) =< Ymin andalso Ymin < max(Y3, Y4)) orelse
+                    (min(Y3, Y4) < Ymax andalso Ymax =< max(Y3, Y4))))
+    end.
+
+non_inter(_, []) ->
+    true;
+non_inter(Side, [Side | Rest]) ->
+    non_inter(Side, Rest);
+non_inter(Side, [I | Rest]) ->
+    case intersect(Side, I) of
+        true -> false;
+        false -> non_inter(Side, Rest)
+    end.
