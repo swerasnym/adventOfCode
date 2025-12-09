@@ -28,8 +28,12 @@ star1(Points) ->
 
 star2(Points) ->
     Segments = border_segments(Points ++ [hd(Points)], []),
-    Areas = [area(P1, P2) || P1 <- Points, P2 <- Points, P1 < P2, inside(P1, P2, Segments)],
-    lists:max(Areas).
+    Rectangles = tools:reverse_sort([
+        {area(P1, P2), {P1, P2}}
+     || P1 <- Points, P2 <- Points, P1 < P2
+    ]),
+    {value, {Area, _}} = lists:search(fun({_, Rect}) -> inside(Rect, Segments) end, Rectangles),
+    Area.
 
 read(File) ->
     tools:group(2, tools:read_integers(File, ",\n")).
@@ -37,7 +41,7 @@ read(File) ->
 area({X1, Y1}, {X2, Y2}) ->
     (abs(X1 - X2) + 1) * (abs(Y1 - Y2) + 1).
 
-inside({X1, Y1}, {X2, Y2}, Border) ->
+inside({{X1, Y1}, {X2, Y2}}, Border) ->
     I1 = {{X1, Y1}, {X1, Y2}},
     I2 = {{X2, Y1}, {X2, Y2}},
     I3 = {{X1, Y1}, {X2, Y1}},
