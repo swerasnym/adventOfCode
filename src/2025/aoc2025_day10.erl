@@ -9,7 +9,7 @@
 info() ->
     Examples = [
         {"examples/2025/day10_ex.txt", star1, 7},
-        {"examples/2025/day10_ex.txt", star2, unknown}
+        {"examples/2025/day10_ex.txt", star2, 33}
     ],
 
     maps:merge(aoc_solution:default_info(), #{
@@ -28,9 +28,10 @@ star1(Machines) ->
 
     lists:sum(Solve).
 
-star2(Data) ->
-    Data,
-    unknown.
+star2(Machines) ->
+    Solve = [min_presses2(Wanted, Buttons) || {_, Buttons, Wanted} <- Machines],
+
+    lists:sum(Solve).
 
 read(File) ->
     tools:read_lines(File, fun parse_line/1).
@@ -43,11 +44,14 @@ parse_line(Line) ->
     {Wanted, Buttons, Power}.
 
 min_presses(Wanted, Buttons) ->
-    io:format("~s, ~kp~n", [Wanted, Buttons]),
+    Sorted = tools:reverse_sort([{length(B), B} || B <- Buttons]),
+    ButtonsIn = [B || {_, B} <- Sorted],
+    io:format("~s, ~kp~n", [Wanted, ButtonsIn]),
+
     Enumerated = lists:enumerate(0, Wanted),
     Start = #{I => $. || {I, _} <- Enumerated},
     End = #{I => S || {I, S} <- Enumerated},
-    {value, P} = min_presses(Start, End, Buttons, 0),
+    {value, P} = min_presses(Start, End, ButtonsIn, 0),
     P.
 
 min_presses(End, End, _, P) ->
@@ -68,3 +72,52 @@ press(State, Button) ->
 
 toggle($.) -> $#;
 toggle($#) -> $..
+
+min_presses2(Wanted, Buttons) ->
+    Enumerated = lists:enumerate(0, Wanted),
+    Start = #{I => 0 || {I, _} <- Enumerated},
+    End = #{I => S || {I, S} <- Enumerated},
+    io:format("~kp ~kp ---, ~kp~n", [Start, End, Buttons]),
+    {_, {value, P}} = min_presses2(Start, End, Buttons, #{}),
+    P.
+min_presses2(over, _, _, Mem) ->
+    {Mem, false};
+min_presses2(End, End, _, Mem) ->
+    {Mem, {value, 0}};
+min_presses2(_, _, [], Mem) ->
+    {Mem, false};
+min_presses2(State, End, [Button | Rest] = All, Mem) ->
+    S = {length(All), State},
+    case maps:get(S, Mem, unknown) of
+        _ ->
+            {MemA, A} = min_presses2(press2(State, Button, End), End, All, Mem),
+            {MemB, B} = min_presses2(State, End, Rest, MemA),
+            Return =
+                case {A, B} of
+                    {false, Rb} -> Rb;
+                    {{value, Ra}, false} -> {value, Ra + 1};
+                    {{value, Ra}, {value, Rb}} -> {value, min(Ra + 1, Rb)}
+                end,
+
+            {Mem, Return};
+        Value ->
+            {Mem, Value}
+    end.
+
+press2(State, Button, End) ->
+    New = #{I => increase(maps:get(I, State)) || I <- Button},
+    % io:format("~kp~n", [New]),
+    case over(maps:to_list(New), End) of
+        true -> over;
+        false -> maps:merge(State, New)
+    end.
+
+increase(V) -> V + 1.
+
+over([], _) ->
+    false;
+over([{K, V} | Rest], End) ->
+    case V > maps:get(K, End) of
+        true -> true;
+        false -> over(Rest, End)
+    end.
