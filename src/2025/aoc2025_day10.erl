@@ -30,8 +30,9 @@ star1(Machines) ->
     lists:sum(Solve).
 
 star2(Machines) ->
-    Solve = [min_presses2(Wanted, Buttons) || {_, Buttons, Wanted} <- Machines],
-
+    io:format("~s~n", [lists:duplicate(length(Machines), $-)]),
+    Solve = [solve(Wanted, Buttons) || {_, Buttons, Wanted} <- Machines],
+    io:format("~n"),
     lists:sum(Solve).
 
 read(File) ->
@@ -73,6 +74,75 @@ press(State, Button) ->
 
 toggle($.) -> $#;
 toggle($#) -> $..
+
+press(Button, State, Times) ->
+    maps:merge(State, #{I => maps:get(I, State) - Times || I <- Button}).
+
+not_harmful(Button, State) ->
+    lists:min(maps:values(press(Button, State, 1))) >= 0.
+
+useful_buttons(State, Buttons) ->
+    KV = maps:to_list(State),
+    [useful_buttons(L, H, Buttons, HV - LV) || {L, LV} <- KV, {H, HV} <- KV, LV < HV].
+
+useful_buttons(Lower, Higher, Buttons, Diff) ->
+    [
+        {Diff, Button}
+     || Button <- Buttons, lists:member(Higher, Button) andalso not lists:member(Lower, Button)
+    ].
+
+solve(Wanted, Buttons) ->
+    Enumerated = lists:enumerate(0, Wanted),
+    End = #{I => S || {I, S} <- Enumerated},
+    Sum = lists:sum(Wanted),
+    io:format("."),
+    solve(End, Buttons, 0, Sum, Sum).
+
+solve(_State, _Buttons, Presses, MinPresses, Sum) when Presses >= MinPresses orelse Sum < 0 ->
+    % We have passed the best known solution, no need to continue.
+    MinPresses;
+solve(State, _Buttons, Presses, MinPresses, 0) ->
+    case lists:min(maps:values(State)) >= 0 of
+        true -> Presses;
+        false -> MinPresses
+    end;
+solve(_State, [], _Presses, MinPresses, _Sum) ->
+    % no buttons left to press, with things left to press...
+    MinPresses;
+solve(State, Buttons, Presses, MinPresses, Sum) ->
+    true = Sum > 0,
+    Buttons1 = lists:filter(fun(B) -> not_harmful(B, State) end, Buttons),
+    Useful = useful_buttons(State, Buttons1),
+    Single = lists:filter(fun single/1, Useful),
+    case lists:member([], Useful) of
+        true ->
+            MinPresses;
+        false when length(Single) > 0 ->
+            [{Times, Button}] = lists:max(Single),
+            solve(
+                press(Button, State, Times),
+                Buttons1,
+                Presses + Times,
+                MinPresses,
+                Sum - length(Button) * Times
+            );
+        false ->
+            one_press(State, Buttons1, Presses, MinPresses, Sum)
+    end.
+
+one_press(State, [Button | Rest] = Buttons, Presses, MinPresses, Sum) ->
+    Min1 = solve(press(Button, State, 1), Buttons, Presses + 1, MinPresses, Sum - length(Button)),
+    one_press(State, Rest, Presses, Min1, Sum);
+one_press(_State, [], _Presses, MinPresses, _Sum) ->
+    MinPresses.
+
+single([_]) -> true;
+single(_) -> false.
+
+press2(Button, State) -> maps:merge(State, #{I => increase(maps:get(I, State, 0)) || I <- Button}).
+
+press_all(Buttons) ->
+    lists:foldl(fun press2/2, #{}, Buttons).
 
 min_presses2(Wanted, Buttons) ->
     Enumerated = lists:enumerate(0, Wanted),
