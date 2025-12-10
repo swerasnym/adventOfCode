@@ -118,16 +118,20 @@ solve(State, Buttons, Presses, MinPresses, Sum) ->
         true ->
             MinPresses;
         false when length(Single) > 0 ->
-            [{Times, Button}] = lists:max(Single),
+            AllSingle = all_single(Single),
+            NewState = maps:fold(fun(B, T, A) -> press(B, A, T) end, State, AllSingle),
+            Times = lists:sum(maps:values(AllSingle)),
+
+            %[{Times, Button}] = lists:max(Single),
             solve(
-                press(Button, State, Times),
+                NewState,
                 Buttons1,
                 Presses + Times,
                 MinPresses,
-                Sum - length(Button) * Times
+                lists:sum(maps:values(NewState))
             );
         false ->
-            one_press(State, partition(Buttons1), Presses, MinPresses, Sum)
+            one_press(State, partition(Buttons1, State), Presses, MinPresses, Sum)
     end.
 
 one_press(State, {[Button | Rest] = Buttons, Other}, Presses, MinPresses, Sum) ->
@@ -141,7 +145,10 @@ one_press(_State, {[], _}, _Presses, MinPresses, _Sum) ->
 single([_]) -> true;
 single(_) -> false.
 
-partition(Buttons) ->
+partition(Buttons, State) ->
     Counts = tools:count(lists:flatten(Buttons)),
-    {_, Key} = lists:min([{V, K} || K := V <- Counts, V > 0]),
+    {_, _, Key} = lists:min([{V, maps:get(K, State), K} || K := V <- Counts, V > 0]),
     lists:partition(fun(L) -> lists:member(Key, L) end, Buttons).
+
+all_single(Single) ->
+    lists:foldl(fun([{T, B}], A) -> A#{B => max(T, maps:get(B, A, 0))} end, #{}, Single).
