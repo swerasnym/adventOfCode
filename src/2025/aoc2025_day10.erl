@@ -14,7 +14,6 @@ info() ->
 
     maps:merge(aoc_solution:default_info(), #{
         problem => {2025, 10},
-        unit_test_input => false,
         examples => Examples
     }).
 
