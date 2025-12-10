@@ -127,14 +127,21 @@ solve(State, Buttons, Presses, MinPresses, Sum) ->
                 Sum - length(Button) * Times
             );
         false ->
-            one_press(State, Buttons1, Presses, MinPresses, Sum)
+            one_press(State, partition(Buttons1), Presses, MinPresses, Sum)
     end.
 
-one_press(State, [Button | Rest] = Buttons, Presses, MinPresses, Sum) ->
-    Min1 = solve(press(Button, State, 1), Buttons, Presses + 1, MinPresses, Sum - length(Button)),
-    one_press(State, Rest, Presses, Min1, Sum);
-one_press(_State, [], _Presses, MinPresses, _Sum) ->
+one_press(State, {[Button | Rest] = Buttons, Other}, Presses, MinPresses, Sum) ->
+    Min1 = solve(
+        press(Button, State, 1), Buttons ++ Other, Presses + 1, MinPresses, Sum - length(Button)
+    ),
+    one_press(State, {Rest, Other}, Presses, Min1, Sum);
+one_press(_State, {[], _}, _Presses, MinPresses, _Sum) ->
     MinPresses.
 
 single([_]) -> true;
 single(_) -> false.
+
+partition(Buttons) ->
+    Counts = tools:count(lists:flatten(Buttons)),
+    {_, Key} = lists:min([{V, K} || K := V <- Counts, V > 0]),
+    lists:partition(fun(L) -> lists:member(Key, L) end, Buttons).
