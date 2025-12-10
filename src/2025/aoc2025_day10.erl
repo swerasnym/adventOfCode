@@ -14,6 +14,7 @@ info() ->
 
     maps:merge(aoc_solution:default_info(), #{
         problem => {2025, 10},
+        unit_test_input => false,
         examples => Examples
     }).
 
@@ -46,7 +47,7 @@ parse_line(Line) ->
 min_presses(Wanted, Buttons) ->
     Sorted = tools:reverse_sort([{length(B), B} || B <- Buttons]),
     ButtonsIn = [B || {_, B} <- Sorted],
-    io:format("~s, ~kp~n", [Wanted, ButtonsIn]),
+    % io:format("~s, ~kp~n", [Wanted, ButtonsIn]),
 
     Enumerated = lists:enumerate(0, Wanted),
     Start = #{I => $. || {I, _} <- Enumerated},
@@ -77,7 +78,7 @@ min_presses2(Wanted, Buttons) ->
     Enumerated = lists:enumerate(0, Wanted),
     Start = #{I => 0 || {I, _} <- Enumerated},
     End = #{I => S || {I, S} <- Enumerated},
-    io:format("~kp ~kp ---, ~kp~n", [Start, End, Buttons]),
+    % io:format("~kp ~kp ---, ~kp~n", [Start, End, Buttons]),
     {_, {value, P}} = min_presses2(Start, End, Buttons, #{}),
     P.
 min_presses2(over, _, _, Mem) ->
