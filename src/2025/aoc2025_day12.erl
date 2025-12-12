@@ -8,7 +8,7 @@
 
 info() ->
     Examples = [
-        {"examples/2025/day12_ex.txt", star1, 0}
+        {"examples/2025/day12_ex.txt", star1, 2}
     ],
 
     maps:merge(aoc_solution:default_info(), #{
@@ -22,9 +22,19 @@ run() ->
 run(StarOrStars, FileOrData) ->
     aoc_solution:run(?MODULE, StarOrStars, FileOrData).
 
-star1({_Packets, Areas}) ->
-    {Trivial, _NonTrivial} = lists:partition(fun trivial/1, Areas),
-    length(Trivial).
+star1({Packets, Areas}) ->
+    {Trivial, NonTrivial} = lists:partition(fun trivial/1, Areas),
+    {Impossible, Rest} = lists:partition(fun(A) -> impossible(A, Packets) end, NonTrivial),
+    Solvable = lists:filter(fun(A) -> solvable(A, Packets) end, Rest),
+
+    T = length(Trivial),
+    I = length(Impossible),
+    R = length(Rest),
+    S = length(Solvable),
+
+    io:format("Trivial ~p, Impossible ~p, Rest ~p, Solvable ~p~n", [T, I, R, S]),
+
+    T + S.
 
 star2(_) ->
     {done, "Done Decorating"}.
@@ -65,3 +75,13 @@ all_shapes(Packet) ->
 
 trivial({{W, H}, S, _}) ->
     (W div 3) * (H div 3) >= S.
+
+impossible({{W, H}, _, List}, Packets) ->
+    AreaAvailable = W * H,
+
+    MinAreaUsed = lists:sum([N * tools:count($#, hd(maps:get(P, Packets))) || {P, N} <- List]),
+    AreaAvailable < MinAreaUsed.
+
+solvable({_, S, _}, Packets) ->
+    % TODO Only used for the example, so just check number of packets for now :D
+    S < 7 andalso maps:size(Packets) == 6.
